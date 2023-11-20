@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Http Tunnel Core</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
+    <ProjectReference Include="..\..\..\src\Furly.Extensions.Json\src\Furly.Extensions.Json.csproj" />
+  </ItemGroup>
+</Project>

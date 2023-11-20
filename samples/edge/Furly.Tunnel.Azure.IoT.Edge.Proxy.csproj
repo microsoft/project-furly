@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\azure\Furly.Azure.IoT.Edge\src\Furly.Azure.IoT.Edge.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tunnel\Furly.Tunnel\src\Furly.Tunnel.csproj" />
+  </ItemGroup>
+</Project>
