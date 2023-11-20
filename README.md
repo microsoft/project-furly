@@ -1,4 +1,4 @@
-# Project Furly - Industrial Edge SDK
+# Project Furly - Industrial IoT Edge SDK
 
 This repo contains abstractions and plug ins that became useful during the development of the [Azure Industrial IoT](https://www.github.com/Azure/Industrial-IoT) platform and are still used in this platform's OPC Publisher to date as well as other internal edge components we have built over the years.
 
