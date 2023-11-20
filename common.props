@@ -1,7 +1,7 @@
-<Project>
+-<Project>
   <PropertyGroup>
     <Product>Furly</Product>
-    <RepositoryUrl>https://github.com/microsoft/Furly</RepositoryUrl>
+    <RepositoryUrl>https://github.com/microsoft/project-furly</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NoWarn>NU5125;RS1022;AD0001</NoWarn>
     <Authors>Microsoft</Authors>
