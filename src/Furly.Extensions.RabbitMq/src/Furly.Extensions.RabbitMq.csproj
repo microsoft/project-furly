@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nito.Disposables" Version="2.4.0" />
-    <PackageReference Include="RabbitMQ.Client" Version="6.6.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.7.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
