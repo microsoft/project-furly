@@ -7,7 +7,7 @@
     <Description>Furly RabbitMQ extensions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Nito.Disposables" Version="2.4.0" />
+    <PackageReference Include="Nito.Disposables" Version="2.5.0" />
     <PackageReference Include="RabbitMQ.Client" Version="6.7.0" />
   </ItemGroup>
   <ItemGroup>

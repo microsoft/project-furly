@@ -21,7 +21,7 @@
     <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.10.0" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.39.0" />
     <PackageReference Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
-    <PackageReference Include="Nito.Disposables" Version="2.4.0" />
+    <PackageReference Include="Nito.Disposables" Version="2.5.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
