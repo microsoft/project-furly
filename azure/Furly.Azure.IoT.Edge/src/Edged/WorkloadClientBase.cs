@@ -145,12 +145,16 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged
                     }
                 });
 #pragma warning restore CA2000 // Dispose objects before losing scope
+                client.BaseAddress = new UriBuilder(WorkloadUri)
+                {
+                    Scheme = Uri.UriSchemeHttp
+                }.Uri;
             }
             else
             {
                 client = _httpClientFactory.CreateClient();
+                client.BaseAddress = WorkloadUri;
             }
-            client.BaseAddress = WorkloadUri;
             return client;
         }
 
