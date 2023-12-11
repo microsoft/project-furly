@@ -59,7 +59,7 @@ namespace Furly.Extensions.RabbitMq.Server
                 var param = GetContainerParameters(_ports);
                 var name = $"rabbitmq_{string.Join("_", _ports)}";
                 (_containerId, _owner) = await CreateAndStartContainerAsync(
-                    param, name, "bitnami/rabbitmq:latest").ConfigureAwait(false);
+                    param, name, "bitnami/rabbitmq:3.9").ConfigureAwait(false);
                 try
                 {
                     // Check running
