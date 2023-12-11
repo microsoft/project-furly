@@ -308,7 +308,7 @@ namespace Furly.Extensions.Mqtt.Clients
             }
 
             var options = optionsBuilder.Build();
-            options.KeepAliveMonitorInterval = _options.Value.KeepAlivePeriod ??
+            options.KeepAliveOptions.MonitorInterval = _options.Value.KeepAlivePeriod ??
                 TimeSpan.FromMilliseconds(500);
             var server = new MqttFactory().CreateMqttServer(options);
             try

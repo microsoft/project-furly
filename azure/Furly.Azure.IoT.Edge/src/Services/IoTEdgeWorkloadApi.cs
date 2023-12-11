@@ -104,19 +104,10 @@ namespace Furly.Azure.IoT.Edge.Services
             }
             var result = await _client.CreateServerCertificateAsync(
                 commonName, expiration).ConfigureAwait(false);
-            var collection = new X509Certificate2Collection();
-            collection.ImportFromPem(result.Certificate);
-            if (collection.Count == 0)
-            {
-                throw new InvalidOperationException("Certificate is required");
-            }
-            using (var first = collection[0])
-            {
-                // Attach private key
-                collection[0] = X509Certificate2.CreateFromPem(
-                    first.ExportCertificatePem(), result.PrivateKey);
-            }
-            return collection;
+#pragma warning disable CA2000 // Dispose objects before losing scope
+            return new X509Certificate2Collection(
+                X509Certificate2.CreateFromPem(result.Certificate, result.PrivateKey));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <inheritdoc/>
