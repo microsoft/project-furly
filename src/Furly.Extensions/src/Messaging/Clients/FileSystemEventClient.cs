@@ -36,6 +36,7 @@ namespace Furly.Extensions.Messaging.Clients
         public FileSystemEventClient(IOptions<FileSystemOptions> options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _rootFolder = Path.GetFullPath(_options.Value.OutputFolder ?? string.Empty);
         }
 
         /// <inheritdoc/>
@@ -127,28 +128,25 @@ namespace Furly.Extensions.Messaging.Clients
                 {
                     return;
                 }
-                var folder = _outer._options.Value.OutputFolder;
-                if (folder == null)
-                {
-                    return;
-                }
                 if (string.IsNullOrEmpty(_topic))
                 {
                     throw new InvalidOperationException("Need topic");
                 }
-                var topic = folder + (_topic[0] == '/' ? _topic : ("/" + _topic));
-                if (Path.PathSeparator != '/')
+                var fileName = string.Join("_", _topic.Split(Path.GetInvalidFileNameChars()))
+                    .Trim('/');
+                fileName = _outer._rootFolder + "/" + fileName;
+                if (Path.DirectorySeparatorChar != '/')
                 {
-                    topic = topic.Replace('/', Path.PathSeparator);
+                    fileName = fileName.Replace('/', Path.DirectorySeparatorChar);
                 }
-                using (var stream = new FileStream(topic, FileMode.OpenOrCreate))
+                using (var stream = new FileStream(fileName, FileMode.Append))
                 {
                     foreach (var buffer in _buffers)
                     {
                         await stream.WriteAsync(buffer, ct).ConfigureAwait(false);
                     }
                 }
-                File.SetLastAccessTimeUtc(topic, _timestamp);
+                File.SetLastAccessTimeUtc(fileName, _timestamp);
             }
 
             /// <inheritdoc/>
@@ -165,5 +163,6 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         private readonly IOptions<FileSystemOptions> _options;
+        private readonly string _rootFolder;
     }
 }
