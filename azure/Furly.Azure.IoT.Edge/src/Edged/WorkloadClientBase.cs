@@ -3,6 +3,7 @@
 namespace Microsoft.Azure.Devices.Edge.Util.Edged
 {
     using System;
+    using System.Linq;
     using System.Net.Http;
     using System.Net.Sockets;
     using System.Threading.Tasks;
@@ -134,19 +135,17 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged
                 {
                     ConnectCallback = async (_, _) =>
                     {
-                        var socket = new Socket(AddressFamily.Unix,
-                            SocketType.Stream, ProtocolType.IP);
-                        const string udssocketpostfix = ".sock";
-                        var endpoint = new UnixDomainSocketEndPoint(
-                            WorkloadUri.AbsolutePath.Split(udssocketpostfix)[0]
-                                + udssocketpostfix);
+                        var endpoint = new UnixDomainSocketEndPoint(WorkloadUri.LocalPath);
+                        var socket = new Socket(AddressFamily.Unix, SocketType.Stream,
+                            ProtocolType.Unspecified);
                         await socket.ConnectAsync(endpoint).ConfigureAwait(false);
                         return new NetworkStream(socket, ownsSocket: true);
                     }
                 });
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                client.BaseAddress = new UriBuilder(WorkloadUri)
+                client.BaseAddress = new UriBuilder
                 {
+                    Host = WorkloadUri.Segments.LastOrDefault() ?? "localhost",
                     Scheme = Uri.UriSchemeHttp
                 }.Uri;
             }
