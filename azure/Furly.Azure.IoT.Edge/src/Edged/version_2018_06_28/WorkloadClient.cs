@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged.Version20180628
             {
                 var edgeletHttpClient = new HttpWorkloadClient(httpClient)
                 {
-                    BaseUrl = WorkloadUri.ToString()
+                    BaseUrl = httpClient.BaseAddress?.ToString()
                 };
                 var result = await ExecuteAsync(() => edgeletHttpClient.CreateServerCertificateAsync(
                     Version.Name, ModuleId, ModuleGenerationId, request),
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged.Version20180628
             {
                 var edgeletHttpClient = new HttpWorkloadClient(httpClient)
                 {
-                    BaseUrl = WorkloadUri.ToString()
+                    BaseUrl = httpClient.BaseAddress?.ToString()
                 };
                 var result = await ExecuteAsync(() => edgeletHttpClient.TrustBundleAsync(
                     Version.Name), "TrustBundleAsync").ConfigureAwait(false);
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged.Version20180628
             {
                 var edgeletHttpClient = new HttpWorkloadClient(httpClient)
                 {
-                    BaseUrl = WorkloadUri.ToString()
+                    BaseUrl = httpClient.BaseAddress?.ToString()
                 };
                 var result = await ExecuteAsync(() => edgeletHttpClient.EncryptAsync(
                     Version.Name, ModuleId, ModuleGenerationId, request), "Encrypt").ConfigureAwait(false);
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged.Version20180628
             {
                 var edgeletHttpClient = new HttpWorkloadClient(httpClient)
                 {
-                    BaseUrl = WorkloadUri.ToString()
+                    BaseUrl = httpClient.BaseAddress?.ToString()
                 };
                 var result = await ExecuteAsync(() => edgeletHttpClient.DecryptAsync(
                     Version.Name, ModuleId, ModuleGenerationId, request), "Decrypt").ConfigureAwait(false);
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged.Version20180628
             {
                 var edgeletHttpClient = new HttpWorkloadClient(httpClient)
                 {
-                    BaseUrl = WorkloadUri.ToString()
+                    BaseUrl = httpClient.BaseAddress?.ToString()
                 };
                 var response = await ExecuteAsync(() => edgeletHttpClient.SignAsync(
                     Version.Name, ModuleId, ModuleGenerationId, signRequest), "SignAsync").ConfigureAwait(false);
