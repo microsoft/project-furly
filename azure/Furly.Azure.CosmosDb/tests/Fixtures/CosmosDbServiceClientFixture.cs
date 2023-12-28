@@ -142,9 +142,9 @@ namespace Furly.Azure.CosmosDb.Clients
         }
 
         /// <summary>
-        /// Get collection interface
+        /// Get container interface
         /// </summary>
-        /// <param name="options"></param>
+        /// <param name="name"></param>
         /// <returns></returns>
         public async Task<ContainerWrapper?> GetContainerAsync(string? name = null)
         {
