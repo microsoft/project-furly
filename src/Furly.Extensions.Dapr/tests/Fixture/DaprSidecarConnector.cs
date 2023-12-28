@@ -115,13 +115,15 @@ namespace Furly.Extensions.Dapr.Clients
             builder.Services.AddGrpc();
             builder.Services.AddSingleton(GetType(), this);
 
-            using var app = builder.Build();
+            var app = builder.Build();
+            await using (app.ConfigureAwait(false))
+            {
+                // Configure the HTTP request pipeline.
+                app.MapGrpcService<DaprSidecar>();
 
-            // Configure the HTTP request pipeline.
-            app.MapGrpcService<DaprSidecar>();
-
-            await app.StartAsync(token).ConfigureAwait(false);
-            await app.WaitForShutdownAsync(token).ConfigureAwait(false);
+                await app.StartAsync(token).ConfigureAwait(false);
+                await app.WaitForShutdownAsync(token).ConfigureAwait(false);
+            }
         }
 
         private sealed class Subscription : IAsyncDisposable

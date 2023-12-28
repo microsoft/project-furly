@@ -27,7 +27,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -46,7 +46,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test2InvocationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -64,7 +64,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -86,7 +86,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationV2Async()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -109,7 +109,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoParametersInvocationNoParamAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -124,7 +124,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoParametersInvocationNoParamWithCancellationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -139,7 +139,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoReturnInvocationNoReturnAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -154,7 +154,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoReturnInvocationNoReturnWithCancellationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -170,7 +170,7 @@ namespace Furly.Tunnel.Router.Tests
         public async Task TestNoParametersAndNoReturnInvocationNoParamAndNoReturnAsync()
         {
             var controller = new TestControllerV1();
-            using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
+            await using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -186,7 +186,7 @@ namespace Furly.Tunnel.Router.Tests
         public async Task TestNoParametersAndNoReturnInvocationNoParamAndNoReturnWithCancellationAsync()
         {
             var controller = new TestControllerV1WithCancellationToken();
-            using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
+            await using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -201,7 +201,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationWithSmallBufferUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -218,7 +218,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationWithLargeBufferUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -235,7 +235,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test2InvocationWithLargeBufferUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -253,7 +253,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationWithLargeBufferUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -275,7 +275,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationV2WithLargeBufferUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -298,7 +298,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoParametersInvocationNoParamUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -313,7 +313,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoParametersInvocationNoParamUsingMethodClientWithCancellationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -327,7 +327,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoParametersInvocationNullParamUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -342,7 +342,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoParametersInvocationNullParamUsingMethodClientWithCancellationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -357,7 +357,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoReturnInvocationNoReturnUsingMethodClientAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -372,7 +372,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task TestNoReturnInvocationNoReturnUsingMethodClientWithCancellationAsync()
         {
-            using (var services = await MethodRouterTests.CreateContainerAsync())
+            await using (var services = await MethodRouterTests.CreateContainerAsync())
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -388,7 +388,7 @@ namespace Furly.Tunnel.Router.Tests
         public async Task TestNoParametersAndNoReturnInvocationNoParamAndNoReturnUsingMethodClientAsync()
         {
             var controller = new TestControllerV1();
-            using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
+            await using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
             {
                 var client = services.Resolve<IMethodClient>();
 
@@ -404,7 +404,7 @@ namespace Furly.Tunnel.Router.Tests
         public async Task TestNoParametersAndNoReturnInvocationNoParamAndNoReturnUsingMethodClientWithCancellationAsync()
         {
             var controller = new TestControllerV1WithCancellationToken();
-            using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
+            await using (var services = await MethodRouterTests.CreateContainerAsync(controller.YieldReturn()))
             {
                 var client = services.Resolve<IMethodClient>();
 

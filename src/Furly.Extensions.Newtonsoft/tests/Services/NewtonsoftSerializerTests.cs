@@ -220,7 +220,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             var result = Serializer.FromArray(o, o, o);
             Assert.NotNull(result);
             Assert.True(result.IsListOfValues);
-            Assert.True(result.Count == 3);
+            Assert.Equal(3, result.Count);
         }
 
         [Theory]
@@ -233,7 +233,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             var result = Serializer.FromArray(o, o);
             Assert.NotNull(result);
             Assert.True(result.IsListOfValues);
-            Assert.True(result.Count == 2);
+            Assert.Equal(2, result.Count);
         }
 
         [Theory]
@@ -444,7 +444,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         public async Task TestDataContract2AsyncEnumerableSerializeDeserialize1Async(int count)
         {
             var v1 = GetInstanceOfModel();
-            using (var stream = new MemoryStream())
+            var stream = new MemoryStream(); await using (stream.ConfigureAwait(false))
             {
                 var va1 = Enumerable.Repeat(v1, count).ToAsyncEnumerable();
                 await Serializer.SerializeAsync(stream, va1);
@@ -466,7 +466,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         public async Task TestDataContract2AsyncEnumerableAsync(int count)
         {
             var v1 = GetInstanceOfModel();
-            using (var stream = new MemoryStream())
+            var stream = new MemoryStream(); await using (stream.ConfigureAwait(false))
             {
                 var va1 = Enumerable.Repeat(v1, count).ToArray();
                 await Serializer.SerializeAsync(stream, va1);
@@ -488,7 +488,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         public async Task TestDataContract2AsyncEnumerableSerializeDeserialize2Async(int count)
         {
             var v1 = GetInstanceOfModel();
-            using (var stream = new MemoryStream())
+            var stream = new MemoryStream(); await using (stream.ConfigureAwait(false))
             {
                 var va1 = Enumerable.Repeat(v1, count).ToArray();
                 await Serializer.SerializeAsync(stream, va1);
@@ -509,7 +509,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         [MemberData(nameof(GetFilledArrays))]
         public async Task SerializerDeserializerAsync(object? o, Type type)
         {
-            using (var stream = new MemoryStream())
+            var stream = new MemoryStream(); await using (stream.ConfigureAwait(false))
             {
                 await Serializer.SerializeAsync(stream, o);
                 stream.Position = 0;
@@ -528,7 +528,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         public async Task SerializerDeserializerAsyncEnumerableAsync(object? o, Type type)
         {
             var v1 = o;
-            using (var stream = new MemoryStream())
+            var stream = new MemoryStream(); await using (stream.ConfigureAwait(false))
             {
                 var va1 = Enumerable.Repeat(v1, 1000).ToArray();
                 await Serializer.SerializeAsync(stream, va1);
@@ -551,7 +551,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         public async Task SerializerDeserializerAsyncArrayAsync(object? o, Type type)
         {
             var v1 = o;
-            using (var stream = new MemoryStream())
+            var stream = new MemoryStream(); await using (stream.ConfigureAwait(false))
             {
                 var va1 = Enumerable.Repeat(v1, 100).ToArray();
                 await Serializer.SerializeAsync(stream, va1);

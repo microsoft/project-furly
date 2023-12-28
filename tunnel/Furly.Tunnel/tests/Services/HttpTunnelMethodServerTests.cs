@@ -35,7 +35,7 @@ namespace Furly.Tunnel.Services.Tests
 
             var httpClientFactoryServer = new HttpTunnelHttpClientFactoryServer(HttpTunnelFixture.CreateHttpClientFactory());
             var connection = new TestRpcServer(_serializer, 128 * 1024);
-            using var server = new HttpTunnelMethodServer(connection,
+            await using var server = new HttpTunnelMethodServer(connection,
                 httpClientFactoryServer, _serializer, logger.CreateLogger<HttpTunnelMethodServer>());
             await server;
 
@@ -88,7 +88,7 @@ namespace Furly.Tunnel.Services.Tests
                 .Returns(Task.FromResult(response));
 
             var connection = new TestRpcServer(_serializer, 128 * 1024);
-            using var server = new HttpTunnelMethodServer(connection,
+            await using var server = new HttpTunnelMethodServer(connection,
                 new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer, logger.CreateLogger<HttpTunnelMethodServer>());
             await server;
 
@@ -141,7 +141,7 @@ namespace Furly.Tunnel.Services.Tests
                 .Returns(Task.FromResult(response));
 
             var connection = new TestRpcServer(_serializer, 128 * 1024);
-            using var server = new HttpTunnelMethodServer(connection,
+            await using var server = new HttpTunnelMethodServer(connection,
                 new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer, logger.CreateLogger<HttpTunnelMethodServer>());
             await server;
 
@@ -194,7 +194,7 @@ namespace Furly.Tunnel.Services.Tests
                 .Returns(Task.FromResult(response));
 
             var connection = new TestRpcServer(_serializer, 128 * 1024);
-            using var server = new HttpTunnelMethodServer(connection,
+            await using var server = new HttpTunnelMethodServer(connection,
                 new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer, logger.CreateLogger<HttpTunnelMethodServer>());
             await server;
 
@@ -245,7 +245,7 @@ namespace Furly.Tunnel.Services.Tests
                 .Returns(Task.FromResult(response));
 
             var connection = new TestRpcServer(_serializer, 128 * 1024);
-            using var server = new HttpTunnelMethodServer(connection,
+            await using var server = new HttpTunnelMethodServer(connection,
                 new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer, logger.CreateLogger<HttpTunnelMethodServer>());
             await server;
 

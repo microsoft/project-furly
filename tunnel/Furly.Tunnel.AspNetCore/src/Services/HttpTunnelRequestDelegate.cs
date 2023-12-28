@@ -74,31 +74,34 @@ namespace Furly.Tunnel.AspNetCore.Services
 
             // Create context
             var factory = _services.GetRequiredService<IHttpContextFactory>();
-            using var buffer = new MemoryStream();
-            var response = new HttpTunnelResponse(buffer);
-            var features = new FeatureCollection();
-            features.Set<IHttpRequestFeature>(httpRequest);
-            features.Set<IHttpRequestIdentifierFeature>(httpRequest);
-            features.Set<IHttpResponseFeature>(response);
-            features.Set<IHttpResponseBodyFeature>(response);
-            features.Set<IHttpBodyControlFeature>(response);
-            var context = factory.Create(features);
-
-            // Handle
-            await _delegate(context).ConfigureAwait(false);
-
-            // Serialize http back
-            return new HttpTunnelResponseModel
+            var buffer = new MemoryStream();
+            await using (buffer.ConfigureAwait(false))
             {
-                Payload = response.Payload,
-                RequestId = httpRequest.TraceIdentifier,
-                Status = response.StatusCode,
-                Reason = response.ReasonPhrase,
-                Headers = response.Headers?
-                    .ToDictionary(k => k.Key, v => v.Value
-                        .Select(v => v ?? string.Empty)
-                        .ToList()),
-            };
+                var response = new HttpTunnelResponse(buffer);
+                var features = new FeatureCollection();
+                features.Set<IHttpRequestFeature>(httpRequest);
+                features.Set<IHttpRequestIdentifierFeature>(httpRequest);
+                features.Set<IHttpResponseFeature>(response);
+                features.Set<IHttpResponseBodyFeature>(response);
+                features.Set<IHttpBodyControlFeature>(response);
+                var context = factory.Create(features);
+
+                // Handle
+                await _delegate(context).ConfigureAwait(false);
+
+                // Serialize http back
+                return new HttpTunnelResponseModel
+                {
+                    Payload = response.Payload,
+                    RequestId = httpRequest.TraceIdentifier,
+                    Status = response.StatusCode,
+                    Reason = response.ReasonPhrase,
+                    Headers = response.Headers?
+                        .ToDictionary(k => k.Key, v => v.Value
+                            .Select(v => v ?? string.Empty)
+                            .ToList()),
+                };
+            }
         }
 
         /// <summary>

@@ -34,7 +34,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationNonChunkedAsync()
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
 
             var buffer = new byte[1049];
             FillRandom(buffer);
@@ -50,7 +50,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationChunkedAsync()
         {
-            using var router = GetRouter(out var rpcClient);
+            await using var router = GetRouter(out var rpcClient);
             var client = new ChunkMethodClient(rpcClient,
                 _serializer, Log.Console<ChunkMethodClient>());
 
@@ -69,7 +69,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationNonChunkedWithCancellationAsync()
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
 
             var buffer = new byte[1049];
             FillRandom(buffer);
@@ -85,7 +85,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test1InvocationChunkedWithCancellationAsync()
         {
-            using var router = GetRouter(out var rpcClient);
+            await using var router = GetRouter(out var rpcClient);
             var client = new ChunkMethodClient(rpcClient,
                 _serializer, Log.Console<ChunkMethodClient>());
 
@@ -109,7 +109,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(95 * 1024)]
         public async Task Test2InvocationNonChunkedAsync(int size)
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
@@ -127,7 +127,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(95 * 1024)]
         public async Task Test2InvocationNonChunkedWithCancellationAsync(int size)
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
@@ -145,7 +145,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(95 * 1024)]
         public async Task Test8InvocationV1NonChunkedAsync(int size)
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
@@ -163,7 +163,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(95 * 1024)]
         public async Task Test8InvocationV2NonChunkedAsync(int size)
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
@@ -182,7 +182,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(129 * 1024)]
         public async Task Test2InvocationChunkedAsync(int size)
         {
-            using var router = GetRouter(out var rpcClient);
+            await using var router = GetRouter(out var rpcClient);
             var client = new ChunkMethodClient(rpcClient,
                 _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
@@ -205,7 +205,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(129 * 1024)]
         public async Task Test2InvocationChunkedWithCancellationAsync(int size)
         {
-            using var router = GetRouter(out var rpcClient);
+            await using var router = GetRouter(out var rpcClient);
             var client = new ChunkMethodClient(rpcClient,
                 _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
@@ -228,7 +228,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(129 * 1024)]
         public async Task Test8InvocationV1ChunkedAsync(int size)
         {
-            using var router = GetRouter(out var rpcClient);
+            await using var router = GetRouter(out var rpcClient);
             var client = new ChunkMethodClient(rpcClient,
                 _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
@@ -251,7 +251,7 @@ namespace Furly.Tunnel.Router.Tests
         [InlineData(129 * 1024)]
         public async Task Test8InvocationV2ChunkedAsync(int size)
         {
-            using var router = GetRouter(out var rpcClient);
+            await using var router = GetRouter(out var rpcClient);
             var client = new ChunkMethodClient(rpcClient,
                 _serializer, Log.Console<ChunkMethodClient>());
             var expected = new byte[size];
@@ -268,7 +268,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationNonChunkedAsync()
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var expected = new byte[1049];
             FillRandom(expected);
             var response = await router.InvokeAsync("Test3_V1",
@@ -285,7 +285,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationNonChunkedWithCancellationAsync()
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var expected = new byte[1049];
             FillRandom(expected);
             var response = await router.InvokeAsync("Test3C_V1",
@@ -302,7 +302,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test2InvocationV2NonChunkedAsync()
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var buffer = new byte[1049];
             FillRandom(buffer);
             try
@@ -326,7 +326,7 @@ namespace Furly.Tunnel.Router.Tests
         [Fact]
         public async Task Test3InvocationV2NonChunkedAsync()
         {
-            using var router = GetRouter(out _);
+            await using var router = GetRouter(out _);
             var buffer = new byte[1049];
             FillRandom(buffer);
             const int expected = 3254;

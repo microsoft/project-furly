@@ -73,7 +73,8 @@ namespace Furly.Tunnel.Protocol
             // Send chunks
             var buffer = payload.ToArray().Zip(); // Gzip payload
             var status = 200;
-            using (var received = new MemoryStream())
+            var received = new MemoryStream();
+            await using (received.ConfigureAwait(false))
             {
                 string? handle = null;
                 for (var offset = 0; offset < buffer.Length; offset += MaxChunkLength)

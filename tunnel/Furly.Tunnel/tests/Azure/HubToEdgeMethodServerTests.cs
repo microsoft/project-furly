@@ -65,7 +65,7 @@ namespace Furly.Tunnel.Azure.Tests
                 var httpClientFactoryServer = new HttpTunnelHttpClientFactoryServer(HttpTunnelFixture.CreateHttpClientFactory());
                 var connection = harness.GetModuleRpcServer();
                 Skip.If(connection == null);
-                using var server = new HttpTunnelMethodServer(connection, httpClientFactoryServer, _serializer,
+                await using var server = new HttpTunnelMethodServer(connection, httpClientFactoryServer, _serializer,
                     logger.CreateLogger<HttpTunnelMethodServer>());
                 await server;
 
@@ -127,7 +127,8 @@ namespace Furly.Tunnel.Azure.Tests
 
                 var connection = harness.GetModuleRpcServer();
                 Skip.If(connection == null);
-                using var server = new HttpTunnelMethodServer(connection, new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer,
+                await using var server = new HttpTunnelMethodServer(connection,
+                    new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer,
                     logger.CreateLogger<HttpTunnelMethodServer>());
                 await server;
 
@@ -191,7 +192,7 @@ namespace Furly.Tunnel.Azure.Tests
 
                 var connection = harness.GetModuleRpcServer();
                 Skip.If(connection == null);
-                using var server = new HttpTunnelMethodServer(connection, new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer,
+                await using var server = new HttpTunnelMethodServer(connection, new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer,
                     logger.CreateLogger<HttpTunnelMethodServer>());
                 await server;
 
@@ -254,7 +255,7 @@ namespace Furly.Tunnel.Azure.Tests
 
                 var connection = harness.GetModuleRpcServer();
                 Skip.If(connection == null);
-                using var server = new HttpTunnelMethodServer(connection, new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer,
+                await using var server = new HttpTunnelMethodServer(connection, new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer,
                     logger.CreateLogger<HttpTunnelMethodServer>());
                 await server;
 
@@ -316,7 +317,7 @@ namespace Furly.Tunnel.Azure.Tests
 
                 var connection = harness.GetModuleRpcServer();
                 Skip.If(connection == null);
-                using var server = new HttpTunnelMethodServer(connection,
+                await using var server = new HttpTunnelMethodServer(connection,
                     new HttpTunnelHttpClientFactoryServer(httpclientFactoryMock), _serializer, logger.CreateLogger<HttpTunnelMethodServer>());
                 await server;
 

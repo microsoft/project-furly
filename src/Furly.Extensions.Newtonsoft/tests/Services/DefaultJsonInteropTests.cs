@@ -151,7 +151,7 @@ namespace Furly.Extensions.Serializers.Json
             var expected = Default.FromArray(o, o, o);
             var actual = Newtonsoft.Parse(Newtonsoft.SerializeToString(expected));
             Assert.True(actual.IsArray);
-            Assert.True(actual.Count == 3);
+            Assert.Equal(3, actual.Count);
             Assert.Equal(expected.GetTypeCode(), actual.GetTypeCode());
             Assert.Equal(expected.Count, actual.Count);
             Assert.True(expected.Equals(actual));
@@ -167,7 +167,7 @@ namespace Furly.Extensions.Serializers.Json
             var actual = Newtonsoft.Parse(json);
 
             Assert.True(actual.IsBytes);
-            Assert.True(actual.Count == 3);
+            Assert.Equal(3, actual.Count);
             Assert.True(expected.IsArray);
             Assert.Equal(expected.Count, actual.Count);
 
@@ -188,7 +188,7 @@ namespace Furly.Extensions.Serializers.Json
             var actual = Newtonsoft.Parse(json);
 
             Assert.True(actual.IsArray);
-            Assert.True(actual.Count == 3);
+            Assert.Equal(3, actual.Count);
             Assert.Equal(expected.GetTypeCode(), actual.GetTypeCode());
             Assert.Equal(expected.Count, actual.Count);
             if (!actual.Equals(expected))

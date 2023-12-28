@@ -139,7 +139,8 @@ namespace Furly.Extensions.Messaging.Clients
                 {
                     fileName = fileName.Replace('/', Path.DirectorySeparatorChar);
                 }
-                using (var stream = new FileStream(fileName, FileMode.Append))
+                var stream = new FileStream(fileName, FileMode.Append);
+                await using (stream.ConfigureAwait(false))
                 {
                     foreach (var buffer in _buffers)
                     {

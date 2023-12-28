@@ -110,23 +110,26 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             {
                 var jsonSerializer = JsonSerializer.CreateDefault(Settings);
                 using (var reader = new StreamReader(stream, ContentEncoding))
-                using (var jsonReader = new JsonTextReader(reader))
                 {
-                    jsonReader.FloatParseHandling = Settings.FloatParseHandling;
-                    jsonReader.DateParseHandling = Settings.DateParseHandling;
-                    jsonReader.DateTimeZoneHandling = Settings.DateTimeZoneHandling;
-                    jsonReader.MaxDepth = Settings.MaxDepth;
+                    var jsonReader = new JsonTextReader(reader);
+                    await using (jsonReader.ConfigureAwait(false))
+                    {
+                        jsonReader.FloatParseHandling = Settings.FloatParseHandling;
+                        jsonReader.DateParseHandling = Settings.DateParseHandling;
+                        jsonReader.DateTimeZoneHandling = Settings.DateTimeZoneHandling;
+                        jsonReader.MaxDepth = Settings.MaxDepth;
 
-                    try
-                    {
-                        var token = await JToken.LoadAsync(jsonReader, ct).ConfigureAwait(false);
-                        return token.ToObject(type, jsonSerializer);
-                    }
-                    finally
-                    {
-                        while (await jsonReader.ReadAsync(ct).ConfigureAwait(false))
+                        try
                         {
-                            // Read to end or throw
+                            var token = await JToken.LoadAsync(jsonReader, ct).ConfigureAwait(false);
+                            return token.ToObject(type, jsonSerializer);
+                        }
+                        finally
+                        {
+                            while (await jsonReader.ReadAsync(ct).ConfigureAwait(false))
+                            {
+                                // Read to end or throw
+                            }
                         }
                     }
                 }
@@ -184,7 +187,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         }
 
         /// <inheritdoc/>
-        public Task SerializeObjectAsync(Stream stream, object? o, Type? type,
+        public async Task SerializeObjectAsync(Stream stream, object? o, Type? type,
             SerializeOption format, CancellationToken ct)
         {
             try
@@ -193,11 +196,14 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 jsonSerializer.Formatting = format == SerializeOption.Indented ?
                     Formatting.Indented :
                     Formatting.None;
-                using (var writer = new StreamWriter(stream, leaveOpen: true))
+                var writer = new StreamWriter(stream, leaveOpen: true);
+                await using (writer.ConfigureAwait(false))
                 {
-                    using var jsonWriter = new JsonTextWriter(writer);
-                    jsonSerializer.Serialize(jsonWriter, o, type);
-                    return Task.CompletedTask;
+                    var jsonWriter = new JsonTextWriter(writer);
+                    await using (jsonWriter.ConfigureAwait(false))
+                    {
+                        jsonSerializer.Serialize(jsonWriter, o, type);
+                    }
                 }
             }
             catch (JsonReaderException ex)

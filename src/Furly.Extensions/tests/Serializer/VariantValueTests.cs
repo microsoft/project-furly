@@ -25,19 +25,19 @@ namespace Furly.Extensions.Serializers
             VariantValue i5 = TimeSpan.FromSeconds(1);
 
             Assert.True(i1 is null);
-            Assert.True(i1 == null);
-            Assert.True(i1 == null);
+            Assert.Null(i1);
+            Assert.Null(i1);
             Assert.True(i1 == i2);
             Assert.True(i1 != i3);
             Assert.True(i3 != i1);
             Assert.True(i1 != i4);
             Assert.True(i4 != i1);
-            Assert.True(i4 != null);
-            Assert.False(i4 == null);
-            Assert.True(i3 != null);
-            Assert.False(i3 == null);
-            Assert.True(i5 != null);
-            Assert.False(i5 == null);
+            Assert.NotNull(i4);
+            Assert.NotNull(i4);
+            Assert.NotNull(i3);
+            Assert.NotNull(i3);
+            Assert.NotNull(i5);
+            Assert.NotNull(i5);
         }
 
         [Fact]
@@ -58,11 +58,11 @@ namespace Furly.Extensions.Serializers
             Assert.True(i2 >= 2);
             Assert.True(i2 >= i3);
             Assert.True(i2 != i1);
-            Assert.True(i1 == 1);
+            Assert.Equal(1, i1);
             Assert.True(i2 == i3);
-            Assert.True(i1 != 2);
+            Assert.NotEqual(2, i1);
             Assert.False(i2 == i1);
-            Assert.False(i1 == 2);
+            Assert.NotEqual(2, i1);
         }
 
         [Fact]
@@ -143,9 +143,9 @@ namespace Furly.Extensions.Serializers
             Assert.True(i1 == -0.123f);
             Assert.False(i2 == i3);
             Assert.True(i2 != i3);
-            Assert.True(i1 != 0.0f);
+            Assert.NotEqual(0.0f, i1);
             Assert.False(i2 == i1);
-            Assert.False(i1 == 0.0f);
+            Assert.NotEqual(0.0f, i1);
         }
 
         [Fact]
@@ -177,10 +177,10 @@ namespace Furly.Extensions.Serializers
             Assert.True(i1 == -0.123f);
             Assert.False(i2 == i3);
             Assert.True(i2 != i3);
-            Assert.True(i1 != 0.0m);
-            Assert.True(i1 != 0.0f);
+            Assert.NotEqual(0.0m, i1);
+            Assert.NotEqual(0.0f, i1);
             Assert.False(i2 == i1);
-            Assert.False(i1 == 0.0m);
+            Assert.NotEqual(0.0m, i1);
         }
 
         [Fact]
@@ -198,14 +198,14 @@ namespace Furly.Extensions.Serializers
             Assert.True(i2 >= 2);
             Assert.True(i2 >= i3);
             Assert.True(i2 != i1);
-            Assert.True(i1 == 1);
+            Assert.Equal(1, i1);
             Assert.True(i1 >= 1);
             Assert.True(i1 <= 1);
             Assert.True(i2 == i3);
-            Assert.True(i1 != 2);
+            Assert.NotEqual(2, i1);
             Assert.True(i1 <= 2);
             Assert.False(i2 == i1);
-            Assert.False(i1 == 2);
+            Assert.NotEqual(2, i1);
         }
 
         [Fact]
@@ -229,9 +229,9 @@ namespace Furly.Extensions.Serializers
             Assert.True(i1 >= -1);
             Assert.True(i1 <= -1);
             Assert.True(i2 == i3);
-            Assert.True(i1 != 2);
+            Assert.NotEqual(2, i1);
             Assert.False(i2 == i1);
-            Assert.False(i1 == 2);
+            Assert.NotEqual(2, i1);
         }
 
         [Fact]

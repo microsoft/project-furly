@@ -149,7 +149,7 @@ namespace Furly.Extensions.Serializers.Json
             var str = MsgPack.SerializeToString(expected);
             var result = MsgPack.Parse(str);
             Assert.True(result.IsArray);
-            Assert.True(result.Count == 3);
+            Assert.Equal(3, result.Count);
             Assert.Equal(expected.GetTypeCode(), result.GetTypeCode());
             Assert.Equal(expected.Count, result.Count);
             Assert.Equal(expected, result);
@@ -165,7 +165,7 @@ namespace Furly.Extensions.Serializers.Json
             var expected = Json.FromArray(o, o);
             var result = MsgPack.Parse(MsgPack.SerializeToString(expected));
             Assert.True(result.IsArray);
-            Assert.True(result.Count == 2);
+            Assert.Equal(2, result.Count);
             Assert.Equal(expected.GetTypeCode(), result.GetTypeCode());
             Assert.Equal(expected.Count, result.Count);
             Assert.Equal(expected, result);
@@ -181,7 +181,7 @@ namespace Furly.Extensions.Serializers.Json
             var expected = Json.FromArray(o, o, o);
             var result = MsgPack.Parse(MsgPack.SerializeToString(expected));
             Assert.True(result.IsArray);
-            Assert.True(result.Count == 3);
+            Assert.Equal(3, result.Count);
             Assert.Equal(expected.GetTypeCode(), result.GetTypeCode());
             Assert.Equal(expected.Count, result.Count);
             Assert.Equal(expected, result);
@@ -198,7 +198,7 @@ namespace Furly.Extensions.Serializers.Json
             var result = MsgPack.Parse(MsgPack.SerializeToString(expected.ConvertTo(type.MakeArrayType())));
 
             Assert.True(result.IsArray);
-            Assert.True(result.Count == 3);
+            Assert.Equal(3, result.Count);
             Assert.Equal(expected.GetTypeCode(), result.GetTypeCode());
             Assert.Equal(expected.Count, result.Count);
             Assert.Equal(expected, result);
