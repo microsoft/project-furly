@@ -11,7 +11,5 @@ namespace Furly.Azure.IoT
     /// Event processor
     /// </summary>
     public interface IIoTHubEventProcessor :
-        IEventRegistration<IIoTHubTelemetryHandler>
-    {
-    }
+        IEventRegistration<IIoTHubTelemetryHandler>;
 }

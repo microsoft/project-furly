@@ -12,7 +12,5 @@ namespace Furly.Tunnel.Router
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method,
         AllowMultiple = true)]
-    public sealed class IgnoreAttribute : Attribute
-    {
-    }
+    public sealed class IgnoreAttribute : Attribute;
 }

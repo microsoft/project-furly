@@ -8,7 +8,5 @@ namespace Furly.Extensions.Serializers
     /// <summary>
     /// Json serializer tag to inject json
     /// </summary>
-    public interface IJsonSerializer : ISerializer
-    {
-    }
+    public interface IJsonSerializer : ISerializer;
 }

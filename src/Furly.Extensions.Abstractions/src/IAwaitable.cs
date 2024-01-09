@@ -47,8 +47,7 @@ namespace Furly
     /// Awaitable without result
     /// </summary>
 #pragma warning disable CA1040 // Avoid empty interfaces
-    public interface IAwaitable
+    public interface IAwaitable;
 #pragma warning restore CA1040 // Avoid empty interfaces
-    {
-    }
+
 }

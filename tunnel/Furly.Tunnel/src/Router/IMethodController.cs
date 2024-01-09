@@ -9,8 +9,7 @@ namespace Furly.Tunnel.Router
     /// Tag a controller with callable actions
     /// </summary>
 #pragma warning disable CA1040 // Avoid empty interfaces
-    public interface IMethodController
+    public interface IMethodController;
 #pragma warning restore CA1040 // Avoid empty interfaces
-    {
-    }
+
 }

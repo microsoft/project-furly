@@ -8,7 +8,5 @@ namespace Furly.Extensions.Serializers
     /// <summary>
     /// Binary serializer tag
     /// </summary>
-    public interface IBinarySerializer : ISerializer
-    {
-    }
+    public interface IBinarySerializer : ISerializer;
 }
