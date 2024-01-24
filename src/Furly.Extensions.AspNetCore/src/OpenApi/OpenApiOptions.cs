@@ -5,16 +5,14 @@
 
 namespace Furly.Extensions.AspNetCore.OpenApi
 {
+    using Microsoft.OpenApi.Models;
+    using System;
+
     /// <summary>
     /// OpenApi / Swagger configuration
     /// </summary>
     public class OpenApiOptions
     {
-        /// <summary>
-        /// Whether openapi should be enabled
-        /// </summary>
-        public bool UIEnabled { get; set; }
-
         /// <summary>
         /// Open api version (v2 = json, v3 = yaml)
         /// </summary>
@@ -24,5 +22,15 @@ namespace Furly.Extensions.AspNetCore.OpenApi
         /// Server host for openapi (optional)
         /// </summary>
         public string? OpenApiServerHost { get; set; }
+
+        /// <summary>
+        /// Project uri
+        /// </summary>
+        public Uri? ProjectUri { get; set; }
+
+        /// <summary>
+        /// License to use
+        /// </summary>
+        public OpenApiLicense? License { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace Microsoft.OpenApi.Models
                 {
                     var api = provider.GetRequiredService<IActionDescriptorCollectionProvider>();
                     var config = provider.GetRequiredService<IOptions<OpenApiOptions>>();
-                    var infos = api.GetOpenApiInfos(title, description);
+                    var infos = api.GetOpenApiInfos(title, description, config.Value);
 
                     return new ConfigureNamedOptions<SwaggerGenOptions>(Options.DefaultName, options =>
                     {

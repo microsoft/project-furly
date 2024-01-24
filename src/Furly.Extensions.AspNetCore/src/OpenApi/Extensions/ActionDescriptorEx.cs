@@ -5,6 +5,7 @@
 
 namespace Microsoft.OpenApi.Models
 {
+    using Furly.Extensions.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using System;
@@ -22,8 +23,10 @@ namespace Microsoft.OpenApi.Models
         /// <param name="services"></param>
         /// <param name="title"></param>
         /// <param name="description"></param>
+        /// <param name="options"></param>
         public static IEnumerable<OpenApiInfo> GetOpenApiInfos(
-            this IActionDescriptorCollectionProvider services, string? title, string? description)
+            this IActionDescriptorCollectionProvider services, string? title, string? description,
+            OpenApiOptions? options)
         {
             var versions = services.ActionDescriptors.Items
                 .OfType<ControllerActionDescriptor>()
@@ -41,9 +44,10 @@ namespace Microsoft.OpenApi.Models
                 Version = "v" + version,
                 Contact = new OpenApiContact
                 {
-                    Url = new Uri("https://www.github.com/Azure/Industrial-IoT"),
+                    Url = options?.ProjectUri ??
+                        new Uri("https://www.github.com/microsoft/project-furly"),
                 },
-                License = new OpenApiLicense()
+                License = options?.License ?? new OpenApiLicense()
                 {
                     Name = "MIT LICENSE",
                     Url = new Uri("https://opensource.org/licenses/MIT")

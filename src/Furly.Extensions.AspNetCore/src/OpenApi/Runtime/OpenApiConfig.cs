@@ -22,8 +22,6 @@ namespace Furly.Extensions.AspNetCore.OpenApi.Runtime
         /// <inheritdoc/>
         public override void PostConfigure(string? name, OpenApiOptions options)
         {
-            options.UIEnabled = GetBoolOrDefault(EnvironmentVariable.OPENAPIENABLED, true);
-
             if (string.IsNullOrEmpty(options.OpenApiServerHost))
             {
                 options.OpenApiServerHost =

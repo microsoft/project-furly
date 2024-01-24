@@ -26,7 +26,7 @@ namespace Microsoft.OpenApi.Models
             var config = app.ApplicationServices.GetRequiredService<IOptions<OpenApiOptions>>();
 
             // Enable swagger and swagger ui
-            app = app.UseSwagger(options =>
+            return app.UseSwagger(options =>
             {
                 options.PreSerializeFilters.Add((doc, request) =>
                 {
@@ -60,25 +60,8 @@ namespace Microsoft.OpenApi.Models
                         doc.Paths = prefixedPaths;
                     }
                 });
-                options.SerializeAsV2 = true;
+                options.SerializeAsV2 = true; // config.Value.SchemaVersion == 2;
                 options.RouteTemplate = "swagger/{documentName}/openapi.json";
-            });
-            if (!config.Value.UIEnabled)
-            {
-                return app;
-            }
-
-            var api = app.ApplicationServices.GetRequiredService<IActionDescriptorCollectionProvider>();
-            var infos = api.GetOpenApiInfos(null, null);
-
-            // Where to host the ui
-            return app.UseSwaggerUI(options =>
-            {
-                foreach (var info in infos)
-                {
-                    options.SwaggerEndpoint($"{info.Version}/openapi.json",
-                        info.Version);
-                }
             });
         }
     }
