@@ -5,6 +5,7 @@
 
 namespace Furly.Extensions.Mqtt.Clients.v5
 {
+    using Furly.Extensions.Rpc;
     using Furly.Exceptions;
     using AutoFixture;
     using FluentAssertions;
@@ -15,7 +16,6 @@ namespace Furly.Extensions.Mqtt.Clients.v5
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
-    using Furly.Extensions.Rpc;
 
     [SystemTest]
     [Collection(MqttCollection.Name)]

@@ -6,7 +6,6 @@
 namespace Microsoft.OpenApi.Models
 {
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
     using Furly.Extensions.AspNetCore.OpenApi;

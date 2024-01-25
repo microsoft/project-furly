@@ -6,12 +6,12 @@
 namespace Furly.Extensions.Dapr.Clients
 {
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Storage;
     using Autofac;
     using Microsoft.Extensions.Logging;
     using System;
-    using Xunit.Abstractions;
-    using Furly.Extensions.Storage;
     using System.Threading.Tasks;
+    using Xunit.Abstractions;
 
     public sealed class DaprClientHarness : IDisposable
     {

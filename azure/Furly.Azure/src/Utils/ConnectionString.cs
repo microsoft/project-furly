@@ -132,14 +132,14 @@ namespace Furly.Azure
 
         private static readonly char[] kSemicolon = new char[] { ';' };
 
-    /// <summary>
-    /// Try parse connection string
-    /// </summary>
-    /// <param name="connectionString"></param>
-    /// <param name="cs"></param>
-    /// <returns></returns>
-    public static bool TryParse(string connectionString,
-            [NotNullWhen(true)] out ConnectionString? cs)
+        /// <summary>
+        /// Try parse connection string
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="cs"></param>
+        /// <returns></returns>
+        public static bool TryParse(string connectionString,
+                [NotNullWhen(true)] out ConnectionString? cs)
         {
             try
             {

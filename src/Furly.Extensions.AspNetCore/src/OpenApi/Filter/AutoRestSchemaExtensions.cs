@@ -107,7 +107,7 @@ namespace Furly.Extensions.AspNetCore.OpenApi
                 }
                 if (paramType.IsAssignableTo(typeof(VariantValue)))
                 {
-                    model.Type = "any";
+                    model.Type = "object"; // Any
                     model.Format = null;
                     model.Nullable = true;
                     model.Description = "A variant which can be represented by any value including null.";

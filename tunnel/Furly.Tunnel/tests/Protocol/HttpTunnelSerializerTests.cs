@@ -11,10 +11,10 @@ namespace Furly.Tunnel.Protocol.Tests
     using Furly.Extensions.Serializers.Json;
     using AutoFixture;
     using System;
-    using Xunit;
-    using Xunit.Categories;
     using System.Collections.Generic;
     using System.Linq;
+    using Xunit;
+    using Xunit.Categories;
 
     [UnitTest]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Security",

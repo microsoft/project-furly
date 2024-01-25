@@ -6,14 +6,12 @@
 namespace Furly.Tunnel
 {
     using Furly.Tunnel.Protocol;
-    using Furly;
     using Furly.Extensions.Logging;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 

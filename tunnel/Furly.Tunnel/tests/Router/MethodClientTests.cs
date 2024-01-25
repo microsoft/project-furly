@@ -16,7 +16,7 @@ namespace Furly.Tunnel.Router.Tests
 
     public class MethodClientTests
     {
-        private readonly DefaultJsonSerializer _serializer = new ();
+        private readonly DefaultJsonSerializer _serializer = new();
         private readonly ITestOutputHelper _output;
 
         public MethodClientTests(ITestOutputHelper output)

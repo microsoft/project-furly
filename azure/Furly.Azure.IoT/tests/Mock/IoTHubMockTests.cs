@@ -5,8 +5,8 @@
 
 namespace Furly.Azure.IoT.Mock.Services
 {
-    using Furly.Azure.IoT.Services;
     using Furly.Azure.IoT.Models;
+    using Furly.Azure.IoT.Services;
     using Furly.Exceptions;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;

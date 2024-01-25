@@ -6,12 +6,12 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     using Microsoft.Extensions.Options;
+    using Furly;
     using Furly.Extensions.Dapr;
     using Furly.Extensions.Dapr.Clients;
     using Furly.Extensions.Dapr.Runtime;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
-    using Furly;
 
     /// <summary>
     /// Service collection extensions

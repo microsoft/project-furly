@@ -24,10 +24,10 @@ namespace Furly.Extensions.Serializers.Json
     using System.Text.Json;
     using System.Text.Json.Nodes;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using System.Text.Json.Serialization.Metadata;
 
     /// <summary>
     /// Json serializer

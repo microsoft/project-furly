@@ -5,16 +5,16 @@
 
 namespace Furly.Extensions.Dapr.Clients
 {
+    using Furly.Extensions.Serializers;
+    using Furly.Extensions.Serializers.Json;
+    using Google.Protobuf;
     using System;
+    using System.Collections.Generic;
+    using System.Runtime.Serialization;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
-    using Furly.Extensions.Serializers.Json;
-    using Google.Protobuf;
-    using Furly.Extensions.Serializers;
-    using System.Collections.Generic;
-    using System.Runtime.Serialization;
 
     [IntegrationTest]
     public sealed class DaprKeyValueStoreTests : IDisposable

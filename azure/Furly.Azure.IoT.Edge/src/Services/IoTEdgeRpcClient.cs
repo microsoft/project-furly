@@ -10,7 +10,6 @@ namespace Furly.Azure.IoT.Edge.Services
     using Furly.Extensions.Rpc;
     using Microsoft.Azure.Devices.Client;
     using System;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 

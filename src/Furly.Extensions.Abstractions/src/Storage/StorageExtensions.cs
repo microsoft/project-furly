@@ -5,8 +5,8 @@
 
 namespace Furly.Extensions.Storage
 {
-    using Furly.Exceptions;
     using Furly.Extensions.Serializers;
+    using Furly.Exceptions;
     using System;
     using System.Linq;
     using System.Threading;

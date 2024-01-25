@@ -5,9 +5,9 @@
 
 namespace Microsoft.OpenApi.Models
 {
-    using Furly.Extensions.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
+    using Furly.Extensions.AspNetCore.OpenApi;
     using System;
     using System.Collections.Generic;
     using System.Linq;

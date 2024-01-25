@@ -9,7 +9,6 @@ namespace Furly.Tunnel.Router.Services
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
-    using Autofac.Features.Indexed;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;

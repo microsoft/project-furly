@@ -13,13 +13,11 @@ namespace Furly.Azure.IoT.Edge.Services
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
-    using System.Net;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using System.Collections.Immutable;
     using System.Linq;
-    using System.ComponentModel;
+    using System.Net;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Rpc server which uses an IoT Edge module or device client to

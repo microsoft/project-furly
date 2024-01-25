@@ -8,7 +8,6 @@ namespace Furly.Azure.IoT.Edge.Services
     using Microsoft.Azure.Devices.Edge.Util.Edged;
     using System;
     using System.Net.Http;
-    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;

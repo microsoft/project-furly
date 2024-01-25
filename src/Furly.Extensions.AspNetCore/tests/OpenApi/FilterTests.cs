@@ -1,25 +1,26 @@
-﻿namespace Furly.Extensions.AspNetCore.Tests.OpenApi
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+//  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
+// ------------------------------------------------------------
+
+namespace Furly.Extensions.AspNetCore.Tests.OpenApi
 {
+    using Furly.Extensions.AspNetCore.Tests.Fixtures;
+    using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Serializers;
-    using Microsoft.OpenApi.Models;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.OpenApi.Models;
+    using Newtonsoft.Json;
+    using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.ComponentModel.DataAnnotations;
     using System.Runtime.Serialization;
-    using Xunit;
-    using Swashbuckle.AspNetCore.SwaggerGen;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.AspNetCore.Builder;
-    using Furly.Extensions.AspNetCore.Tests.Fixtures;
-    using Microsoft.AspNetCore.Hosting.Server;
-    using Xunit.Abstractions;
     using System.Threading.Tasks;
-    using System.Net.Http.Json;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using Furly.Extensions.AspNetCore.OpenApi;
+    using Xunit;
 
     public class FilterTests : IClassFixture<WebAppFixture<FilterStartup>>
     {
@@ -102,11 +103,11 @@
       ""properties"": {
         ""VariantValueValue1"": {
           ""description"": ""Represents primitive or structurally complex value"",
-          ""type"": ""any""
+          ""type"": ""object""
         },
         ""VariantValueValue2"": {
           ""description"": ""Represents primitive or structurally complex value"",
-          ""type"": ""any""
+          ""type"": ""object""
         }
       }
     }

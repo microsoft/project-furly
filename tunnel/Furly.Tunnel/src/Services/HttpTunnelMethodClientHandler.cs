@@ -5,7 +5,6 @@
 
 namespace Furly.Tunnel.Services
 {
-    using Furly.Tunnel;
     using Furly.Tunnel.Models;
     using Furly.Tunnel.Protocol;
     using Furly.Extensions.Rpc;
