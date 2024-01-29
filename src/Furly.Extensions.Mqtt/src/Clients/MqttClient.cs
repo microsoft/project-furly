@@ -587,6 +587,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 ProtocolVersion = _options.Value.Protocol == MqttVersion.v5 ?
                         MqttProtocolVersion.V500 : MqttProtocolVersion.V311,
                 ClientId = clientId,
+                ThrowOnNonSuccessfulConnectResponse = false,
                 CleanSession = false,
                 Credentials = _options.Value.UserName != null ? new MqttClientCredentials(
                     _options.Value.UserName, _options.Value.Password == null ? null :
@@ -613,13 +614,17 @@ namespace Furly.Extensions.Mqtt.Clients
                     268435455u : 0u,
                 KeepAlivePeriod = _options.Value.KeepAlivePeriod ?? TimeSpan.FromSeconds(15),
             };
-            return new ManagedMqttClientOptionsBuilder()
+            _options.Value.ConfigureMqttClient?.Invoke(options);
+            var managedOptions = new ManagedMqttClientOptionsBuilder()
                 .WithClientOptions(options)
                 .WithMaxPendingMessages(int.MaxValue)
                 .WithAutoReconnectDelay(_options.Value.ReconnectDelay ?? TimeSpan.FromSeconds(5))
                 .WithPendingMessagesOverflowStrategy(
                     MqttPendingMessagesOverflowStrategy.DropOldestQueuedMessage)
                 .Build();
+
+            _options.Value.Configure?.Invoke(managedOptions);
+            return managedOptions;
         }
 
         private readonly IOptions<MqttOptions> _options;
