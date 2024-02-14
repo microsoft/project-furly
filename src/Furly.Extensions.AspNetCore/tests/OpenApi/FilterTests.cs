@@ -155,8 +155,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
         /// method above and used to add middleware
         /// </summary>
         /// <param name="app"></param>
-        /// <param name="appLifetime"></param>
-        public static void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime)
+        public static void Configure(IApplicationBuilder app)
         {
             app.UsePathBase();
             app.UseHeaderForwarding();

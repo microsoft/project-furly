@@ -141,13 +141,15 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged
                         await socket.ConnectAsync(endpoint).ConfigureAwait(false);
                         return new NetworkStream(socket, ownsSocket: true);
                     }
-                });
-#pragma warning restore CA2000 // Dispose objects before losing scope
-                client.BaseAddress = new UriBuilder
+                })
                 {
-                    Host = WorkloadUri.Segments.LastOrDefault() ?? "localhost",
-                    Scheme = Uri.UriSchemeHttp
-                }.Uri;
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                    BaseAddress = new UriBuilder
+                    {
+                        Host = WorkloadUri.Segments.LastOrDefault() ?? "localhost",
+                        Scheme = Uri.UriSchemeHttp
+                    }.Uri
+                };
             }
             else
             {

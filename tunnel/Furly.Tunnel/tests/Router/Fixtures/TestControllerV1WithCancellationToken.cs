@@ -36,11 +36,15 @@ namespace Furly.Tunnel.Router.Tests
             }
             return Task.FromResult(request);
         }
+#pragma warning disable IDE0060 // Remove unused parameter
         public Task<string> TestNoParametersCAsync(CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return Task.FromResult(nameof(TestNoParametersCAsync));
         }
+#pragma warning disable IDE0060 // Remove unused parameter
         public Task TestNoReturnCAsync(string input, CancellationToken cancellationToken)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (input != nameof(TestNoReturnCAsync))
             {

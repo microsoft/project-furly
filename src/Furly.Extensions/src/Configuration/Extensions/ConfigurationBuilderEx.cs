@@ -21,5 +21,15 @@ namespace Microsoft.Extensions.Configuration
         {
             return builder.Add(new DotEnvFileSource());
         }
+
+        /// <summary>
+        /// Adds .env file environment variables from the specified file in .env format.
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="filePath"></param>
+        public static IConfigurationBuilder AddFromDotEnvFile(this IConfigurationBuilder builder, string filePath)
+        {
+            return builder.Add(new DotEnvFileSource(filePath));
+        }
     }
 }
