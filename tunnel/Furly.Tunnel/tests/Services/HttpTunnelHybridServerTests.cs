@@ -29,7 +29,6 @@ namespace Furly.Tunnel.Services.Tests
         [Fact]
         public async Task TestGetWebAsync()
         {
-            Skip.If(true);
             var fixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
 
             // Setup

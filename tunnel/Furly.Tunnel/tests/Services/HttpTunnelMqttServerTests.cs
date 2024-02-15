@@ -38,7 +38,6 @@ namespace Furly.Tunnel.Services.Tests
         [SkippableFact]
         public async Task TestGetWebAsync()
         {
-            Skip.If(true);
             var fixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
             {
                 var clientPublisher = _fixture.GetPublisherEventClient();

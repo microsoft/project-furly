@@ -28,7 +28,6 @@ namespace Furly.Tunnel.Services.Tests
         [Fact]
         public async Task TestGetWebAsync()
         {
-            Skip.If(true);
             // Setup
             var logger = Log.ConsoleFactory();
             var eventBridge = new InMemoryEventBroker();
