@@ -57,7 +57,7 @@ namespace Furly.Tunnel.Services.Tests
                 await server;
                 // Act
 
-                using var result = await client.GetAsync(new Uri("https://www.microsoft.com")).ConfigureAwait(false);
+                using var result = await client.GetAsync(new Uri("https://www.github.com")).ConfigureAwait(false);
 
                 // Assert
 
