@@ -24,6 +24,7 @@ namespace Furly.Extensions.RabbitMq.Clients
             {
                 _client = null;
                 _server = null;
+                return;
             }
             try
             {

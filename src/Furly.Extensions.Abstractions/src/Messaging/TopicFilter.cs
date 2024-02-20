@@ -6,6 +6,8 @@
 namespace Furly.Extensions.Messaging
 {
     using System;
+    using System.Buffers;
+    using System.Text;
 
     /// <summary>
     /// Topic filter mater utility
@@ -190,6 +192,43 @@ namespace Furly.Extensions.Messaging
             return false;
         }
 
+        /// <summary>
+        /// Escape a path element
+        /// </summary>
+        /// <param name="pathElement"></param>
+        /// <returns></returns>
+        public static string Escape(string pathElement)
+        {
+            var span = pathElement.AsSpan();
+            var index = span.IndexOfAny(kReservedTopicChars);
+            if (index == -1)
+            {
+                return pathElement;
+            }
+            var sb = new StringBuilder();
+            do
+            {
+                // ASCII escape character
+                sb.Append(span[..index]).Append(span[index] switch
+                {
+                    kSingleLevelWildcard => "\\x2b",
+                    kMultiLevelWildcard => "\\x23",
+                    kLevelSeparator => "\\x2f",
+                    _ => "\\x5c",
+                });
+                if (++index == span.Length)
+                {
+                    return sb.ToString();
+                }
+                span = span[index..];
+                index = span.IndexOfAny(kReservedTopicChars);
+            }
+            while (index != -1);
+            sb.Append(span);
+            return sb.ToString();
+        }
+
+        private static readonly SearchValues<char> kReservedTopicChars = SearchValues.Create("\\/#+");
         const char kLevelSeparator = '/';
         const char kMultiLevelWildcard = '#';
         const char kSingleLevelWildcard = '+';
