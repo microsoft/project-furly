@@ -37,9 +37,9 @@ namespace Furly.Extensions.CouchDb.Clients
                     .As<ILoggerFactory>();
                 builder.AddLogging();
                 _container = builder.Build();
-              //  _server = _container.Resolve<CouchDbServer>();
-              //  _server.StartAsync().GetAwaiter().GetResult();
-              //  Up = true;
+                _server = _container.Resolve<CouchDbServer>();
+                _server.StartAsync().GetAwaiter().GetResult();
+                Up = true;
             }
             catch (Exception)
             {
