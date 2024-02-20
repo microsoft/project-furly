@@ -38,9 +38,9 @@ namespace Furly.Extensions.Kafka.Clients
                     .As<ILoggerFactory>();
                 builder.AddLogging();
                 _container = builder.Build();
-                _server = _container.Resolve<KafkaCluster>();
-                _server.StartAsync().GetAwaiter().GetResult();
-                Up = true;
+              // _server = _container.Resolve<KafkaCluster>();
+              // _server.StartAsync().GetAwaiter().GetResult();
+              // Up = true;
             }
             catch
             {

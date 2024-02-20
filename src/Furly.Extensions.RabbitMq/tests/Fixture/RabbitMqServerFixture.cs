@@ -38,9 +38,9 @@ namespace Furly.Extensions.RabbitMq.Clients
                 builder.AddLogging();
                 _container = builder.Build();
 
-                _server = _container.Resolve<RabbitMqServer>();
-                _server.StartAsync().GetAwaiter().GetResult();
-                Up = true;
+               // _server = _container.Resolve<RabbitMqServer>();
+               // _server.StartAsync().GetAwaiter().GetResult();
+               // Up = true;
             }
             catch
             {
