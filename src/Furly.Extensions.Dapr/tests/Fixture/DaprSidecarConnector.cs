@@ -27,6 +27,9 @@ namespace Furly.Extensions.Dapr.Clients
         IDaprSidecarStorage, IDisposable
     {
         /// <inheritdoc/>
+        public string Name => "Dapr";
+
+        /// <inheritdoc/>
         public int Port { get; internal set; }
 
         /// <inheritdoc/>

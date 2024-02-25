@@ -15,6 +15,11 @@ namespace Furly.Extensions.Messaging
     public interface IEventSubscriber
     {
         /// <summary>
+        /// Name of the technology implementing the event subscriber
+        /// </summary>
+        string Name { get; }
+
+        /// <summary>
         /// Subscribe to a topic and consume. Subscriptions are
         /// transient and exist only as long as the process.
         /// The topic string allows '*' wildcards, but not '#'.

@@ -22,6 +22,9 @@ namespace Furly.Azure.IoT.Services
     /// </summary>
     public sealed class IoTHubEventSubscriber : IEventSubscriber, IDisposable
     {
+        /// <inheritdoc/>
+        public string Name => "IoTHub";
+
         /// <summary>
         /// Create client
         /// </summary>

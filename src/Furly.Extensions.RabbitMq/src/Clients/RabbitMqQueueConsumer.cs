@@ -21,6 +21,9 @@ namespace Furly.Extensions.RabbitMq.Clients
     public sealed class RabbitMqQueueConsumer : IEventSubscriber, IDisposable
     {
         /// <inheritdoc/>
+        public string Name => "RabbitMqQueue";
+
+        /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes => _connection.MaxMessageSizeInBytes;
 
         /// <inheritdoc/>
