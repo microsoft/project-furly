@@ -105,5 +105,16 @@ namespace Furly
         /// </summary>
         public const string PemCert =
             "application/x-pem-file";
+
+        /// <summary>
+        /// Avro json schema
+        /// </summary>
+        public const string AvroSchema =
+            "application/vnd.apache.avro+json";
+        /// <summary>
+        /// Avro binary message
+        /// </summary>
+        public const string AvroBinary =
+            "avro/binary";
     }
 }

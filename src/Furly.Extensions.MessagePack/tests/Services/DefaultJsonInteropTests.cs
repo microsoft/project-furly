@@ -380,23 +380,25 @@ namespace Furly.Extensions.Serializers.Json
         [Fact]
         public void SerializerFromJsonToObject()
         {
-            var expected = Json.Parse(@"
+            var expected = Json.Parse("""
+
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Encoding"": ""Json"",
-        ""Body"": {
-            ""BooleanValue"": false,
-            ""SByteValue"": -113,
-            ""ByteValue"": 42,
-            ""Int16Value"": -14982,
-            ""UInt16Value"": 59442,
-            ""Int32Value"": 85049805,
-            ""UInt32Value"": 2602718263,
-            ""Int64Value"": 3649290182186472621,
-            ""UInt64Value"": 10042278942021613161
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Encoding": "Json",
+        "Body": {
+            "BooleanValue": false,
+            "SByteValue": -113,
+            "ByteValue": 42,
+            "Int16Value": -14982,
+            "UInt16Value": 59442,
+            "Int32Value": 85049805,
+            "UInt32Value": 2602718263,
+            "Int64Value": 3649290182186472621,
+            "UInt64Value": 10042278942021613161
         }
     }
-");
+
+""");
             var actual = MsgPack.FromObject(expected);
             Assert.Equal(expected, actual);
         }
@@ -404,34 +406,36 @@ namespace Furly.Extensions.Serializers.Json
         [Fact]
         public void SerializerFromJsonToArray()
         {
-            var expected = Json.Parse(@"
+            var expected = Json.Parse("""
+
 [
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Body"": {
-            ""UInt64Value"": 10042278942021613161
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Body": {
+            "UInt64Value": 10042278942021613161
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Body"": {
-            ""UInt64Value"": 11790719998462990154
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Body": {
+            "UInt64Value": 11790719998462990154
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Body"": {
-            ""UInt64Value"": 9999999999999999999999
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Body": {
+            "UInt64Value": 9999999999999999999999
         }
     },
     {
-        ""TypeId"": ""http://test.org/UA/Data/#i=9440"",
-        ""Body"": {
-            ""UInt64Value"": 11790719998462990154
+        "TypeId": "http://test.org/UA/Data/#i=9440",
+        "Body": {
+            "UInt64Value": 11790719998462990154
         }
     }
 ]
-");
+
+""");
             var actual = MsgPack.FromObject(expected);
             Assert.Equal(expected, actual);
         }

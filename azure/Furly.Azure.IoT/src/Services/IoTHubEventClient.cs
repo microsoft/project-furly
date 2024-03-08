@@ -14,6 +14,7 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -125,6 +126,13 @@ namespace Furly.Azure.IoT.Services
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
             {
                 _properties.AddOrUpdate(name, value);
@@ -132,7 +140,7 @@ namespace Furly.Azure.IoT.Services
             }
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 _buffers.AddRange(value);
                 return this;
@@ -218,7 +226,7 @@ namespace Furly.Azure.IoT.Services
             }
 
             private readonly Dictionary<string, string?> _properties = new();
-            private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+            private readonly List<ReadOnlySequence<byte>> _buffers = new();
             private readonly Task<ServiceClient> _client;
             private readonly string _deviceId;
             private readonly string? _moduleId;

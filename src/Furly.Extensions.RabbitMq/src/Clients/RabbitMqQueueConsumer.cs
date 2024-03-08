@@ -10,6 +10,7 @@ namespace Furly.Extensions.RabbitMq.Clients
     using Microsoft.Extensions.Options;
     using RabbitMQ.Client;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -102,8 +103,8 @@ namespace Furly.Extensions.RabbitMq.Clients
                     handles = _subscriptions
                         .Where(subscription => subscription.Matches(properties.Type))
                         .Select(subscription => subscription.Consumer.HandleAsync(
-                            properties.Type, body, properties.ContentType,
-                            userProperties, null));
+                            properties.Type, new ReadOnlySequence<byte>(body),
+                            properties.ContentType, userProperties, null));
                 }
                 await Task.WhenAll(handles).ConfigureAwait(false);
             }

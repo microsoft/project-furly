@@ -15,6 +15,7 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -347,7 +348,8 @@ namespace Furly.Azure.IoT.Services
             var data = eventData.EventBody.ToArray();
             var handlers = _handlers.Keys
                  .Select(consumer => consumer.HandleAsync(deviceId, moduleId,
-                 target, data, contentType, contentEncoding, properties, ct).AsTask());
+                 target, new ReadOnlySequence<byte>(data), contentType, contentEncoding,
+                 properties, ct).AsTask());
             await Task.WhenAll(handlers).ConfigureAwait(false);
         }
 

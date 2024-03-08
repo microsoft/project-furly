@@ -8,6 +8,7 @@ namespace Furly.Extensions.Mqtt
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace Furly.Extensions.Mqtt
             _handler = handler;
         }
 
-        public Task HandleAsync(string source, ReadOnlyMemory<byte> data, string contentType,
+        public Task HandleAsync(string source, ReadOnlySequence<byte> data, string contentType,
             IReadOnlyDictionary<string, string?> properties, IEventClient? responder, CancellationToken ct)
         {
             _handler(new EventConsumerArg(source, data.ToArray(), contentType, properties, responder));

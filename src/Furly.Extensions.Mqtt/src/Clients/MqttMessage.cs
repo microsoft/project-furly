@@ -11,6 +11,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using MQTTnet;
     using MQTTnet.Protocol;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Text;
     using System.Threading;
@@ -42,6 +43,13 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 _builder.WithUserProperty("ContentEncoding", value);
             }
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IEvent SetSchema(string name, ulong version,
+            ReadOnlyMemory<byte> schema, string contentType)
+        {
             return this;
         }
 
@@ -120,7 +128,7 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+        public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
         {
             _buffers.AddRange(value);
             return this;
@@ -137,12 +145,15 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             foreach (var buffer in _buffers)
             {
-                _builder.WithPayload(buffer.ToArray());
+                foreach (var segment in buffer)
+                {
+                    _builder.WithPayloadSegment(segment);
+                }
                 await _publish.Invoke(_builder.Build(), ct).ConfigureAwait(false);
             }
         }
 
-        private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+        private readonly List<ReadOnlySequence<byte>> _buffers = new();
         private readonly MqttApplicationMessageBuilder _builder = new();
         private readonly Func<MqttApplicationMessage, CancellationToken, ValueTask> _publish;
         private readonly MqttVersion _version;

@@ -9,6 +9,7 @@ namespace Furly.Extensions.Messaging.Clients
     using Furly.Extensions.Messaging.Runtime;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
     using System.Threading;
@@ -94,6 +95,13 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
             {
                 _metadata.AddOrUpdate(name, value);
@@ -115,7 +123,7 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 _buffers.AddRange(value);
                 return this;
@@ -144,7 +152,10 @@ namespace Furly.Extensions.Messaging.Clients
                 {
                     foreach (var buffer in _buffers)
                     {
-                        await stream.WriteAsync(buffer, ct).ConfigureAwait(false);
+                        foreach (var memory in buffer)
+                        {
+                            await stream.WriteAsync(memory, ct).ConfigureAwait(false);
+                        }
                     }
                 }
                 File.SetLastAccessTimeUtc(fileName, _timestamp);
@@ -159,7 +170,7 @@ namespace Furly.Extensions.Messaging.Clients
             private string? _topic;
             private DateTime _timestamp;
             private readonly Dictionary<string, string?> _metadata = new();
-            private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+            private readonly List<ReadOnlySequence<byte>> _buffers = new();
             private readonly FileSystemEventClient _outer;
         }
 

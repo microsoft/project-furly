@@ -7,6 +7,7 @@ namespace Furly.Azure.IoT.Mock.Services
 {
     using Furly.Extensions.Messaging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -79,6 +80,13 @@ namespace Furly.Azure.IoT.Mock.Services
         }
 
         /// <inheritdoc/>
+        public IEvent SetSchema(string name, ulong version,
+            ReadOnlyMemory<byte> schema, string contentType)
+        {
+            return this;
+        }
+
+        /// <inheritdoc/>
         public string DeviceId { get; set; }
 
         /// <inheritdoc/>
@@ -125,10 +133,10 @@ namespace Furly.Azure.IoT.Mock.Services
         }
 
         /// <inheritdoc/>
-        internal List<ReadOnlyMemory<byte>> Buffers { get; } = new();
+        internal List<ReadOnlySequence<byte>> Buffers { get; } = new();
 
         /// <inheritdoc/>
-        public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+        public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
         {
             Buffers.AddRange(value);
             return this;

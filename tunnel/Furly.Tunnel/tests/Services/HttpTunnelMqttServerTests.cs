@@ -5,20 +5,6 @@
 
 namespace Furly.Tunnel.Services.Tests
 {
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
-    using AutoFixture;
-    using AutoFixture.AutoMoq;
-    using Moq;
-    using System;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Xunit;
-    using Xunit.Abstractions;
-    using Xunit.Categories;
-
 #if FALSE
     [UnitTest]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Security",

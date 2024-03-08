@@ -11,7 +11,6 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
@@ -37,82 +36,84 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
             var httpClient = _factory.CreateClient();
             var response = await httpClient.GetStringAsync(new Uri("http://localhost/swagger/v2/openapi.json"));
 
-            var expected = @"{
-  ""swagger"": ""2.0"",
-  ""info"": {
-    ""title"": ""Test"",
-    ""description"": ""TestDescription"",
-    ""contact"": {
-      ""url"": ""http://test/test""
+            var expected = """
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Test",
+    "description": "TestDescription",
+    "contact": {
+      "url": "http://test/test"
     },
-    ""license"": {
-      ""name"": ""none"",
-      ""url"": ""http://somelicsense""
+    "license": {
+      "name": "none",
+      "url": "http://somelicsense"
     },
-    ""version"": ""v2""
+    "version": "v2"
   },
-  ""host"": ""localhost"",
-  ""schemes"": [
-    ""https"",
-    ""http""
+  "host": "localhost",
+  "schemes": [
+    "https",
+    "http"
   ],
-  ""paths"": {
-    ""/test/v2/filter"": {
-      ""post"": {
-        ""tags"": [
-          ""FilterTests""
+  "paths": {
+    "/test/v2/filter": {
+      "post": {
+        "tags": [
+          "FilterTests"
         ],
-        ""operationId"": ""GetTestModel"",
-        ""consumes"": [
-          ""application/json-patch+json"",
-          ""application/json"",
-          ""text/json"",
-          ""application/*+json""
+        "operationId": "GetTestModel",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
         ],
-        ""produces"": [
-          ""text/plain"",
-          ""application/json"",
-          ""text/json""
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
         ],
-        ""parameters"": [
+        "parameters": [
           {
-            ""in"": ""body"",
-            ""name"": ""body"",
-            ""schema"": {
-              ""$ref"": ""#/definitions/TestModel""
+            "in": "body",
+            "name": "body",
+            "schema": {
+              "$ref": "#/definitions/TestModel"
             }
           }
         ],
-        ""responses"": {
-          ""200"": {
-            ""description"": ""Success"",
-            ""schema"": {
-              ""$ref"": ""#/definitions/TestModel""
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/TestModel"
             }
           }
         }
       }
     }
   },
-  ""definitions"": {
-    ""TestModel"": {
-      ""required"": [
-        ""VariantValueValue1""
+  "definitions": {
+    "TestModel": {
+      "required": [
+        "VariantValueValue1"
       ],
-      ""type"": ""object"",
-      ""properties"": {
-        ""VariantValueValue1"": {
-          ""description"": ""Represents primitive or structurally complex value"",
-          ""type"": ""object""
+      "type": "object",
+      "properties": {
+        "VariantValueValue1": {
+          "description": "Represents primitive or structurally complex value",
+          "type": "object"
         },
-        ""VariantValueValue2"": {
-          ""description"": ""Represents primitive or structurally complex value"",
-          ""type"": ""object""
+        "VariantValueValue2": {
+          "description": "Represents primitive or structurally complex value",
+          "type": "object"
         }
       }
     }
   }
-}".Replace("\r\n", "\n", StringComparison.Ordinal);
+}
+""".Replace("\r\n", "\n", StringComparison.Ordinal);
             Assert.Equal(expected, response);
         }
     }

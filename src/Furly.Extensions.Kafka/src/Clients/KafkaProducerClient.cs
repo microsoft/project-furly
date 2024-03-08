@@ -12,6 +12,7 @@ namespace Furly.Extensions.Kafka.Clients
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Net;
@@ -167,6 +168,14 @@ namespace Furly.Extensions.Kafka.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                // TODO
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
             {
                 if (value != null)
@@ -189,7 +198,7 @@ namespace Furly.Extensions.Kafka.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 _buffers.AddRange(value);
                 return this;
@@ -240,7 +249,7 @@ namespace Furly.Extensions.Kafka.Clients
             private QoS _qos = QoS.AtLeastOnce;
             private Timestamp _timestamp;
             private readonly Headers _header = new();
-            private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+            private readonly List<ReadOnlySequence<byte>> _buffers = new();
             private readonly KafkaProducerClient _outer;
         }
 

@@ -12,6 +12,7 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -127,7 +128,7 @@ namespace Furly.Azure.IoT.Services
 
             /// <inheritdoc/>
             public async ValueTask HandleAsync(string deviceId, string? moduleId,
-                string topic, ReadOnlyMemory<byte> data, string contentType, string contentEncoding,
+                string topic, ReadOnlySequence<byte> data, string contentType, string contentEncoding,
                 IReadOnlyDictionary<string, string?> properties, CancellationToken ct)
             {
                 IEnumerable<Task> handles;

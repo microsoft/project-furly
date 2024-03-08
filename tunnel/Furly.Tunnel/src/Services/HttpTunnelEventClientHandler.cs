@@ -11,6 +11,7 @@ namespace Furly.Tunnel.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -64,7 +65,7 @@ namespace Furly.Tunnel.Services
         }
 
         /// <inheritdoc/>
-        public Task HandleAsync(string topic, ReadOnlyMemory<byte> data, string contentType,
+        public Task HandleAsync(string topic, ReadOnlySequence<byte> data, string contentType,
             IReadOnlyDictionary<string, string?> properties, IEventClient? responder,
             CancellationToken ct = default)
         {

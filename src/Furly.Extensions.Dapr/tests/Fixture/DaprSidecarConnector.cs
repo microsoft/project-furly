@@ -14,6 +14,7 @@ namespace Furly.Extensions.Dapr.Clients
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -95,8 +96,8 @@ namespace Furly.Extensions.Dapr.Clients
                 handles = _subscriptions
                     .Where(subscription => subscription.Matches(request.Topic))
                     .Select(subscription => subscription.Consumer.HandleAsync(
-                        request.Topic, request.Data.Memory, request.DataContentType,
-                        request.Metadata, null));
+                        request.Topic, new ReadOnlySequence<byte>(request.Data.Memory),
+                        request.DataContentType, request.Metadata, null));
             }
             await Task.WhenAll(handles).ConfigureAwait(false);
         }

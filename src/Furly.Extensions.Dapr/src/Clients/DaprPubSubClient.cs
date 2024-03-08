@@ -9,6 +9,7 @@ namespace Furly.Extensions.Dapr.Clients
     using global::Dapr.Client;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Threading;
@@ -105,6 +106,13 @@ namespace Furly.Extensions.Dapr.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
             {
                 if (value == null)
@@ -134,7 +142,7 @@ namespace Furly.Extensions.Dapr.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 _buffers.AddRange(value);
                 return this;
@@ -175,7 +183,8 @@ namespace Furly.Extensions.Dapr.Clients
                 foreach (var buffer in _buffers)
                 {
                     await _outer._client.PublishByteEventAsync(pubSubName, topic,
-                        buffer, _contentType, _metadata, ct).ConfigureAwait(false);
+                        buffer.IsSingleSegment ? buffer.First : buffer.ToArray(),
+                        _contentType, _metadata, ct).ConfigureAwait(false);
                 }
 
                 static void Throw()
@@ -196,7 +205,7 @@ namespace Furly.Extensions.Dapr.Clients
             private string? _topic;
             private string? _contentType;
             private readonly Dictionary<string, string> _metadata = new();
-            private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+            private readonly List<ReadOnlySequence<byte>> _buffers = new();
             private readonly DaprPubSubClient _outer;
         }
 

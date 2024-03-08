@@ -6,6 +6,7 @@
 namespace Furly.Extensions.Messaging
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -56,9 +57,20 @@ namespace Furly.Extensions.Messaging
         IEvent SetTtl(TimeSpan value);
 
         /// <summary>
+        /// Set the event schema
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="version"></param>
+        /// <param name="schema"></param>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        IEvent SetSchema(string name, ulong version,
+            ReadOnlyMemory<byte> schema, string contentType);
+
+        /// <summary>
         /// Message payload buffers.
         /// </summary>
-        IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value);
+        IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value);
 
         /// <summary>
         /// Sends the message or messages

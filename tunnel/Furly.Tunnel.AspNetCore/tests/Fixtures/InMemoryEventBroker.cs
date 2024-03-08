@@ -7,6 +7,7 @@ namespace Furly.Tunnel.AspNetCore.Tests
 {
     using Furly.Extensions.Messaging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -123,6 +124,13 @@ namespace Furly.Tunnel.AspNetCore.Tests
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public string? Topic { get; private set; }
 
             /// <inheritdoc/>
@@ -153,10 +161,10 @@ namespace Furly.Tunnel.AspNetCore.Tests
             }
 
             /// <inheritdoc/>
-            public List<ReadOnlyMemory<byte>> Buffers { get; } = new();
+            public List<ReadOnlySequence<byte>> Buffers { get; } = new();
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 Buffers.AddRange(value);
                 return this;

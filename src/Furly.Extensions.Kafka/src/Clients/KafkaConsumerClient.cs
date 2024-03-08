@@ -12,6 +12,7 @@ namespace Furly.Extensions.Kafka.Clients
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
@@ -161,7 +162,8 @@ namespace Furly.Extensions.Kafka.Clients
                                 handles = _subscriptions
                                     .Where(subscription => subscription.Matches(topic))
                                     .Select(subscription => subscription.Consumer.HandleAsync(
-                                        topic, ev.Value, contentType, properties, null, ct));
+                                        topic, new ReadOnlySequence<byte>(ev.Value), contentType,
+                                        properties, null, ct));
                             }
                             await Task.WhenAll(handles).ConfigureAwait(false);
 

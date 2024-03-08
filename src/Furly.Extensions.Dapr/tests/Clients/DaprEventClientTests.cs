@@ -9,6 +9,7 @@ namespace Furly.Extensions.Dapr.Clients
     using AutoFixture;
     using FluentAssertions;
     using System;
+    using System.Buffers;
     using System.Linq;
     using System.Threading.Tasks;
     using Xunit;
@@ -222,11 +223,11 @@ namespace Furly.Extensions.Dapr.Clients
             }));
 
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(0, 10).Select(_ => (ReadOnlyMemory<byte>)fix.CreateMany<byte>().ToArray()), "1");
+                Enumerable.Range(0, 10).Select(_ => new ReadOnlySequence<byte>(fix.CreateMany<byte>().ToArray())), "1");
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(1, 5).Select(_ => (ReadOnlyMemory<byte>)fix.CreateMany<byte>().ToArray()), "2");
+                Enumerable.Range(1, 5).Select(_ => new ReadOnlySequence<byte>(fix.CreateMany<byte>().ToArray())), "2");
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(0, 10).Select(_ => (ReadOnlyMemory<byte>)data), contentType);
+                Enumerable.Range(0, 10).Select(_ => new ReadOnlySequence<byte>(data)), contentType);
 
             var result = await tcs.Task.With2MinuteTimeout();
             Assert.Equal(target, result.Target);

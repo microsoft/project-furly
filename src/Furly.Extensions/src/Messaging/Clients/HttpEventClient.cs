@@ -9,6 +9,7 @@ namespace Furly.Extensions.Messaging.Clients
     using Furly.Extensions.Messaging.Runtime;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Net.Http;
@@ -97,6 +98,13 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
             {
                 _request.AddHeader(name, value);
@@ -122,7 +130,7 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 foreach (var buffer in value)
                 {

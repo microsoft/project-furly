@@ -5,7 +5,7 @@
 
 namespace Furly.Extensions.Messaging
 {
-    using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -28,7 +28,7 @@ namespace Furly.Extensions.Messaging
         /// <param name="responder"></param>
         /// <param name="ct"></param>
         Task HandleAsync(string topic,
-            ReadOnlyMemory<byte> data, string contentType,
+            ReadOnlySequence<byte> data, string contentType,
             IReadOnlyDictionary<string, string?> properties,
             IEventClient? responder, CancellationToken ct = default);
 
@@ -41,7 +41,7 @@ namespace Furly.Extensions.Messaging
         private sealed class NullConsumer : IEventConsumer
         {
             /// <inheritdoc/>
-            public Task HandleAsync(string topic, ReadOnlyMemory<byte> data,
+            public Task HandleAsync(string topic, ReadOnlySequence<byte> data,
                 string contentType, IReadOnlyDictionary<string, string?> properties,
                 IEventClient? responder, CancellationToken ct)
             {

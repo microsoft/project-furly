@@ -7,6 +7,7 @@ namespace Furly.Extensions.Messaging.Clients
 {
     using Furly.Extensions.Messaging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Net;
     using System.Threading;
@@ -48,7 +49,7 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         /// <inheritdoc/>
-        public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+        public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
         {
             return this;
         }
@@ -61,6 +62,13 @@ namespace Furly.Extensions.Messaging.Clients
 
         /// <inheritdoc/>
         public IEvent SetContentEncoding(string? value)
+        {
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IEvent SetSchema(string name, ulong version,
+            ReadOnlyMemory<byte> schema, string contentType)
         {
             return this;
         }

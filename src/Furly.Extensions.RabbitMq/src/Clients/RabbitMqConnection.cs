@@ -13,6 +13,7 @@ namespace Furly.Extensions.RabbitMq.Clients
     using RabbitMQ.Client;
     using RabbitMQ.Client.Exceptions;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -421,6 +422,13 @@ namespace Furly.Extensions.RabbitMq.Clients
                 }
 
                 /// <inheritdoc/>
+                public IEvent SetSchema(string name, ulong version,
+                    ReadOnlyMemory<byte> schema, string contentType)
+                {
+                    return this;
+                }
+
+                /// <inheritdoc/>
                 public IEvent AddProperty(string name, string? value)
                 {
                     if (value == null)
@@ -449,7 +457,7 @@ namespace Furly.Extensions.RabbitMq.Clients
                 }
 
                 /// <inheritdoc/>
-                public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+                public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
                 {
                     _buffers.AddRange(value);
                     return this;
@@ -515,7 +523,8 @@ namespace Furly.Extensions.RabbitMq.Clients
                                     "sequence number in use");
                             }
                             channel.Model.BasicPublish(_outer.ExchangeName, _routingKey,
-                                _mandatory, _properties, _buffers[0]);
+                                _mandatory, _properties, _buffers[0].IsSingleSegment
+                                    ? _buffers[0].First : _buffers[0].ToArray());
                         }
                         else
                         {
@@ -530,7 +539,8 @@ namespace Furly.Extensions.RabbitMq.Clients
                             foreach (var body in _buffers)
                             {
                                 bulk.Add(_outer.ExchangeName, _routingKey, _mandatory,
-                                    _properties, body);
+                                    _properties, body.IsSingleSegment
+                                        ? body.First : body.ToArray());
                             }
                             bulk.Publish();
                         }
@@ -544,7 +554,7 @@ namespace Furly.Extensions.RabbitMq.Clients
                 }
 
                 private string? _routingKey;
-                private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+                private readonly List<ReadOnlySequence<byte>> _buffers = new();
                 private readonly RabbitMqChannel _outer;
                 private readonly bool _mandatory;
                 private readonly IBasicProperties _properties;

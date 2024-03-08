@@ -21,6 +21,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using Nito.AsyncEx;
     using Nito.Disposables;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Globalization;
@@ -303,7 +304,8 @@ namespace Furly.Extensions.Mqtt.Clients
                         foreach (var consumer in subscription.Value
                             .Where(s => s != IEventConsumer.Null))
                         {
-                            await consumer.HandleAsync(topic, args.ApplicationMessage.PayloadSegment,
+                            await consumer.HandleAsync(topic,
+                                new ReadOnlySequence<byte>(args.ApplicationMessage.PayloadSegment),
                                 args.ApplicationMessage.ContentType ?? "NoContentType_UseMqttv5",
                                 properties, this).ConfigureAwait(false);
                         }

@@ -7,6 +7,7 @@ namespace Furly.Extensions.Dapr
 {
     using Furly.Extensions.Messaging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace Furly.Extensions.Dapr
             _handler = handler;
         }
 
-        public Task HandleAsync(string source, ReadOnlyMemory<byte> data, string contentType,
+        public Task HandleAsync(string source, ReadOnlySequence<byte> data, string contentType,
             IReadOnlyDictionary<string, string?> properties, IEventClient? responder, CancellationToken ct)
         {
             _handler(new EventConsumerArg(source, data.ToArray(), contentType, properties, responder));

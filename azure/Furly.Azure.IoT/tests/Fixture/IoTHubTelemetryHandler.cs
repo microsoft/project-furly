@@ -6,6 +6,7 @@
 namespace Furly.Azure.IoT.Services
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace Furly.Azure.IoT.Services
         }
 
         public ValueTask HandleAsync(string deviceId, string? moduleId, string topic,
-            ReadOnlyMemory<byte> data, string contentType, string contentEncoding,
+            ReadOnlySequence<byte> data, string contentType, string contentEncoding,
             IReadOnlyDictionary<string, string?> properties, CancellationToken ct = default)
         {
             _count++;

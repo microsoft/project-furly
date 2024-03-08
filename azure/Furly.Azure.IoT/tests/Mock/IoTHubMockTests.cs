@@ -242,7 +242,7 @@ namespace Furly.Azure.IoT.Mock.Services
             connection.Close();
 
             await connection.EventClient.Invoking(client => client.SendEventAsync("topic",
-                Encoding.UTF8.GetBytes("test"), "application/json", "utf-8"))
+                Encoding.UTF8.GetBytes("test"), "application/json", "utf-8").AsTask())
                 .Should().ThrowAsync<InvalidOperationException>();
         }
 
@@ -267,7 +267,7 @@ namespace Furly.Azure.IoT.Mock.Services
             await services.DeleteAsync(result.Id);
 
             await connection.EventClient.Invoking(client => client.SendEventAsync("topic",
-                Encoding.UTF8.GetBytes("test"), "application/json", "utf-8"))
+                Encoding.UTF8.GetBytes("test"), "application/json", "utf-8").AsTask())
                 .Should().ThrowAsync<InvalidOperationException>();
         }
 

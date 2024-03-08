@@ -10,6 +10,7 @@ namespace Furly.Extensions.RabbitMq.Clients
     using Nito.Disposables;
     using RabbitMQ.Client;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -215,7 +216,8 @@ namespace Furly.Extensions.RabbitMq.Clients
                 };
                 foreach (var handler in consumers)
                 {
-                    await handler.HandleAsync(topic, body, properties.ContentType,
+                    await handler.HandleAsync(topic,
+                        new ReadOnlySequence<byte>(body), properties.ContentType,
                         userProperties, _outer).ConfigureAwait(false);
                 }
                 _outer._logger.LogTrace(

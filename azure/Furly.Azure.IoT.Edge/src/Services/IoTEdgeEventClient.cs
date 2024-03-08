@@ -9,6 +9,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.Devices.Client;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -101,7 +102,8 @@ namespace Furly.Azure.IoT.Edge.Services
                 handles = _subscriptions
                     .Where(subscription => subscription.Matches(target))
                     .Select(subscription => subscription.Consumer.HandleAsync(target,
-                        payload, message.ContentType, message.Properties.AsReadOnly(), this));
+                        new ReadOnlySequence<byte>(payload), message.ContentType,
+                        message.Properties.AsReadOnly(), this));
             }
             await Task.WhenAll(handles).ConfigureAwait(false);
             return handles
@@ -148,6 +150,13 @@ namespace Furly.Azure.IoT.Edge.Services
             }
 
             /// <inheritdoc/>
+            public IEvent SetSchema(string name, ulong version,
+                ReadOnlyMemory<byte> schema, string contentType)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
             {
                 _template.Properties.AddOrUpdate(name, value);
@@ -155,7 +164,7 @@ namespace Furly.Azure.IoT.Edge.Services
             }
 
             /// <inheritdoc/>
-            public IEvent AddBuffers(IEnumerable<ReadOnlyMemory<byte>> value)
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
             {
                 _buffers.AddRange(value);
                 return this;
@@ -227,7 +236,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 return _buffers.ConvertAll(m => _template.CloneWithBody(m.ToArray()));
             }
 
-            private readonly List<ReadOnlyMemory<byte>> _buffers = new();
+            private readonly List<ReadOnlySequence<byte>> _buffers = new();
             private readonly Message _template = new();
             private readonly IoTEdgeEventClient _outer;
             private string? _topic;

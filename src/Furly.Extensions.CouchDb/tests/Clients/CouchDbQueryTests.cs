@@ -73,7 +73,9 @@ namespace Furly.Extensions.CouchDb.Clients
             Assert.Single(results);
             var family = results.Single().Value;
             Assert.Single(family.Children!);
+#pragma warning disable RCS1077 // Optimize LINQ method call
             Assert.Equal(1, family.Children!.Select(c => c.Pets!.Length).Sum());
+#pragma warning restore RCS1077 // Optimize LINQ method call
         }
 
         [SkippableFact]
