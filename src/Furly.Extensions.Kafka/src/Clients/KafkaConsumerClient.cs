@@ -26,6 +26,9 @@ namespace Furly.Extensions.Kafka.Clients
     /// </summary>
     public sealed class KafkaConsumerClient : IEventSubscriber, IAsyncDisposable, IDisposable
     {
+        /// <inheritdoc/>
+        public string Name => "Kafka";
+
         /// <summary>
         /// Create host
         /// </summary>

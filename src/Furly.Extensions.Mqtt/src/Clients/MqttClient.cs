@@ -554,7 +554,7 @@ namespace Furly.Extensions.Mqtt.Clients
             System.Diagnostics.Debug.Assert(_clients.Length > 0);
 
             // Use a string hash for the bucket for now. Could be better...
-            var topicHash = (uint)topic.GetHashCode(StringComparison.OrdinalIgnoreCase);
+            var topicHash = (uint)topic.GetHashCode(StringComparison.Ordinal);
             return _clients[topicHash % _clients.Length];
         }
 
