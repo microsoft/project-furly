@@ -113,6 +113,42 @@ namespace Furly.Extensions.Serializers
         }
 
         /// <summary>
+        /// Deserialize from memory
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="buffer"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static object? Deserialize(this ISerializer serializer,
+            ReadOnlyMemory<byte> buffer, Type type)
+        {
+            return serializer.Deserialize(new ReadOnlySequence<byte>(buffer), type);
+        }
+
+        /// <summary>
+        /// Deserialize from memory
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public static VariantValue Parse(this ISerializer serializer,
+            ReadOnlyMemory<byte> buffer)
+        {
+            return serializer.Parse(new ReadOnlySequence<byte>(buffer));
+        }
+
+        /// <summary>
+        /// Deserialize from buffer
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="buffer"></param>
+        public static T? Deserialize<T>(this ISerializer serializer,
+            ReadOnlySequence<byte> buffer)
+        {
+            return (T?)serializer.Deserialize(buffer, typeof(T));
+        }
+
+        /// <summary>
         /// Convert to token.
         /// </summary>
         /// <param name="serializer"></param>

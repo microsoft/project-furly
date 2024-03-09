@@ -85,7 +85,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         }
 
         /// <inheritdoc/>
-        public object? Deserialize(ReadOnlyMemory<byte> buffer, Type type)
+        public object? Deserialize(ReadOnlySequence<byte> buffer, Type type)
         {
             try
             {
@@ -240,7 +240,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         }
 
         /// <inheritdoc/>
-        public VariantValue Parse(ReadOnlyMemory<byte> buffer)
+        public VariantValue Parse(ReadOnlySequence<byte> buffer)
         {
             try
             {

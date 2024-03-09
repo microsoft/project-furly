@@ -86,7 +86,7 @@ namespace Furly.Extensions.Serializers
         /// <param name="type"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        object? Deserialize(ReadOnlyMemory<byte> buffer, Type type);
+        object? Deserialize(ReadOnlySequence<byte> buffer, Type type);
 
         /// <summary>
         /// Deserialize from stream
@@ -134,7 +134,7 @@ namespace Furly.Extensions.Serializers
         /// Deserialize to variant value
         /// </summary>
         /// <param name="buffer"></param>
-        VariantValue Parse(ReadOnlyMemory<byte> buffer);
+        VariantValue Parse(ReadOnlySequence<byte> buffer);
 
         /// <summary>
         /// Convert to token.

@@ -92,11 +92,12 @@ namespace Furly.Extensions.Serializers.Json
         }
 
         /// <inheritdoc/>
-        public object? Deserialize(ReadOnlyMemory<byte> buffer, Type type)
+        public object? Deserialize(ReadOnlySequence<byte> buffer, Type type)
         {
             try
             {
-                return JsonSerializer.Deserialize(buffer.Span, type, Settings);
+                var reader = new Utf8JsonReader(buffer);
+                return JsonSerializer.Deserialize(ref reader, type, Settings);
             }
             catch (JsonException ex)
             {
@@ -183,11 +184,11 @@ namespace Furly.Extensions.Serializers.Json
         }
 
         /// <inheritdoc/>
-        public VariantValue Parse(ReadOnlyMemory<byte> buffer)
+        public VariantValue Parse(ReadOnlySequence<byte> buffer)
         {
             try
             {
-                var reader = new Utf8JsonReader(buffer.Span, new JsonReaderOptions
+                var reader = new Utf8JsonReader(buffer, new JsonReaderOptions
                 {
                     MaxDepth = Settings.MaxDepth
                 });
