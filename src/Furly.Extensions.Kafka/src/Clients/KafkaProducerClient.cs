@@ -168,8 +168,7 @@ namespace Furly.Extensions.Kafka.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent SetSchema(string name, ulong version,
-                ReadOnlyMemory<byte> schema, string contentType)
+            public IEvent SetSchema(IEventSchema schema)
             {
                 // TODO
                 return this;

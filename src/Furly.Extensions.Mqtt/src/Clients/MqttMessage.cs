@@ -47,8 +47,7 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        public IEvent SetSchema(string name, ulong version,
-            ReadOnlyMemory<byte> schema, string contentType)
+        public IEvent SetSchema(IEventSchema schema)
         {
             return this;
         }

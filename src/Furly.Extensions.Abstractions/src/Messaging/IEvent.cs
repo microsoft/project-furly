@@ -59,13 +59,9 @@ namespace Furly.Extensions.Messaging
         /// <summary>
         /// Set the event schema
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="version"></param>
         /// <param name="schema"></param>
-        /// <param name="contentType"></param>
         /// <returns></returns>
-        IEvent SetSchema(string name, ulong version,
-            ReadOnlyMemory<byte> schema, string contentType);
+        IEvent SetSchema(IEventSchema schema);
 
         /// <summary>
         /// Message payload buffers.

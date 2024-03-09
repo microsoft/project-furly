@@ -146,14 +146,11 @@ namespace Furly.Azure.EventHubs.Services
             }
 
             /// <inheritdoc/>
-            public IEvent SetSchema(string name, ulong version,
-                ReadOnlyMemory<byte> schema, string contentType)
+            public IEvent SetSchema(IEventSchema schema)
             {
-                if (contentType == ContentMimeType.AvroSchema)
+                if (schema.Type == ContentMimeType.AvroSchema)
                 {
-                    _version = version;
                     _schema = schema;
-                    _schemaName = name;
                 }
                 return this;
             }
@@ -203,11 +200,11 @@ namespace Furly.Azure.EventHubs.Services
                 {
                     // Register the schema if not registered
                     if (_outer._options.Value.SchemaGroupName != null &&
-                        _schema.Length != 0 && _schemaName != null)
+                        _schema != null)
                     {
                         var retrievedSchemaId = await _outer.GetSchemaIdAsync(
-                            Encoding.UTF8.GetString(_schema.Span), _schemaName,
-                            _version, ct).ConfigureAwait(false);
+                            _schema.Schema, _schema.Name,
+                            _schema.Version, ct).ConfigureAwait(false);
 
                         if (retrievedSchemaId != null)
                         {
@@ -257,10 +254,8 @@ namespace Furly.Azure.EventHubs.Services
             private readonly EventHubsClient _outer;
             private readonly Dictionary<string, string?> _properties = new();
             private readonly List<ReadOnlySequence<byte>> _buffers = new();
-            private ulong _version;
-            private ReadOnlyMemory<byte> _schema;
+            private IEventSchema? _schema;
             private string? _contentEncoding;
-            private string? _schemaName;
         }
 
         private const int CacheCapacity = 128;
