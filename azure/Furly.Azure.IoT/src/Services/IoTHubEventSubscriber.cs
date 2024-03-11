@@ -36,16 +36,20 @@ namespace Furly.Azure.IoT.Services
             IIoTHubEventProcessor events, ILogger<IoTHubEventSubscriber> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
-                !ConnectionString.TryParse(options.Value.ConnectionString, out var cs) ||
-                string.IsNullOrEmpty(cs.HostName))
-            {
-                throw new InvalidConfigurationException(
-                    "IoT Hub Connection string not configured.");
-            }
             _processor = new Lazy<TelemetryProcessor>(
                 () => new TelemetryProcessor(this, events));
-            _client = IoTHubEventClient.OpenAsync(options.Value.ConnectionString);
+
+            if (!string.IsNullOrEmpty(options.Value.ConnectionString) &&
+                ConnectionString.TryParse(options.Value.ConnectionString, out var cs) &&
+                !string.IsNullOrEmpty(cs.HostName))
+            {
+                _client = IoTHubEventClient.OpenAsync(options.Value.ConnectionString);
+            }
+            else
+            {
+                _client = Task.FromException<ServiceClient>(
+                    new NotSupportedException("No connection string configured."));
+            }
         }
 
         /// <inheritdoc/>
@@ -62,7 +66,10 @@ namespace Furly.Azure.IoT.Services
             {
                 _processor.Value.Dispose();
             }
-            _client.Result.Dispose();
+            if (!_client.IsFaulted)
+            {
+                _client.Result.Dispose();
+            }
         }
 
         /// <summary>

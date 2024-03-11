@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     using Microsoft.Extensions.Options;
     using Furly.Azure.EventHubs;
     using Furly.Azure.EventHubs.Runtime;
-    using Furly.Azure.EventHubs.Services;
+    using Furly.Azure.EventHubs.Clients;
     using Furly.Extensions.Messaging;
 
     /// <summary>

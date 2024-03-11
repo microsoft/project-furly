@@ -50,6 +50,8 @@ namespace Furly.Azure
             EndpointSuffix,
             /// <summary>default protocol</summary>
             DefaultEndpointsProtocol,
+            /// <summary>Entity path</summary>
+            EntityPath,
         }
 
         /// <summary>
@@ -59,6 +61,11 @@ namespace Furly.Azure
         {
             get
             {
+                if (EntityPath != null)
+                {
+                    // Event hub in namespace
+                    return EntityPath;
+                }
                 var idx = HostName?.IndexOf('.', StringComparison.Ordinal) ?? -1;
                 if (idx == -1)
                 {
@@ -67,6 +74,11 @@ namespace Furly.Azure
                 return HostName![..idx];
             }
         }
+
+        /// <summary>
+        /// Get entity path from connection string
+        /// </summary>
+        public string? EntityPath => this[Id.EntityPath];
 
         /// <summary>
         /// Get host name from connection string

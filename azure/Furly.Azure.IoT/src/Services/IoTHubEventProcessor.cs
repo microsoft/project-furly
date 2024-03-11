@@ -384,15 +384,19 @@ namespace Furly.Azure.IoT.Services
                 throw new InvalidConfigurationException(
                    "Invalid IoT Hub connection string was configured.");
             }
-            if (string.IsNullOrEmpty(options.EventHubEndpoint))
+            var ep = options.EventHubEndpoint;
+            if (string.IsNullOrEmpty(ep))
             {
-                throw new InvalidConfigurationException(
-                   "No Event hub endpoint was configured.");
+                ep = connectionString.Endpoint;
+                if (string.IsNullOrEmpty(ep))
+                {
+                    throw new InvalidConfigurationException(
+                       "No Event hub endpoint was configured.");
+                }
             }
             try
             {
-                cs = ConnectionString.CreateEventHubConnectionString(
-                    options.EventHubEndpoint,
+                cs = ConnectionString.CreateEventHubConnectionString(ep,
                     connectionString.SharedAccessKeyName,
                     connectionString.SharedAccessKey).ToString();
 

@@ -110,6 +110,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furly.Extensions.AspNetCore
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furly.Azure.EventHubs", "azure\Furly.Azure.EventHubs\src\Furly.Azure.EventHubs.csproj", "{D2D1B34A-A9B6-4307-A758-EC93850DBF5E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Furly.Azure.EventHubs.Tests", "azure\Furly.Azure.EventHubs\tests\Furly.Azure.EventHubs.Tests.csproj", "{F0DDABB0-6CE3-4B50-96A1-8C3549443408}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -446,6 +448,14 @@ Global
 		{D2D1B34A-A9B6-4307-A758-EC93850DBF5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D2D1B34A-A9B6-4307-A758-EC93850DBF5E}.Release|x64.ActiveCfg = Release|Any CPU
 		{D2D1B34A-A9B6-4307-A758-EC93850DBF5E}.Release|x64.Build.0 = Release|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Debug|x64.Build.0 = Debug|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Release|x64.ActiveCfg = Release|Any CPU
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -498,6 +508,7 @@ Global
 		{80D109BA-3EB0-4E85-880F-1077561E6DC6} = {99040F37-40F7-4A15-B725-3CCBA65C6FD4}
 		{60704B5F-55BA-463E-B81A-998932C5DFE1} = {ADA1CE90-5727-4D1E-8544-50C19B09D3A1}
 		{D2D1B34A-A9B6-4307-A758-EC93850DBF5E} = {62FF75F4-68FA-4B03-AFB5-3731FAC64EC2}
+		{F0DDABB0-6CE3-4B50-96A1-8C3549443408} = {7D7E18B6-B184-4582-A592-2A2F7FEFF444}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

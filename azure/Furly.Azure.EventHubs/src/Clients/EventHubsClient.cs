@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Furly.Azure.EventHubs.Services
+namespace Furly.Azure.EventHubs.Clients
 {
     using Furly.Azure;
     using Furly.Exceptions;
@@ -18,7 +18,6 @@ namespace Furly.Azure.EventHubs.Services
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -172,6 +171,7 @@ namespace Furly.Azure.EventHubs.Services
             /// <inheritdoc/>
             public IEvent SetTopic(string? value)
             {
+                _properties.Add("deviceId", value);
                 return this;
             }
 
