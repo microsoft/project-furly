@@ -26,5 +26,10 @@ namespace Furly.Azure.EventHubs
         /// Default is 1MB
         /// </summary>
         public int? MaxEventPayloadSizeInBytes { get; set; }
+
+        /// <summary>
+        /// Allow interactive login
+        /// </summary>
+        public bool AllowInteractiveLogin { get; set; }
     }
 }

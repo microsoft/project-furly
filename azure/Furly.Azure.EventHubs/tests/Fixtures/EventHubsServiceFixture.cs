@@ -81,7 +81,6 @@ namespace Furly.Azure.EventHubs.Tests.Fixtures
             return Try.Op(() => _container?.Resolve<IEventClient>());
         }
 
-
         /// <inheritdoc/>
         public void Dispose()
         {

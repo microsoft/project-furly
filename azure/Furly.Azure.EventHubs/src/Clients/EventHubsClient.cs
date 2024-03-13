@@ -63,7 +63,7 @@ namespace Furly.Azure.EventHubs.Clients
             // Registry endpoint is mschiertest11.servicebus.windows.net
             _schemaRegistry = new SchemaRegistryClient(
                 cs.Endpoint.Replace("sb://", string.Empty, StringComparison.Ordinal),
-                    new DefaultAzureCredential());
+                    new DefaultAzureCredential(_options.Value.AllowInteractiveLogin));
         }
 
         /// <inheritdoc/>
