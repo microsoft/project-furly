@@ -49,6 +49,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <inheritdoc/>
         public IEvent SetSchema(IEventSchema schema)
         {
+            _schema = schema;
             return this;
         }
 
@@ -142,16 +143,45 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <inheritdoc/>
         public async ValueTask SendAsync(CancellationToken ct = default)
         {
+            if (_schema != null)
+            {
+                _builder.WithPayload(_schema.Schema);
+                var schemaMessage = _builder.Build();
+
+                //
+                // TODO: Hardcode a subpath and retain for now - we also
+                // need to lru cache so we are not constantly publishing
+                // the schema. Future might be using rpc here.
+                //
+                schemaMessage.Topic += "/schema";
+                schemaMessage.Retain = true;
+                schemaMessage.ContentType = _schema.Type;
+
+                await _publish.Invoke(schemaMessage, ct).ConfigureAwait(false);
+
+                if (_schema.Id != null && _version != MqttVersion.v311)
+                {
+                    // Add the schema id as cloud event property
+                    // TODO: Also make configurable.
+                    _builder.WithUserProperty("dataschema", _schema.Id);
+                }
+            }
             foreach (var buffer in _buffers)
             {
-                foreach (var segment in buffer)
+                if (buffer.IsSingleSegment)
                 {
-                    _builder.WithPayloadSegment(segment);
+                    _builder.WithPayloadSegment(buffer.First);
                 }
-                await _publish.Invoke(_builder.Build(), ct).ConfigureAwait(false);
+                else
+                {
+                    _builder.WithPayloadSegment(buffer.ToArray());
+                }
+                var message = _builder.Build();
+                await _publish.Invoke(message, ct).ConfigureAwait(false);
             }
         }
 
+        private IEventSchema? _schema;
         private readonly List<ReadOnlySequence<byte>> _buffers = new();
         private readonly MqttApplicationMessageBuilder _builder = new();
         private readonly Func<MqttApplicationMessage, CancellationToken, ValueTask> _publish;

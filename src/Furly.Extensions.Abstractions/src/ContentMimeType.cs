@@ -21,6 +21,11 @@ namespace Furly
         public const string Json =
             "application/json";
         /// <summary>
+        /// Json schema
+        /// </summary>
+        public const string JsonSchema =
+            "application/schema+json";
+        /// <summary>
         /// Bson encoding
         /// </summary>
         public const string Bson =
