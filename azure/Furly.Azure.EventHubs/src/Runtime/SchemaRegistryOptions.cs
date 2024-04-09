@@ -8,23 +8,22 @@ namespace Furly.Azure.EventHubs
     /// <summary>
     /// Configuration for service
     /// </summary>
-    public class EventHubsClientOptions
+    public class SchemaRegistryOptions
     {
         /// <summary>
         /// Connection string
         /// </summary>
-        public string? ConnectionString { get; set; }
+        public required string FullyQualifiedNamespace { get; set; }
 
         /// <summary>
-        /// Max payload size. Set to 256k for basic tier.
-        /// Default is 1MB
+        /// Schema group name in the schema registry
+        /// Set to null to disable publishing schemas
         /// </summary>
-        public int? MaxEventPayloadSizeInBytes { get; set; }
+        public required string SchemaGroupName { get; set; }
 
         /// <summary>
-        /// Schema registry, set to null to disable publishing
-        /// schemas
+        /// Allow interactive login
         /// </summary>
-        public SchemaRegistryOptions? SchemaRegistry { get; set; }
+        public bool AllowInteractiveLogin { get; set; }
     }
 }

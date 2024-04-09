@@ -6,6 +6,7 @@
 namespace Furly.Extensions.Mqtt
 {
     using Furly.Extensions.Messaging;
+    using MQTTnet;
     using MQTTnet.Client;
     using MQTTnet.Extensions.ManagedClient;
     using System;
@@ -98,6 +99,11 @@ namespace Furly.Extensions.Mqtt
         /// topics across a broker's load balanced nodes.
         /// </summary>
         public int? NumberOfClientPartitions { get; set; }
+
+        /// <summary>
+        /// Allow setting client options
+        /// </summary>
+        public Action<MqttApplicationMessage>? ConfigureSchemaMessage { get; set; }
 
         /// <summary>
         /// Allow setting client options

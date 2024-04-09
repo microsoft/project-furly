@@ -22,6 +22,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Messaging;
 
     /// <summary>
     /// Mqtt rpc client base
@@ -118,10 +119,11 @@ namespace Furly.Extensions.Mqtt.Clients
         /// Publish reqeusts and responses
         /// </summary>
         /// <param name="message"></param>
+        /// <param name="schema"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        protected abstract ValueTask PublishAsync(MqttApplicationMessage message,
-            CancellationToken ct);
+        public abstract ValueTask PublishAsync(MqttApplicationMessage message,
+            IEventSchema? schema, CancellationToken ct);
 
         /// <summary>
         /// Mark closed
@@ -301,7 +303,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 CorrelationData = correlationData,
                 Retain = false
             };
-            await PublishAsync(message, ct).ConfigureAwait(false);
+            await PublishAsync(message, null, ct).ConfigureAwait(false);
         }
 
         /// <summary>

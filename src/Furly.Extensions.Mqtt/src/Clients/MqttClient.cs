@@ -35,7 +35,7 @@ namespace Furly.Extensions.Mqtt.Clients
     /// Mqtt event client
     /// </summary>
     public sealed class MqttClient : MqttRpcBase, IEventClient, IEventSubscriber,
-        IDisposable, IAsyncDisposable, IAwaitable<MqttClient>
+        IMqttPublish, IDisposable, IAsyncDisposable, IAwaitable<MqttClient>
     {
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes => MaxMethodPayloadSizeInBytes;
@@ -48,8 +48,9 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         /// <param name="options"></param>
         /// <param name="logger"></param>
-        public MqttClient(IOptions<MqttOptions> options, ILogger<MqttClient> logger)
-            : base(options, logger)
+        /// <param name="registry"></param>
+        public MqttClient(IOptions<MqttOptions> options, ILogger<MqttClient> logger,
+            ISchemaRegistry? registry = null) : base(options, logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -76,6 +77,8 @@ namespace Furly.Extensions.Mqtt.Clients
                 .ToArray();
 
             _cts = new CancellationTokenSource();
+            _publisher = _options.Value.ConfigureSchemaMessage == null && registry == null ? this
+                : new MqttSchemaPublisher(_options, this, registry);
             _connection = Task.WhenAll(_clients
                 .Select((c, i) => c.StartAsync(GetClientOptions(i))));
             _subscriber = Task.Factory.StartNew(() => SubscribeAsync(_cts.Token),
@@ -209,8 +212,8 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <inheritdoc/>
         public IEvent CreateEvent()
         {
-            ObjectDisposedException.ThrowIf(_isDisposed, this);
-            return new MqttMessage(_options, PublishAsync);
+            ObjectDisposedException.ThrowIf(_isDisposed, _publisher);
+            return new MqttMessage(_options, this);
         }
 
         /// <inheritdoc/>
@@ -221,8 +224,8 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        protected override async ValueTask PublishAsync(MqttApplicationMessage message,
-            CancellationToken ct)
+        public override async ValueTask PublishAsync(MqttApplicationMessage message,
+            IEventSchema? schema, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             ct.ThrowIfCancellationRequested();
@@ -629,6 +632,76 @@ namespace Furly.Extensions.Mqtt.Clients
             return managedOptions;
         }
 
+        /// <summary>
+        /// Schema registry publisher
+        /// </summary>
+        internal sealed class MqttSchemaPublisher : IMqttPublish
+        {
+            /// <summary>
+            /// Create schema registry implementation
+            /// </summary>
+            /// <param name="options"></param>
+            /// <param name="publish"></param>
+            /// <param name="registry"></param>
+            public MqttSchemaPublisher(IOptions<MqttOptions> options, IMqttPublish publish,
+                ISchemaRegistry? registry)
+            {
+                _version = options.Value.Protocol;
+                _configure = options.Value.ConfigureSchemaMessage;
+                _publish = publish;
+                _registry = registry;
+            }
+
+            /// <summary>
+            /// Publish
+            /// </summary>
+            /// <param name="message"></param>
+            /// <param name="schema"></param>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            public async ValueTask PublishAsync(MqttApplicationMessage message,
+                IEventSchema? schema, CancellationToken ct)
+            {
+                if (schema != null)
+                {
+                    string? id;
+                    if (_registry == null)
+                    {
+                        //
+                        // TODO: Hardcode a subpath and retain for now.
+                        //
+                        var builder = new MqttApplicationMessageBuilder()
+                            .WithPayload(schema.Schema)
+                            .WithTopic(message.Topic + "/schema")
+                            .WithRetainFlag(true)
+                            .WithContentType(schema.Type)
+                            ;
+                        var schemaMessage = builder.Build();
+                        _configure?.Invoke(schemaMessage);
+                        await _publish.PublishAsync(schemaMessage, null,
+                            ct).ConfigureAwait(false);
+                        id = schema.Id;
+                    }
+                    else
+                    {
+                        id = await _registry.RegisterAsync(schema, ct).ConfigureAwait(false);
+                    }
+                    if (id != null && _version != MqttVersion.v311)
+                    {
+                        // Add the schema id as cloud event property
+                        message.UserProperties.Add(
+                            new MqttUserProperty("dataschema", id));
+                    }
+                }
+                await _publish.PublishAsync(message, schema, ct).ConfigureAwait(false);
+            }
+
+            private readonly MqttVersion _version;
+            private readonly Action<MqttApplicationMessage>? _configure;
+            private readonly IMqttPublish _publish;
+            private readonly ISchemaRegistry? _registry;
+        }
+
         private readonly IOptions<MqttOptions> _options;
         private readonly ILogger _logger;
         private readonly IManagedMqttClient[] _clients;
@@ -638,6 +711,7 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly ConcurrentQueue<(TaskCompletionSource, MqttTopicFilter)> _topics = new();
         private readonly ConcurrentDictionary<MqttApplicationMessage, TaskCompletionSource> _inflight = new();
         private readonly CancellationTokenSource _cts = new();
+        private readonly IMqttPublish _publisher;
         private readonly SemaphoreSlim _subscriptionsLock = new(1, 1);
         private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = new();
         private bool _isDisposed;

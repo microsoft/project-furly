@@ -26,7 +26,7 @@ namespace Furly.Extensions.Mqtt.Clients
     /// Mqtt broker that can serve as event client
     /// </summary>
     public sealed class MqttServer : MqttRpcBase, IEventClient, IEventSubscriber,
-        IAwaitable<MqttServer>, IDisposable
+        IMqttPublish, IAwaitable<MqttServer>, IDisposable
     {
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes => MaxMethodPayloadSizeInBytes;
@@ -56,7 +56,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <inheritdoc/>
         public IEvent CreateEvent()
         {
-            return new MqttMessage(_options, PublishAsync);
+            return new MqttMessage(_options, this);
         }
 
         /// <inheritdoc/>
@@ -67,8 +67,8 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        protected override async ValueTask PublishAsync(MqttApplicationMessage message,
-            CancellationToken ct)
+        public override async ValueTask PublishAsync(MqttApplicationMessage message,
+            IEventSchema? schema, CancellationToken ct)
         {
             var server = await GetServerAsync().ConfigureAwait(false);
             await server.InjectApplicationMessage(

@@ -8,9 +8,6 @@ namespace Furly.Azure.EventHubs.Clients
     using Furly.Azure;
     using Furly.Exceptions;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Utils;
-    using global::Azure.Data.SchemaRegistry;
-    using global::Azure.Identity;
     using global::Azure.Messaging.EventHubs;
     using global::Azure.Messaging.EventHubs.Producer;
     using Microsoft.Extensions.Logging;
@@ -42,11 +39,13 @@ namespace Furly.Azure.EventHubs.Clients
         /// </summary>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="registry"></param>
         public EventHubsClient(IOptions<EventHubsClientOptions> options,
-            ILogger<EventHubsClient> logger)
+            ILogger<EventHubsClient> logger, ISchemaRegistry? registry = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _schemaRegistry = registry;
 
             if (string.IsNullOrEmpty(_options.Value.ConnectionString) ||
                 !ConnectionString.TryParse(_options.Value.ConnectionString, out var cs) ||
@@ -56,14 +55,17 @@ namespace Furly.Azure.EventHubs.Clients
                     "EventHub Connection string not configured.");
             }
 
-            Identity = _options.Value.SchemaGroupName ?? cs.Endpoint; // TODO
+            Identity = cs.Endpoint; // TODO
+
             _client = new EventHubProducerClient(_options.Value.ConnectionString);
 
-            // Endpoint is sb://mschiertest11.servicebus.windows.net
-            // Registry endpoint is mschiertest11.servicebus.windows.net
-            _schemaRegistry = new SchemaRegistryClient(
-                cs.Endpoint.Replace("sb://", string.Empty, StringComparison.Ordinal),
-                    new DefaultAzureCredential(_options.Value.AllowInteractiveLogin));
+            if (_schemaRegistry == null && options.Value.SchemaRegistry != null)
+            {
+                options.Value.SchemaRegistry.FullyQualifiedNamespace =
+                    cs.Endpoint.Replace("sb://", string.Empty, StringComparison.Ordinal);
+
+                _schemaRegistry = new SchemaGroup(options.Value.SchemaRegistry, _logger);
+            }
         }
 
         /// <inheritdoc/>
@@ -82,33 +84,6 @@ namespace Furly.Azure.EventHubs.Clients
         public async ValueTask DisposeAsync()
         {
             await _client.DisposeAsync().ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Publish schema to registry
-        /// </summary>
-        /// <param name="schema"></param>
-        /// <param name="schemaName"></param>
-        /// <param name="version"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async ValueTask<string?> GetSchemaIdAsync(string schema,
-            string schemaName, ulong version, CancellationToken ct)
-        {
-            // Check the cache
-            if (_schemaToIdMap.TryGet(schemaName + version, out var value))
-            {
-                return value;
-            }
-
-            // TODO: versioning
-            var schemaProperties = await _schemaRegistry.RegisterSchemaAsync(
-                _options.Value.SchemaGroupName, schemaName, schema, SchemaFormat.Avro,
-                ct).ConfigureAwait(false);
-
-            var id = schemaProperties.Value.Id ?? string.Empty;
-            _schemaToIdMap.AddOrUpdate(schemaName + version, id, schema.Length);
-            return id;
         }
 
         internal sealed class EventHubsEvent : IEvent
@@ -199,12 +174,10 @@ namespace Furly.Azure.EventHubs.Clients
                 try
                 {
                     // Register the schema if not registered
-                    if (_outer._options.Value.SchemaGroupName != null &&
-                        _schema != null)
+                    if (_outer._schemaRegistry != null && _schema != null)
                     {
-                        var retrievedSchemaId = await _outer.GetSchemaIdAsync(
-                            _schema.Schema, _schema.Name,
-                            _schema.Version, ct).ConfigureAwait(false);
+                        var retrievedSchemaId = await _outer._schemaRegistry.RegisterAsync(
+                            _schema, ct).ConfigureAwait(false);
 
                         if (retrievedSchemaId != null)
                         {
@@ -258,11 +231,9 @@ namespace Furly.Azure.EventHubs.Clients
             private string? _contentEncoding;
         }
 
-        private const int CacheCapacity = 128;
-        private readonly LruCache<string, string> _schemaToIdMap = new(CacheCapacity);
         private readonly EventHubProducerClient _client;
-        private readonly SchemaRegistryClient _schemaRegistry;
         private readonly IOptions<EventHubsClientOptions> _options;
+        private readonly ISchemaRegistry? _schemaRegistry;
         private readonly ILogger _logger;
     }
 }
