@@ -7,18 +7,20 @@ namespace Furly.Extensions.Messaging.Clients
 {
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Runtime;
+    using Furly.Extensions.Storage;
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Event client that writes events to the filesystem
     /// </summary>
-    public sealed class FileSystemEventClient : IEventClient
+    public class FileSystemEventClient : IEventClient
     {
         /// <inheritdoc/>
         public string Name => "FileSystem";
@@ -34,16 +36,48 @@ namespace Furly.Extensions.Messaging.Clients
         /// Create dapr client
         /// </summary>
         /// <param name="options"></param>
-        public FileSystemEventClient(IOptions<FileSystemOptions> options)
+        /// <param name="writers"></param>
+        public FileSystemEventClient(IOptions<FileSystemOptions> options,
+            IEnumerable<IFileWriter>? writers = null)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _rootFolder = Path.GetFullPath(_options.Value.OutputFolder ?? string.Empty);
+            _writers = writers?.ToDictionary(k => k.ContentType)
+                ?? new Dictionary<string, IFileWriter>();
         }
 
         /// <inheritdoc/>
         public IEvent CreateEvent()
         {
             return new FileSystemEvent(this);
+        }
+
+        /// <summary>
+        /// Default writer
+        /// </summary>
+        private sealed class DefaultWriter : IFileWriter
+        {
+            public string ContentType => string.Empty;
+
+            /// <inheritdoc/>
+            public async ValueTask WriteAsync(string fileName, DateTime timestamp,
+                IEnumerable<ReadOnlySequence<byte>> buffers,
+                IReadOnlyDictionary<string, string?> metadata,
+                IEventSchema? schema, CancellationToken ct)
+            {
+                var stream = new FileStream(fileName, FileMode.Append);
+                await using (stream.ConfigureAwait(false))
+                {
+                    foreach (var buffer in buffers)
+                    {
+                        foreach (var memory in buffer)
+                        {
+                            await stream.WriteAsync(memory, ct).ConfigureAwait(false);
+                        }
+                    }
+                }
+                File.SetLastAccessTimeUtc(fileName, timestamp);
+            }
         }
 
         /// <summary>
@@ -83,6 +117,7 @@ namespace Furly.Extensions.Messaging.Clients
             /// <inheritdoc/>
             public IEvent SetContentType(string? value)
             {
+                _contentType = value;
                 _metadata.AddOrUpdate("ContentType", value);
                 return this;
             }
@@ -97,6 +132,7 @@ namespace Furly.Extensions.Messaging.Clients
             /// <inheritdoc/>
             public IEvent SetSchema(IEventSchema schema)
             {
+                _schema = schema;
                 return this;
             }
 
@@ -146,18 +182,13 @@ namespace Furly.Extensions.Messaging.Clients
                 {
                     fileName = fileName.Replace('/', Path.DirectorySeparatorChar);
                 }
-                var stream = new FileStream(fileName, FileMode.Append);
-                await using (stream.ConfigureAwait(false))
+                if (_contentType == null ||
+                    !_outer._writers.TryGetValue(_contentType, out var writer))
                 {
-                    foreach (var buffer in _buffers)
-                    {
-                        foreach (var memory in buffer)
-                        {
-                            await stream.WriteAsync(memory, ct).ConfigureAwait(false);
-                        }
-                    }
+                    writer = new DefaultWriter();
                 }
-                File.SetLastAccessTimeUtc(fileName, _timestamp);
+                await writer.WriteAsync(fileName, _timestamp, _buffers, _metadata,
+                    _schema, ct).ConfigureAwait(false);
             }
 
             /// <inheritdoc/>
@@ -168,6 +199,8 @@ namespace Furly.Extensions.Messaging.Clients
 
             private string? _topic;
             private DateTime _timestamp;
+            private IEventSchema? _schema;
+            private string? _contentType;
             private readonly Dictionary<string, string?> _metadata = new();
             private readonly List<ReadOnlySequence<byte>> _buffers = new();
             private readonly FileSystemEventClient _outer;
@@ -175,5 +208,6 @@ namespace Furly.Extensions.Messaging.Clients
 
         private readonly IOptions<FileSystemOptions> _options;
         private readonly string _rootFolder;
+        private readonly Dictionary<string, IFileWriter> _writers;
     }
 }
