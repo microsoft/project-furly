@@ -37,7 +37,7 @@ namespace Furly.Extensions.Kafka.Clients
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _admin = new AdminClientBuilder(config.Value.ToClientConfig<AdminClientConfig>(
-                    identity?.Id ?? Dns.GetHostName()))
+                    identity?.Identity ?? Dns.GetHostName()))
                 .SetErrorHandler(OnError)
                 .SetLogHandler((_, m) => _logger.Log(m))
                 .Build();

@@ -7,6 +7,7 @@ namespace Furly.Azure.IoT.Services
 {
     using Furly.Azure.IoT;
     using Furly.Exceptions;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Logging;
@@ -75,7 +76,7 @@ namespace Furly.Azure.IoT.Services
         /// <summary>
         /// Cloud to device client adapter
         /// </summary>
-        private sealed class EventClientAdapter : IEventClient
+        private sealed class EventClientAdapter : IEventClient, IProcessIdentity
         {
             /// <inheritdoc/>
             public string Name => "IoTEdge";

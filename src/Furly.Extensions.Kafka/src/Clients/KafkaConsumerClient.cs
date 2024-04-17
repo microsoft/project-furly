@@ -45,7 +45,7 @@ namespace Furly.Extensions.Kafka.Clients
             _admin = admin ?? throw new ArgumentNullException(nameof(admin));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _server = server ?? throw new ArgumentNullException(nameof(server));
-            _consumerId = identity.Id ?? Guid.NewGuid().ToString();
+            _consumerId = identity.Identity ?? Guid.NewGuid().ToString();
             _interval = (int?)config.Value.CheckpointInterval?.TotalMilliseconds;
             _runner = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();

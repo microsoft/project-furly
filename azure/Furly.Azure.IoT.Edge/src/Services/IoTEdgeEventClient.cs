@@ -6,6 +6,7 @@
 namespace Furly.Azure.IoT.Edge.Services
 {
     using Furly.Azure.IoT.Edge;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.Devices.Client;
     using System;
@@ -19,7 +20,7 @@ namespace Furly.Azure.IoT.Edge.Services
     /// Event client implementation
     /// </summary>
     public sealed class IoTEdgeEventClient : IEventClient, IEventSubscriber,
-        IAsyncDisposable, IDisposable
+        IAsyncDisposable, IDisposable, IProcessIdentity
     {
         /// <inheritdoc/>
         public string Name => "IoTEdge";

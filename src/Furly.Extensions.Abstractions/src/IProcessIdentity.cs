@@ -6,23 +6,13 @@
 namespace Furly.Extensions.Hosting
 {
     /// <summary>
-    /// Process info
+    /// Process identity
     /// </summary>
     public interface IProcessIdentity
     {
         /// <summary>
         /// Process identity
         /// </summary>
-        string Id { get; }
-
-        /// <summary>
-        /// Service name
-        /// </summary>
-        string Name { get; }
-
-        /// <summary>
-        /// Description
-        /// </summary>
-        string Description { get; }
+        string Identity { get; }
     }
 }

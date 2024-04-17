@@ -10,9 +10,6 @@ namespace Furly.Extensions.Kafka.Clients
 
     public class ProcessIdentityMock : IProcessIdentity
     {
-        public string Id { get; } = Guid.NewGuid().ToString();
-        public string ServiceId { get; } = Guid.NewGuid().ToString();
-        public string Name { get; } = "test";
-        public string Description { get; } = "the test";
+        public string Identity { get; } = Guid.NewGuid().ToString();
     }
 }

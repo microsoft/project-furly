@@ -18,11 +18,12 @@ namespace Furly.Azure.IoT.Services
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// IoT Hub cloud to device event client
     /// </summary>
-    public sealed class IoTHubEventClient : IEventClient, IDisposable
+    public sealed class IoTHubEventClient : IEventClient, IDisposable, IProcessIdentity
     {
         /// <inheritdoc/>
         public string Name => "IoTHub";

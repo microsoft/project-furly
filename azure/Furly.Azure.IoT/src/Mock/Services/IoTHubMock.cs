@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Mock.Services
     using Furly.Azure.IoT.Mock.SqlParser;
     using Furly.Azure.IoT.Models;
     using Furly.Exceptions;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
@@ -360,7 +361,7 @@ namespace Furly.Azure.IoT.Mock.Services
         /// Storage record for device and its connection
         /// </summary>
         internal sealed class IoTHubDeviceState : IIoTHubConnection, IRpcServer,
-            IEventClient, IKeyValueStore, IDictionary<string, VariantValue>
+            IEventClient, IKeyValueStore, IDictionary<string, VariantValue>, IProcessIdentity
         {
             /// <inheritdoc/>
             public string Name => "IoTEdge-Mock";

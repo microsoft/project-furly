@@ -50,7 +50,7 @@ namespace Furly.Extensions.Kafka.Clients
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _producer = new ProducerBuilder<string, byte[]>(
                 server.Value.ToClientConfig<ProducerConfig>(
-                    identity?.Id ?? Dns.GetHostName()))
+                    identity?.Identity ?? Dns.GetHostName()))
                 .SetErrorHandler(OnError)
                 .SetStatisticsHandler(OnMetrics)
                 .SetLogHandler((_, m) => _logger.Log(m))

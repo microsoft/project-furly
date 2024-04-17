@@ -13,12 +13,6 @@ namespace Furly.Tunnel.Azure.IoT.Service.Runtime
     public class ServiceInfo : IProcessIdentity
     {
         /// <inheritdoc/>
-        public string Id => System.Guid.NewGuid().ToString();
-
-        /// <inheritdoc/>
-        public string Name => "Cloud-Tunnel-Host";
-
-        /// <inheritdoc/>
-        public string Description => "Cloud-Tunnel-Host";
+        public string Identity => System.Guid.NewGuid().ToString();
     }
 }
