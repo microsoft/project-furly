@@ -11,6 +11,7 @@ namespace Furly.Extensions.Messaging.Clients
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -42,8 +43,7 @@ namespace Furly.Extensions.Messaging.Clients
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _rootFolder = Path.GetFullPath(_options.Value.OutputFolder ?? string.Empty);
-            _writers = writers?.ToDictionary(k => k.ContentType)
-                ?? new Dictionary<string, IFileWriter>();
+            _writers = writers?.ToArray() ?? Array.Empty<IFileWriter>();
         }
 
         /// <inheritdoc/>
@@ -57,13 +57,14 @@ namespace Furly.Extensions.Messaging.Clients
         /// </summary>
         private sealed class DefaultWriter : IFileWriter
         {
-            public string ContentType => string.Empty;
+            /// <inheritdoc/>
+            public bool SupportsContentType(string contentType) => true;
 
             /// <inheritdoc/>
             public async ValueTask WriteAsync(string fileName, DateTime timestamp,
                 IEnumerable<ReadOnlySequence<byte>> buffers,
                 IReadOnlyDictionary<string, string?> metadata,
-                IEventSchema? schema, CancellationToken ct)
+                IEventSchema? schema, string contentType, CancellationToken ct)
             {
                 var stream = new FileStream(fileName, FileMode.Append);
                 await using (stream.ConfigureAwait(false))
@@ -78,6 +79,20 @@ namespace Furly.Extensions.Messaging.Clients
                 }
                 File.SetLastAccessTimeUtc(fileName, timestamp);
             }
+        }
+
+        /// <summary>
+        /// Get writer
+        /// </summary>
+        /// <param name="contentType"></param>
+        /// <returns></returns>
+        private IFileWriter Get(string contentType)
+        {
+            return _cache.GetOrAdd(contentType, c =>
+            {
+                return _writers.FirstOrDefault(w => w.SupportsContentType(c))
+                    ?? new DefaultWriter();
+            });
         }
 
         /// <summary>
@@ -182,13 +197,9 @@ namespace Furly.Extensions.Messaging.Clients
                 {
                     fileName = fileName.Replace('/', Path.DirectorySeparatorChar);
                 }
-                if (_contentType == null ||
-                    !_outer._writers.TryGetValue(_contentType, out var writer))
-                {
-                    writer = new DefaultWriter();
-                }
-                await writer.WriteAsync(fileName, _timestamp, _buffers, _metadata,
-                    _schema, ct).ConfigureAwait(false);
+                _contentType ??= string.Empty;
+                await _outer.Get(_contentType).WriteAsync(fileName, _timestamp,
+                    _buffers, _metadata, _schema, _contentType, ct).ConfigureAwait(false);
             }
 
             /// <inheritdoc/>
@@ -208,6 +219,7 @@ namespace Furly.Extensions.Messaging.Clients
 
         private readonly IOptions<FileSystemOptions> _options;
         private readonly string _rootFolder;
-        private readonly Dictionary<string, IFileWriter> _writers;
+        private readonly IFileWriter[] _writers;
+        private readonly ConcurrentDictionary<string, IFileWriter> _cache = new();
     }
 }

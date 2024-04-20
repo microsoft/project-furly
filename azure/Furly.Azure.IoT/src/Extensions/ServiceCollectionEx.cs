@@ -11,6 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection
     using Furly.Azure.IoT.Services;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// DI extension
@@ -66,6 +67,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services
                 .AddScoped<IEventClient, IoTHubEventClient>()
+                .AddScoped<IProcessIdentity, IoTHubEventClient>()
                 .AddOptions()
                 .AddSingleton<IPostConfigureOptions<IoTHubDeviceOptions>, IoTHubDeviceConfig>()
                 .AddSingleton<IPostConfigureOptions<IoTHubServiceOptions>, IoTHubServiceConfig>()

@@ -20,7 +20,7 @@ namespace Furly.Extensions.Storage
         /// <summary>
         /// Content type
         /// </summary>
-        string ContentType { get; }
+        bool SupportsContentType(string contentType);
 
         /// <summary>
         /// Write to file
@@ -30,11 +30,13 @@ namespace Furly.Extensions.Storage
         /// <param name="buffers"></param>
         /// <param name="metadata"></param>
         /// <param name="schema"></param>
+        /// <param name="contentType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         ValueTask WriteAsync(string fileName, DateTime timestamp,
             IEnumerable<ReadOnlySequence<byte>> buffers,
             IReadOnlyDictionary<string, string?> metadata,
-            IEventSchema? schema, CancellationToken ct = default);
+            IEventSchema? schema, string contentType,
+            CancellationToken ct = default);
     }
 }

@@ -13,6 +13,7 @@ namespace Microsoft.Extensions.DependencyInjection
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Storage;
+    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// DI extension
@@ -37,6 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<IIoTEdgeDeviceClient, IoTEdgeHubSdkClient>()
                 .AddScoped<IEventSubscriber, IoTEdgeEventClient>()
                 .AddScoped<IEventClient, IoTEdgeEventClient>()
+                .AddScoped<IProcessIdentity, IoTEdgeEventClient>()
                 .AddScoped<IIoTEdgeWorkloadApi, IoTEdgeWorkloadApi>()
                 .AddScoped<IRpcClient, IoTEdgeRpcClient>()
                 .AddScoped<IRpcServer, IoTEdgeRpcServer>()
