@@ -7,7 +7,7 @@
     <Description>Furly Dapr extensions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Dapr.Extensions.Configuration" Version="1.13.0" />
+    <PackageReference Include="Dapr.Extensions.Configuration" Version="1.13.1" />
     <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
   </ItemGroup>
   <ItemGroup>

@@ -58,7 +58,10 @@ namespace Furly.Extensions.Messaging.Clients
         private sealed class DefaultWriter : IFileWriter
         {
             /// <inheritdoc/>
-            public bool SupportsContentType(string contentType) => true;
+            public bool SupportsContentType(string contentType)
+            {
+                return true;
+            }
 
             /// <inheritdoc/>
             public async ValueTask WriteAsync(string fileName, DateTime timestamp,

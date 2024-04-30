@@ -7,7 +7,7 @@
     <Description>CouchDB storage abstraction used by Furly and friends</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CouchDB.NET" Version="3.6.0" />
+    <PackageReference Include="CouchDB.NET" Version="3.6.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
