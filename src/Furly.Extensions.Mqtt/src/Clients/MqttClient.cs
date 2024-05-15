@@ -30,6 +30,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Net;
 
     /// <summary>
     /// Mqtt event client
@@ -604,15 +605,15 @@ namespace Furly.Extensions.Mqtt.Clients
                         Uri = new UriBuilder
                         {
                             Path = _options.Value.WebSocketPath,
-                            Host = _options.Value.HostName,
+                            Host = _options.Value.HostName ?? "localhost",
                             Scheme = _options.Value.UseTls == true ? "https" : "http",
                             Port = _options.Value.Port ?? 0
                         }.ToString()
                     } :
                     new MqttClientTcpOptions
                     {
-                        Server = _options.Value.HostName,
-                        Port = _options.Value.Port,
+                        RemoteEndpoint = new DnsEndPoint(
+                            _options.Value.HostName ?? "localhost", _options.Value.Port ?? 1883),
                         TlsOptions = tlsOptions
                     },
                 MaximumPacketSize = _options.Value.Protocol == MqttVersion.v5 ?

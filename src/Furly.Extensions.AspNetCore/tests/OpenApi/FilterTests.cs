@@ -85,7 +85,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
         ],
         "responses": {
           "200": {
-            "description": "Success",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/TestModel"
             }
@@ -109,7 +109,8 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
           "description": "Represents primitive or structurally complex value",
           "type": "object"
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }
