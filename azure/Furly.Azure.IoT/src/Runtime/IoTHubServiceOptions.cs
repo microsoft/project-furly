@@ -14,5 +14,10 @@ namespace Furly.Azure.IoT
         /// Connection string
         /// </summary>
         public string? ConnectionString { get; set; }
+
+        /// <summary>
+        /// Allow interactive login
+        /// </summary>
+        public bool AllowInteractiveLogin { get; set; }
     }
 }

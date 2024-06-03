@@ -19,6 +19,8 @@ namespace Furly.Azure.IoT.Services
     using System.Threading;
     using System.Threading.Tasks;
     using Furly.Extensions.Hosting;
+    using System.Diagnostics;
+    using global::Azure.Identity;
 
     /// <summary>
     /// IoT Hub cloud to device event client
@@ -55,7 +57,7 @@ namespace Furly.Azure.IoT.Services
                     "IoT Hub Device id string not configured.");
             _moduleId = device.Value.ModuleId;
             Identity = HubResource.Format(cs.HostName, _deviceId, _moduleId);
-            _client = OpenAsync(options.Value.ConnectionString);
+            _client = OpenAsync(cs, options.Value);
         }
 
         /// <inheritdoc/>
@@ -74,12 +76,30 @@ namespace Furly.Azure.IoT.Services
         /// Open service client
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        internal static async Task<ServiceClient> OpenAsync(string connectionString)
+        internal static async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
+            IoTHubServiceOptions options)
         {
-            var client = ServiceClient.CreateFromConnectionString(connectionString);
+            var client = CreateServiceClient(connectionString, options);
             await client.OpenAsync().ConfigureAwait(false);
             return client;
+
+            static ServiceClient CreateServiceClient(ConnectionString connectionString,
+               IoTHubServiceOptions options)
+            {
+                Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
+                if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
+                    string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
+                {
+                    return ServiceClient.Create(connectionString.HostName,
+                        new DefaultAzureCredential(options.AllowInteractiveLogin));
+                }
+                else
+                {
+                    return ServiceClient.CreateFromConnectionString(connectionString.ToString());
+                }
+            }
         }
 
         internal sealed class IoTHubEvent : IEvent

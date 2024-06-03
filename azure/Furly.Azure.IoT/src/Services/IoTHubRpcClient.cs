@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Services
     using Furly.Azure.IoT;
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
+    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -38,12 +39,13 @@ namespace Furly.Azure.IoT.Services
             ILogger<IoTHubRpcClient> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (string.IsNullOrEmpty(options.Value.ConnectionString))
+            if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
+                !ConnectionString.TryParse(options.Value.ConnectionString, out var cs) ||
+                cs.HostName == null)
             {
-                throw new InvalidConfigurationException(
-                    "IoT Hub Connection string not configured.");
+                throw new ArgumentException("Missing or bad connection string", nameof(options));
             }
-            _client = OpenAsync(options.Value.ConnectionString);
+            _client = OpenAsync(cs, options.Value);
         }
 
         /// <inheritdoc/>
@@ -119,12 +121,30 @@ namespace Furly.Azure.IoT.Services
         /// Open service client
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task<ServiceClient> OpenAsync(string connectionString)
+        private static async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
+            IoTHubServiceOptions options)
         {
-            var client = ServiceClient.CreateFromConnectionString(connectionString);
+            var client = CreateServiceClient(connectionString, options);
             await client.OpenAsync().ConfigureAwait(false);
             return client;
+
+            static ServiceClient CreateServiceClient(ConnectionString connectionString,
+               IoTHubServiceOptions options)
+            {
+                Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
+                if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
+                    string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
+                {
+                    return ServiceClient.Create(connectionString.HostName,
+                        new DefaultAzureCredential(options.AllowInteractiveLogin));
+                }
+                else
+                {
+                    return ServiceClient.CreateFromConnectionString(connectionString.ToString());
+                }
+            }
         }
 
         private readonly Task<ServiceClient> _client;

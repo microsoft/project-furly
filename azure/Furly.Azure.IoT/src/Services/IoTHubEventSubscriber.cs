@@ -9,6 +9,7 @@ namespace Furly.Azure.IoT.Services
     using Furly.Exceptions;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Utils;
     using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -44,7 +45,7 @@ namespace Furly.Azure.IoT.Services
                 ConnectionString.TryParse(options.Value.ConnectionString, out var cs) &&
                 !string.IsNullOrEmpty(cs.HostName))
             {
-                _client = IoTHubEventClient.OpenAsync(options.Value.ConnectionString);
+                _client = IoTHubEventClient.OpenAsync(cs, options.Value);
             }
             else
             {

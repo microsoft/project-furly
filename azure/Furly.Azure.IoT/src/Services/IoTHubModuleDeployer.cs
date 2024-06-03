@@ -6,12 +6,14 @@
 namespace Furly.Azure.IoT.Services
 {
     using Furly.Extensions.Serializers;
+    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -41,7 +43,7 @@ namespace Furly.Azure.IoT.Services
                 throw new ArgumentException("Missing or bad connection string", nameof(options));
             }
 
-            _deployment = DeployAsync(options.Value.ConnectionString);
+            _deployment = DeployAsync(cs, options.Value);
         }
 
         /// <inheritdoc/>
@@ -53,10 +55,12 @@ namespace Furly.Azure.IoT.Services
         /// <summary>
         /// Run the deployment
         /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        private async Task DeployAsync(string connectionString)
+        private async Task DeployAsync(ConnectionString connectionString, IoTHubServiceOptions options)
         {
-            using var registry = RegistryManager.CreateFromConnectionString(connectionString);
+            using var registry = CreateRegistryManager(connectionString, options);
             await registry.OpenAsync().ConfigureAwait(false);
 
             // Apply layered configuration
@@ -105,6 +109,28 @@ namespace Furly.Azure.IoT.Services
                 {
                     await registry.AddConfigurationAsync(configuration).ConfigureAwait(false);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Create registry manager
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private static RegistryManager CreateRegistryManager(ConnectionString connectionString,
+            IoTHubServiceOptions options)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
+            if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
+                string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
+            {
+                return RegistryManager.Create(connectionString.HostName,
+                    new DefaultAzureCredential(options.AllowInteractiveLogin));
+            }
+            else
+            {
+                return RegistryManager.CreateFromConnectionString(connectionString.ToString());
             }
         }
 

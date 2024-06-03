@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Dapr.Extensions.Configuration" Version="1.13.1" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.62.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.63.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />

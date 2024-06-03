@@ -40,7 +40,7 @@ namespace Furly.Azure.EventHubs.Clients
             _schemaGroupName = options.SchemaGroupName;
 
             _schemaRegistry = new SchemaRegistryClient(options.FullyQualifiedNamespace,
-                    new DefaultAzureCredential(options.AllowInteractiveLogin));
+                new DefaultAzureCredential(options.AllowInteractiveLogin));
         }
 
         /// <inheritdoc/>

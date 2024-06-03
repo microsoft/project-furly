@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Services
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Serializers;
+    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices.Shared;
@@ -15,6 +16,7 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -54,7 +56,7 @@ namespace Furly.Azure.IoT.Services
             }
 
             HostName = cs.HostName;
-            _registry = OpenAsync(options.Value.ConnectionString);
+            _registry = OpenAsync(cs, options.Value);
         }
 
         /// <inheritdoc/>
@@ -413,12 +415,14 @@ namespace Furly.Azure.IoT.Services
         /// Open service client
         /// </summary>
         /// <param name="connectionString"></param>
+        /// <param name="options"></param>
         /// <returns></returns>
-        internal async Task<RegistryManager> OpenAsync(string connectionString)
+        internal async Task<RegistryManager> OpenAsync(ConnectionString connectionString,
+            IoTHubServiceOptions options)
         {
             try
             {
-                var client = RegistryManager.CreateFromConnectionString(connectionString);
+                var client = CreateRegistryManager(connectionString, options);
                 await client.OpenAsync().ConfigureAwait(false);
                 return client;
             }
@@ -426,6 +430,22 @@ namespace Furly.Azure.IoT.Services
             {
                 _logger.LogError(e, "Creating registry manager failed ");
                 throw e.Translate();
+            }
+
+            static RegistryManager CreateRegistryManager(ConnectionString connectionString,
+               IoTHubServiceOptions options)
+            {
+                Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
+                if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
+                    string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
+                {
+                    return RegistryManager.Create(connectionString.HostName,
+                        new DefaultAzureCredential(options.AllowInteractiveLogin));
+                }
+                else
+                {
+                    return RegistryManager.CreateFromConnectionString(connectionString.ToString());
+                }
             }
         }
 
