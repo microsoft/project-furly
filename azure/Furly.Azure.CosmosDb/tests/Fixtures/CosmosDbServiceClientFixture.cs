@@ -38,17 +38,17 @@ namespace Furly.Azure.CosmosDb.Clients
                     new() { FirstName = "Thomas" },
                     new() { FirstName = "Mary Kay" }
                 },
-                Children = new Child[] {
+                Children = [
                     new() {
                         FirstName = "Henriette Thaulow",
                         Gender = "female",
                         Grade = 5,
-                        Pets = new[]
-                        {
+                        Pets =
+                        [
                             new Pet { GivenName = "Fluffy" }
-                        }
+                        ]
                     }
-                },
+                ],
                 Address = new Address
                 {
                     State = "WA",
@@ -73,23 +73,23 @@ namespace Furly.Azure.CosmosDb.Clients
                     new() { FamilyName= "Wakefield", FirstName= "Robin" },
                     new() { FamilyName= "Miller", FirstName= "Ben" }
                 },
-                Children = new Child[] {
+                Children = [
                     new() {
                         FamilyName= "Merriam",
                         FirstName= "Jesse",
                         Gender= "female",
                         Grade= 8,
-                        Pets= new Pet[] {
+                        Pets= [
                             new() { GivenName= "Goofy" },
                             new() { GivenName= "Shadow" }
-                        }
+                        ]
                     },
                     new() {
                         FirstName= "Lisa",
                         Gender= "female",
                         Grade= 1
                     }
-                },
+                ],
                 Address = new Address
                 {
                     State = "NY",

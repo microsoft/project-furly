@@ -133,7 +133,7 @@ namespace Furly.Extensions.Serializers.Json
             var enumerable = GetType().GetMethod(nameof(DeserializeAsyncEnumerableAsync),
                 BindingFlags.Instance | BindingFlags.NonPublic)!
                 .MakeGenericMethod(type, typeof(object)).Invoke(this,
-                    new object[] { stream, ct });
+                    [stream, ct]);
             return (IAsyncEnumerable<object?>)enumerable!;
         }
 
@@ -945,10 +945,10 @@ namespace Furly.Extensions.Serializers.Json
             {
                 var ct = typeof(DataContractEnumConverterOfT<>)
                     .MakeGenericType(typeToConvert);
-                return (JsonConverter?)Activator.CreateInstance(ct, new object[] {
+                return (JsonConverter?)Activator.CreateInstance(ct, [
                     _fallback.CreateConverter(typeToConvert, options),
                     this
-                });
+                ]);
             }
 
             /// <summary>

@@ -56,7 +56,7 @@ namespace Furly.Azure.IoT.Edge.Services
             _cs = cs ?? throw new ArgumentNullException(nameof(cs));
             if (ports == null || ports.Length == 0)
             {
-                ports = new[] { 15580, 15581, 1883, 8883, 5276, 443 }; // TODO
+                ports = [15580, 15581, 1883, 8883, 5276, 443]; // TODO
             }
             _ports = ports;
             _start = StartAsync();

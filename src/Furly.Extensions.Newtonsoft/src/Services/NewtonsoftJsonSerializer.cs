@@ -631,7 +631,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 var elementType = objectType.GetGenericArguments()[0];
                 return GetType().GetMethod(nameof(ReadAsync))!
                     .MakeGenericMethod(elementType)
-                    .Invoke(null, new object[] { reader, serializer });
+                    .Invoke(null, [reader, serializer]);
             }
 
             /// <summary>
@@ -658,7 +658,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 var elementType = value.GetType().GetGenericArguments()[0];
                 typeof(AsyncEnumerableConverter).GetMethod(nameof(Write))!
                     .MakeGenericMethod(elementType)
-                    .Invoke(null, new object?[] { writer, value, serializer });
+                    .Invoke(null, [writer, value, serializer]);
             }
 
             /// <summary>
@@ -824,7 +824,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 var elementType = objectType.GetGenericArguments()[0];
                 return GetType().GetMethod(nameof(Read))!
                     .MakeGenericMethod(elementType)
-                    .Invoke(null, new object[] { reader, serializer });
+                    .Invoke(null, [reader, serializer]);
             }
 
             /// <summary>

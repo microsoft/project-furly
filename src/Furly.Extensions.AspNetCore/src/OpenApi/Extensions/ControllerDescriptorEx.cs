@@ -5,6 +5,7 @@
 
 namespace Microsoft.AspNetCore.Mvc.Controllers
 {
+    using Asp.Versioning;
     using System.Collections.Generic;
     using System.Linq;
 

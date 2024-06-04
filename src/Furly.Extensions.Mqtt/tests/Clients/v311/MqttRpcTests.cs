@@ -179,7 +179,7 @@ namespace Furly.Extensions.Mqtt.Clients.v311
             var servers = await Task.WhenAll(Enumerable.Range(0, 10).Select(async i =>
                 await rpcServer.ConnectAsync(new CallbackHandler("test/rpcserver" + i, args =>
                 {
-                    args.Target.Should().Be(method);
+                    args.Target.Should().Be(method); // It is not, so it throws
                     args.Data.Should().BeEquivalentTo(Encoding.UTF8.GetBytes(input));
 
                     return Encoding.UTF8.GetBytes(output);

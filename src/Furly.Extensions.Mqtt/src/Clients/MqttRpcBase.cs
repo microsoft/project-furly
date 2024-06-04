@@ -7,6 +7,7 @@ namespace Furly.Extensions.Mqtt.Clients
 {
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Rpc;
+    using Furly.Extensions.Messaging;
     using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -22,12 +23,12 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Messaging;
+    using System.Threading.Channels;
 
     /// <summary>
     /// Mqtt rpc client base
     /// </summary>
-    public abstract class MqttRpcBase : IRpcClient, IRpcServer
+    public abstract class MqttRpcBase : IRpcClient, IRpcServer, IAsyncDisposable
     {
         /// <inheritdoc/>
         public string Name => "Mqtt";
@@ -51,6 +52,9 @@ namespace Furly.Extensions.Mqtt.Clients
             MaxMethodPayloadSizeInBytes =
                 Math.Max(_options.Value.MaxPayloadSize ?? int.MaxValue, 268435455); // (256 MB)
             // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718023
+
+            _executor = new Lazy<Executor>(
+                () => new Executor(_options.Value.MaxRequestQueue, _logger), true);
         }
 
         /// <inheritdoc/>
@@ -125,12 +129,20 @@ namespace Furly.Extensions.Mqtt.Clients
         public abstract ValueTask PublishAsync(MqttApplicationMessage message,
             IEventSchema? schema, CancellationToken ct);
 
-        /// <summary>
-        /// Mark closed
-        /// </summary>
-        protected void Close()
+        /// <inheritdoc/>
+        public virtual async ValueTask DisposeAsync()
         {
-            _isClosed = true;
+            GC.SuppressFinalize(this);
+
+            if (!_isClosed)
+            {
+                if (_executor.IsValueCreated)
+                {
+                    await _executor.Value.DisposeAsync().ConfigureAwait(false);
+                }
+
+                _isClosed = true;
+            }
         }
 
         /// <summary>
@@ -167,32 +179,9 @@ namespace Furly.Extensions.Mqtt.Clients
 
             if (isRequest && !_handlers.IsEmpty && method != null)
             {
-                var payload = ReadOnlyMemory<byte>.Empty;
-                if (!processingFailed)
-                {
-                    (payload, reasonCode) = await InvokeAsync(method, message.PayloadSegment,
-                            message.ContentType ?? ContentMimeType.Json,
-                            default).ConfigureAwait(false);
-                }
-                var statusCode = reasonCode.ToString(CultureInfo.InvariantCulture);
-                if (message.ResponseTopic != null)
-                {
-                    if (payload.IsEmpty)
-                    {
-                        // Work around mqttnet rpc client bugs
-                        payload = kEmptyPayload;
-                    }
-                    await PublishAsync(message.ResponseTopic, null, payload,
-                        properties: new[] { new MqttUserProperty(kStatusCodeKey, statusCode) },
-                        correlationData: message.CorrelationData).ConfigureAwait(false);
-                }
-                else
-                {
-                    // Send reply
-                    await PublishAsync(
-                        $"{topicRoot}/{kResPath}/{statusCode}/{kRequestIdKey}{requestId}",
-                        null, payload).ConfigureAwait(false);
-                }
+                await _executor.Value.QueueAsync(
+                    ct => InvokeAsync(message, processingFailed, reasonCode,
+                        requestId, method, topicRoot, ct)).ConfigureAwait(false);
                 return true;
             }
             return false;
@@ -376,6 +365,49 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <summary>
+        /// Queue invoke
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="processingFailed"></param>
+        /// <param name="reasonCode"></param>
+        /// <param name="requestId"></param>
+        /// <param name="method"></param>
+        /// <param name="topicRoot"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        private async Task InvokeAsync(MqttApplicationMessage message, bool processingFailed,
+            int reasonCode, Guid requestId, string method, string? topicRoot, CancellationToken ct)
+        {
+            var payload = ReadOnlyMemory<byte>.Empty;
+            if (!processingFailed)
+            {
+                (payload, reasonCode) = await InvokeAsync(method, message.PayloadSegment,
+                    message.ContentType ?? ContentMimeType.Json,
+                    ct).ConfigureAwait(false);
+            }
+            var statusCode = reasonCode.ToString(CultureInfo.InvariantCulture);
+            if (message.ResponseTopic != null)
+            {
+                if (payload.IsEmpty)
+                {
+                    // Work around mqttnet rpc client bugs
+                    payload = kEmptyPayload;
+                }
+                await PublishAsync(message.ResponseTopic, null, payload,
+                    properties: [new MqttUserProperty(kStatusCodeKey, statusCode)],
+                    correlationData: message.CorrelationData, ct: ct).ConfigureAwait(false);
+            }
+            else
+            {
+                // Send reply
+                topicRoot ??= "replies";
+                await PublishAsync(
+                    $"{topicRoot}/{kResPath}/{statusCode}/{kRequestIdKey}{requestId}",
+                    null, payload, ct: ct).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
         /// Handle method invocation
         /// </summary>
         /// <param name="method"></param>
@@ -410,6 +442,10 @@ namespace Furly.Extensions.Mqtt.Clients
                 {
                     // Continue
                 }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    return (default, (int)HttpStatusCode.RequestTimeout);
+                }
                 catch (Exception)
                 {
                     return (default, (int)HttpStatusCode.MethodNotAllowed);
@@ -418,10 +454,92 @@ namespace Furly.Extensions.Mqtt.Clients
             return (default, 500);
         }
 
+        /// <summary>
+        /// Execute calls to the rpc server
+        /// </summary>
+        private sealed class Executor : IAsyncDisposable
+        {
+            public Executor(int? maxRequestQueue, ILogger logger)
+            {
+                _logger = logger;
+                _queue = maxRequestQueue == null
+                    ? Channel.CreateUnbounded<(CancellationTokenSource, Task)>()
+                    : Channel.CreateBounded<(CancellationTokenSource, Task)>(maxRequestQueue.Value);
+                _cts = new CancellationTokenSource();
+                _executor = ExecuteAsync(_cts.Token);
+            }
+
+            /// <inheritdoc/>
+            public async ValueTask DisposeAsync()
+            {
+                try
+                {
+                    await _cts.CancelAsync().ConfigureAwait(false);
+                    await _executor.ConfigureAwait(false);
+                }
+                finally
+                {
+                    _cts.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Enqueue task
+            /// </summary>
+            /// <param name="task"></param>
+            /// <returns></returns>
+            public ValueTask QueueAsync(Func<CancellationToken, Task> task)
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                var cts = new CancellationTokenSource();
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                return _queue.Writer.WriteAsync((cts, Task.Run(() => task(cts.Token))));
+            }
+
+            /// <summary>
+            /// Run execution
+            /// </summary>
+            /// <param name="ct"></param>
+            /// <returns></returns>
+            private async Task ExecuteAsync(CancellationToken ct)
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    while (_queue.Reader.TryRead(out var task))
+                    {
+                        try
+                        {
+                            if (ct.IsCancellationRequested)
+                            {
+                                await task.Item1.CancelAsync().ConfigureAwait(false);
+                            }
+                            await task.Item2.ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException) { }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "Failed to execute invoker");
+                        }
+                    }
+                    try
+                    {
+                        // Wait for more
+                        await _queue.Reader.WaitToReadAsync(ct).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { }
+                }
+            }
+            private readonly Task _executor;
+            private readonly ILogger _logger;
+            private readonly Channel<(CancellationTokenSource, Task)> _queue;
+            private readonly CancellationTokenSource _cts;
+        }
+
         private static readonly ReadOnlyMemory<byte> kEmptyPayload = new byte[] { 0 };
         private const string kResPath = "res";
         private const string kRequestIdKey = "?$rid=";
         private const string kStatusCodeKey = "StatusCode";
+        private readonly Lazy<Executor> _executor;
         private readonly IOptions<MqttOptions> _options;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<Guid,

@@ -63,14 +63,14 @@ namespace Furly.Extensions.LiteDb.Clients
                 { // Cosmos db convention - use attribute going forward
                     // Create id accessor
                     builder = id.MakeGenericMethod(prop.PropertyType)
-                        .Invoke(builder, new object[] { expr, /*assign auto id=*/ true })
+                        .Invoke(builder, [expr, /*assign auto id=*/ true])
                         as EntityBuilder<T>;
                 }
                 else
                 {
                     // Create regular field property accessor
                     builder = field.MakeGenericMethod(prop.PropertyType)
-                        .Invoke(builder, new object[] { expr, dma.Name ?? prop.Name })
+                        .Invoke(builder, [expr, dma.Name ?? prop.Name])
                         as EntityBuilder<T>;
                 }
                 if (builder is null)

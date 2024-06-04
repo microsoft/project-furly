@@ -96,17 +96,17 @@ namespace Furly.Extensions.CouchDb.Clients
                     new Parent { FirstName = "Thomas" },
                     new Parent { FirstName = "Mary Kay" }
                 },
-                Children = new Child[] {
+                Children = [
                     new Child {
                         FirstName = "Henriette Thaulow",
                         Gender = "female",
                         Grade = 5,
-                        Pets = new[]
-                        {
+                        Pets =
+                        [
                             new Pet { GivenName = "Fluffy" }
-                        }
+                        ]
                     }
-                },
+                ],
                 Address = new Address
                 {
                     State = "WA",
@@ -131,17 +131,17 @@ namespace Furly.Extensions.CouchDb.Clients
                     new Parent { FamilyName= "Wakefield", FirstName= "Robin" },
                     new Parent { FamilyName= "Miller", FirstName= "Ben" }
                 },
-                Children = new Child[] {
+                Children = [
                     new Child
                     {
                         FamilyName= "Merriam",
                         FirstName= "Jesse",
                         Gender= "female",
                         Grade= 8,
-                        Pets= new Pet[] {
+                        Pets= [
                             new Pet { GivenName= "Goofy" },
                             new Pet { GivenName= "Shadow" }
-                        }
+                        ]
                     },
                     new Child
                     {
@@ -149,7 +149,7 @@ namespace Furly.Extensions.CouchDb.Clients
                         Gender= "female",
                         Grade= 1
                     }
-                },
+                ],
                 Address = new Address
                 {
                     State = "NY",

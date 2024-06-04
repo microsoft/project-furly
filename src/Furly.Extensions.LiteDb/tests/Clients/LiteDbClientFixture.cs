@@ -33,17 +33,17 @@ namespace Furly.Extensions.LiteDb.Clients
                     new Parent { FirstName = "Thomas" },
                     new Parent { FirstName = "Mary Kay" }
                 },
-                Children = new Child[] {
+                Children = [
                     new Child {
                         FirstName = "Henriette Thaulow",
                         Gender = "female",
                         Grade = 5,
-                        Pets = new[]
-                        {
+                        Pets =
+                        [
                             new Pet { GivenName = "Fluffy" }
-                        }
+                        ]
                     }
-                },
+                ],
                 Address = new Address
                 {
                     State = "WA",
@@ -53,7 +53,7 @@ namespace Furly.Extensions.LiteDb.Clients
                     City = "Seattle"
                 },
                 Colors = new HashSet<string> { "yellow", "blue", "orange" },
-                Certificate = new byte[] { 1, 2, 3, 4, 5 },
+                Certificate = [1, 2, 3, 4, 5],
                 Items = new Dictionary<string, bool>
                 {
                     ["false"] = false,
@@ -74,17 +74,17 @@ namespace Furly.Extensions.LiteDb.Clients
                     new Parent { FamilyName= "Wakefield", FirstName= "Robin" },
                     new Parent { FamilyName= "Miller", FirstName= "Ben" }
                 },
-                Children = new Child[] {
+                Children = [
                     new Child
                     {
                         FamilyName= "Merriam",
                         FirstName= "Jesse",
                         Gender= "female",
                         Grade= 8,
-                        Pets= new Pet[] {
+                        Pets= [
                             new Pet { GivenName= "Goofy" },
                             new Pet { GivenName= "Shadow" }
-                        }
+                        ]
                     },
                     new Child
                     {
@@ -92,7 +92,7 @@ namespace Furly.Extensions.LiteDb.Clients
                         Gender= "female",
                         Grade= 1
                     }
-                },
+                ],
                 Address = new Address
                 {
                     State = "NY",
@@ -102,7 +102,7 @@ namespace Furly.Extensions.LiteDb.Clients
                     City = "NY"
                 },
                 Colors = new HashSet<string> { "blue", "red" },
-                Certificate = new byte[] { 5, 4, 3, 2, 1, 0 },
+                Certificate = [5, 4, 3, 2, 1, 0],
                 Items = new Dictionary<string, bool>
                 {
                     ["false"] = true,

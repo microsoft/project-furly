@@ -322,11 +322,11 @@ namespace Furly.Tunnel.Router.Services
                         {
                             if (_methodParams[0].ParameterType == typeof(CancellationToken))
                             {
-                                return new object[] { ct };
+                                return [ct];
                             }
                             var singleParam = _serializer.Deserialize(payload,
                                 _methodParams[0].ParameterType);
-                            return new[] { singleParam };
+                            return [singleParam];
                         }
 
                         if ((_methodParams.Length == 2) &&
@@ -336,8 +336,8 @@ namespace Furly.Tunnel.Router.Services
                             var singleParam = _serializer.Deserialize(payload,
                                 _methodParams[0].ParameterType);
                             return _methodParams[1].ParameterType == typeof(CancellationToken) ?
-                                (new object?[] { singleParam, ct }) :
-                                (new object?[] { ct, singleParam });
+                                ([singleParam, ct]) :
+                                ([ct, singleParam]);
                         }
 
                         var data = _serializer.Parse(payload);
@@ -366,9 +366,9 @@ namespace Furly.Tunnel.Router.Services
                 {
                     return await VoidContinuationAsync((Task)task).ConfigureAwait(false);
                 }
-                return await ((Task<ReadOnlyMemory<byte>>)_methodTaskContinuation.Invoke(this, new[] {
+                return await ((Task<ReadOnlyMemory<byte>>)_methodTaskContinuation.Invoke(this, [
                     task
-                })!).ConfigureAwait(false);
+                ])!).ConfigureAwait(false);
             }
 
             /// <summary>

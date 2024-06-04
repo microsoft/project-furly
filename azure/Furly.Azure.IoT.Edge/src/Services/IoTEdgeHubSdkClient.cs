@@ -909,7 +909,7 @@ namespace Furly.Azure.IoT.Edge.Services
                     ArgumentNullException.ThrowIfNull(cs);
                     return transportSetting != null
                         ? DeviceClient.CreateFromConnectionString(cs.ToString(),
-                            new ITransportSettings[] { transportSetting })
+                            [transportSetting])
                         : DeviceClient.CreateFromConnectionString(cs.ToString());
                 }
                 catch (Exception ex)

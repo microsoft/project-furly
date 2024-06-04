@@ -571,7 +571,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         {
             return new DataContractModel2
             {
-                Bytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
+                Bytes = [1, 2, 3, 4, 5, 6, 7, 8],
                 Dictionary = new Dictionary<string, string>
                 {
                     ["test1"] = "3test",

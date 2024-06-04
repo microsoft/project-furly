@@ -15,6 +15,7 @@ namespace Microsoft.OpenApi.Models
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.IO;
+    using Asp.Versioning;
 
     /// <summary>
     /// Service collection extensions
@@ -34,8 +35,9 @@ namespace Microsoft.OpenApi.Models
                 .AddApiVersioning(o =>
                 {
                     o.AssumeDefaultVersionWhenUnspecified = true;
+                    o.ReportApiVersions = true;
                     o.DefaultApiVersion = new ApiVersion(1, 0);
-                })
+                }).AddMvc().Services
                 .AddSwaggerGen()
                 .AddSwaggerGenNewtonsoftSupport()
                 .AddTransient<IPostConfigureOptions<OpenApiOptions>, OpenApiConfig>()

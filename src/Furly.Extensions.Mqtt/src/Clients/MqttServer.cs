@@ -115,9 +115,19 @@ namespace Furly.Extensions.Mqtt.Clients
                 return;
             }
             _isDisposed = true;
+
+            // Dispose base server
             try
             {
-                Close();
+                DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to stop rpc server.");
+            }
+            try
+            {
                 if (!_server.IsFaulted && !_server.IsCanceled)
                 {
                     _server.Result.Dispose();

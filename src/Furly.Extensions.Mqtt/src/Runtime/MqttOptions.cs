@@ -10,6 +10,8 @@ namespace Furly.Extensions.Mqtt
     using MQTTnet.Client;
     using MQTTnet.Extensions.ManagedClient;
     using System;
+    using System.Collections.Concurrent;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Mqtt configuration
@@ -114,5 +116,10 @@ namespace Furly.Extensions.Mqtt
         /// Allow setting managed client options
         /// </summary>
         public Action<ManagedMqttClientOptions>? Configure { get; set; }
+
+        /// <summary>
+        /// Max request queue - default unbounded
+        /// </summary>
+        public int? MaxRequestQueue { get; internal set; }
     }
 }

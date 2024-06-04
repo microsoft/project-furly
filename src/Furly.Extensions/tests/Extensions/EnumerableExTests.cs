@@ -53,7 +53,7 @@ namespace System.Collections.Generic
         [Fact]
         public void ZipArrayWithLargerEnumerationTest()
         {
-            var result = new[] { -1, -2, -3, -4 }.Zip(new[] { -1, -2, -3, -4, -5 }, 76);
+            var result = new[] { -1, -2, -3, -4 }.Zip([-1, -2, -3, -4, -5], 76);
             Assert.All(result, element => Assert.Equal(element.Item1, element.Item2));
             Assert.Equal(4, result.Count());
         }
@@ -61,14 +61,14 @@ namespace System.Collections.Generic
         [Fact]
         public void ZipEmptyWithEnumerationTest()
         {
-            var result = Enumerable.Empty<DateTime>().Zip(new[] { -1 }, 76);
+            var result = Enumerable.Empty<DateTime>().Zip([-1], 76);
             Assert.Empty(result);
         }
 
         [Fact]
         public void ZipNullWithEnumerationTest()
         {
-            var result = ((IEnumerable<DateTime>?)null).Zip(new[] { -1 }, 76);
+            var result = ((IEnumerable<DateTime>?)null).Zip([-1], 76);
             Assert.NotNull(result);
             Assert.Empty(result);
         }

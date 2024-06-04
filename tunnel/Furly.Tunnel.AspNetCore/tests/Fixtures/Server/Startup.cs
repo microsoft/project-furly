@@ -5,11 +5,11 @@
 
 namespace Furly.Tunnel.AspNetCore.Tests.Server
 {
+    using Asp.Versioning;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
@@ -58,7 +58,7 @@ namespace Furly.Tunnel.AspNetCore.Tests.Server
             {
                 o.AssumeDefaultVersionWhenUnspecified = true;
                 o.DefaultApiVersion = new ApiVersion(1, 0);
-            });
+            }).AddMvc();
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers();

@@ -142,7 +142,7 @@ namespace Furly.Azure
             return cs;
         }
 
-        private static readonly char[] kSemicolon = new char[] { ';' };
+        private static readonly char[] kSemicolon = [';'];
 
         /// <summary>
         /// Try parse connection string

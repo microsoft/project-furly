@@ -13,6 +13,7 @@ namespace Furly.Tunnel.AspNetCore.Tests.Server.Controllers
     using System.Collections.Concurrent;
     using System.ComponentModel.DataAnnotations;
     using System.Threading.Tasks;
+    using Asp.Versioning;
 
     /// <summary>
     /// Test controller
