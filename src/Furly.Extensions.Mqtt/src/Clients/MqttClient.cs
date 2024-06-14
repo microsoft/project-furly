@@ -90,7 +90,7 @@ namespace Furly.Extensions.Mqtt.Clients
             _publisher = _options.Value.ConfigureSchemaMessage == null && registry == null ? this
                 : new MqttSchemaPublisher(_options, this, registry);
             _connection = Task.WhenAll(_clients
-                .Select((c, i) => c.StartAsync(_logger, GetClientOptions(i))));
+                .Select((c, i) => c.StartAsync(_logger, GetClientOptions(i)))).WaitAsync(_cts.Token);
             _subscriber = Task.Factory.StartNew(() => SubscribeAsync(_cts.Token),
                 _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
@@ -245,20 +245,20 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             ct.ThrowIfCancellationRequested();
-            var client = await GetClientAsync(message.Topic).ConfigureAwait(false);
+            var client = await GetClientAsync(message.Topic, ct).ConfigureAwait(false);
 
             var tcs = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             _inflight.TryAdd(message, tcs);
             try
             {
-                await client.Client.EnqueueAsync(message).ConfigureAwait(false);
+                await client.Client.EnqueueAsync(message).WaitAsync(ct).ConfigureAwait(false);
             }
             catch
             {
                 _inflight.TryRemove(message, out _);
                 throw;
             }
-            await tcs.Task.ConfigureAwait(false);
+            await tcs.Task.WaitAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <returns></returns>
         private async Task SubscribeAsync(CancellationToken ct)
         {
-            await _connection.ConfigureAwait(false);
+            await _connection.WaitAsync(ct).ConfigureAwait(false);
             while (!ct.IsCancellationRequested)
             {
                 await _triggerSubscriber.WaitAsync(ct).ConfigureAwait(false);
@@ -573,13 +573,13 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <summary>
         /// Get publisher client for topic waiting for connection
         /// </summary>
-        private async ValueTask<ManagedMqttClient> GetClientAsync(string topic)
+        private async ValueTask<ManagedMqttClient> GetClientAsync(string topic, CancellationToken ct)
         {
             // Wait until connected
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             if (!_connection.IsCompleted)
             {
-                await _connection.ConfigureAwait(false);
+                await _connection.WaitAsync(ct).ConfigureAwait(false);
             }
             return GetClientForTopic(topic);
         }

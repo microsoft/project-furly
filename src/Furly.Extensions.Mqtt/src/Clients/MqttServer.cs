@@ -70,7 +70,7 @@ namespace Furly.Extensions.Mqtt.Clients
         public override async ValueTask PublishAsync(MqttApplicationMessage message,
             IEventSchema? schema, CancellationToken ct)
         {
-            var server = await GetServerAsync().ConfigureAwait(false);
+            var server = await GetServerAsync(ct).ConfigureAwait(false);
             await server.InjectApplicationMessage(
                 new InjectedMqttApplicationMessage(message)
                 {
@@ -92,7 +92,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 if (!_subscriptions.TryGetValue(topic, out var consumers))
                 {
                     consumers = new List<IEventConsumer> { consumer };
-                    var server = await GetServerAsync().ConfigureAwait(false);
+                    var server = await GetServerAsync(ct).ConfigureAwait(false);
                     _subscriptions.Add(topic, consumers);
                 }
                 else
@@ -292,9 +292,9 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <summary>
         /// Get server
         /// </summary>
-        private async Task<MqttNetServer> GetServerAsync()
+        private async Task<MqttNetServer> GetServerAsync(CancellationToken ct)
         {
-            return await _server.ConfigureAwait(false);
+            return await _server.WaitAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>ping

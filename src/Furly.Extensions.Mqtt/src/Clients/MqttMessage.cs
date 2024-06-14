@@ -28,8 +28,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         /// <param name="options"></param>
         /// <param name="publish"></param>
-        internal MqttMessage(IOptions<MqttOptions> options,
-            IMqttPublish publish)
+        internal MqttMessage(IOptions<MqttOptions> options, IMqttPublish publish)
         {
             _publish = publish;
             _version = options.Value.Protocol;
