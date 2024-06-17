@@ -31,6 +31,12 @@ namespace Furly.Azure.IoT.Edge.Services
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes { get; } = 252 * 1024; // 256 KB - leave 4 kb for properties
 
+        /// <inheritdoc/>
+        string IProcessIdentity.Identity
+        {
+            get => _identity.Gateway ?? _identity.DeviceId;
+        }
+
         /// <summary>
         /// Create Event client
         /// </summary>

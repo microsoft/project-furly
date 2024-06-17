@@ -13,6 +13,7 @@ namespace Furly.Azure.IoT.Mock.Services
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
+    using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Options;
     using Nito.Disposables;
     using System;
@@ -23,6 +24,7 @@ namespace Furly.Azure.IoT.Mock.Services
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
+    using System.Security.Principal;
     using System.Text;
     using System.Threading;
     using System.Threading.Channels;
@@ -368,6 +370,12 @@ namespace Furly.Azure.IoT.Mock.Services
 
             /// <inheritdoc/>
             public string Identity { get; }
+
+            /// <inheritdoc/>
+            string IProcessIdentity.Identity
+            {
+                get => Device.Id;
+            }
 
             /// <inheritdoc/>
             public IRpcServer RpcServer => this;

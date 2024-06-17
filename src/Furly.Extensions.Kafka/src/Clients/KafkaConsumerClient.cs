@@ -35,17 +35,17 @@ namespace Furly.Extensions.Kafka.Clients
         /// <param name="admin"></param>
         /// <param name="server"></param>
         /// <param name="config"></param>
-        /// <param name="identity"></param>
         /// <param name="logger"></param>
+        /// <param name="identity"></param>
         public KafkaConsumerClient(IKafkaAdminClient admin,
             IOptions<KafkaServerOptions> server, IOptions<KafkaConsumerOptions> config,
-            IProcessIdentity identity, ILogger<KafkaConsumerClient> logger)
+            ILogger<KafkaConsumerClient> logger, IProcessIdentity? identity = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _admin = admin ?? throw new ArgumentNullException(nameof(admin));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _server = server ?? throw new ArgumentNullException(nameof(server));
-            _consumerId = identity.Identity ?? Guid.NewGuid().ToString();
+            _consumerId = identity?.Identity ?? Guid.NewGuid().ToString();
             _interval = (int?)config.Value.CheckpointInterval?.TotalMilliseconds;
             _runner = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();

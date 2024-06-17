@@ -14,6 +14,9 @@ namespace Furly.Extensions.Mqtt.Clients.v5
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+    using Furly.Extensions.Utils;
+    using System.Text;
+    using System.Threading;
 
     [SystemTest]
     [Collection(MqttCollection.Name)]
@@ -318,6 +321,42 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             Assert.Equal(contentType, result.ContentType);
             Assert.Equal(data.Length, result.Data.Length);
             data.Should().BeEquivalentTo(result.Data);
+        }
+
+        [SkippableTheory]
+        [InlineData(1)]
+        [InlineData(100)]
+        [InlineData(1000)]
+        // [InlineData(10000)]
+        public async Task SendEventWithCancellationTokenAsync(int callTimeout)
+        {
+            var fix = new Fixture();
+
+            var eventClient = _harness.GetPublisherEventClient();
+            Skip.If(eventClient == null);
+
+            var target = fix.Create<string>();
+
+            var tcs = new TaskCompletionSource<EventConsumerArg>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var eventSubscriber = _harness.GetSubscriberEventSubscriber();
+            Skip.If(eventSubscriber == null);
+            await eventSubscriber.SubscribeAsync(target, new CallbackConsumer(arg =>
+            {
+            })).ConfigureAwait(false);
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(callTimeout));
+                try
+                {
+                    while (true)
+                    {
+                        await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "1", ct: cts.Token).ConfigureAwait(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ex.Should().BeAssignableTo<OperationCanceledException>();
+                }
+            }
         }
     }
 }

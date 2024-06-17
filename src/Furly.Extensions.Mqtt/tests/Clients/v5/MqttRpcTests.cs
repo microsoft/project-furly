@@ -16,6 +16,8 @@ namespace Furly.Extensions.Mqtt.Clients.v5
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
+    using System.Threading;
+    using Furly.Extensions.Utils;
 
     [SystemTest]
     [Collection(MqttCollection.Name)]
@@ -156,6 +158,82 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                     .Select(async s => await s.DisposeAsync().ConfigureAwait(false))
                     .ToArray()).ConfigureAwait(false);
             }
+        }
+
+        [SkippableTheory]
+        [InlineData(1)]
+        [InlineData(100)]
+        [InlineData(1000)]
+        // [InlineData(10000)]
+        public async Task CallBlockingMethodWithTimeoutAsync(int callTimeout)
+        {
+            var fix = new Fixture();
+            var rpcServer = _harness.GetRpcServer();
+            Skip.If(rpcServer == null);
+            var rpcClient = _harness.GetRpcClient();
+            Skip.If(rpcClient == null);
+
+            var method = fix.Create<string>();
+            var input = fix.Create<string>();
+            var output = fix.Create<string>();
+
+            using var timeout = new CancellationTokenSource();
+            await using (var s = (await rpcServer.ConnectAsync(new CallbackHandler("test/rpcserver1", args =>
+            {
+                Try.Async(() => Task.Delay(TimeSpan.FromMinutes(10), timeout.Token)).GetAwaiter().GetResult();
+                return Encoding.UTF8.GetBytes(output);
+            })).ConfigureAwait(false)).ConfigureAwait(false))
+            {
+                try
+                {
+                    await rpcClient.CallMethodAsync("test/rpcserver1", method, input,
+                        TimeSpan.FromMilliseconds(callTimeout)).ConfigureAwait(false);
+                    false.Should().Be(true);
+                }
+                catch (Exception ex)
+                {
+                    ex.Should().BeOfType<MethodCallException>();
+                }
+            }
+            await timeout.CancelAsync();
+        }
+
+        [SkippableTheory]
+        [InlineData(1)]
+        [InlineData(100)]
+        [InlineData(1000)]
+        // [InlineData(10000)]
+        public async Task CallBlockingMethodWithCancellationTokenAsync(int callTimeout)
+        {
+            var fix = new Fixture();
+            var rpcServer = _harness.GetRpcServer();
+            Skip.If(rpcServer == null);
+            var rpcClient = _harness.GetRpcClient();
+            Skip.If(rpcClient == null);
+
+            var method = fix.Create<string>();
+            var input = fix.Create<string>();
+            var output = fix.Create<string>();
+
+            using var timeout = new CancellationTokenSource();
+            await using (var s = (await rpcServer.ConnectAsync(new CallbackHandler("test/rpcserver1", args =>
+            {
+                Try.Async(() => Task.Delay(TimeSpan.FromMinutes(10), timeout.Token)).GetAwaiter().GetResult();
+                return Encoding.UTF8.GetBytes(output);
+            })).ConfigureAwait(false)).ConfigureAwait(false))
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(callTimeout));
+                try
+                {
+                    await rpcClient.CallMethodAsync("test/rpcserver1", method, input, ct: cts.Token).ConfigureAwait(false);
+                    false.Should().Be(true);
+                }
+                catch (Exception ex)
+                {
+                    ex.Should().BeAssignableTo<OperationCanceledException>();
+                }
+            }
+            await timeout.CancelAsync();
         }
     }
 }
