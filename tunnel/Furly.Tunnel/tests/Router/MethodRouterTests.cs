@@ -314,10 +314,7 @@ namespace Furly.Tunnel.Router.Tests
             catch (MethodCallStatusException m)
             {
                 Assert.Equal(400, m.Result);
-                var deserializedResponse = _serializer.Deserialize<TestExceptionModel>(
-                    m.ResponsePayload);
-                var ex = deserializedResponse!.Details!.ConvertTo<ArgumentNullException>();
-                Assert.NotNull(ex);
+                Assert.Equal("Value cannot be null. (Parameter 'request')", m.ResponseMessage);
                 return;
             }
             Assert.False(true);
@@ -339,6 +336,90 @@ namespace Furly.Tunnel.Router.Tests
 
             var returned = _serializer.Deserialize<int>(response);
             Assert.Equal(expected, returned);
+        }
+
+        [Fact]
+        public async Task Test4InvocationV2NonChunkedAsync()
+        {
+            await using var router = GetRouter(out _);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test4_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(410, m.Result);
+                Assert.Equal("Value cannot be null. (Parameter 'Test4')", m.ResponseMessage);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
+        public async Task Test5InvocationV2NonChunkedAsync()
+        {
+            await using var router = GetRouter(out _);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test5_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(403, m.Result);
+                Assert.Equal("Test5", m.ResponseMessage);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
+        public async Task Test6InvocationV2NonChunkedAsync()
+        {
+            await using var router = GetRouter(out _);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test6_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(506, m.Result);
+                Assert.Equal("Test6", m.ResponseMessage);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
+        public async Task Test7InvocationV2NonChunkedAsync()
+        {
+            await using var router = GetRouter(out _);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test7_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(4423, m.Result);
+                Assert.Equal("Operation canceled", m.ResponseMessage);
+                return;
+            }
+            Assert.False(true);
         }
 
         internal static void FillRandom(byte[] expected)
@@ -400,7 +481,8 @@ namespace Furly.Tunnel.Router.Tests
                 new TestControllerV1(),
                 new TestControllerV1WithCancellationToken(),
                 new TestControllerV2(),
-                new TestControllerV1And2()
+                new TestControllerV1And2(),
+                new TestControllerV2WithExceptionFilter()
             };
         }
     }

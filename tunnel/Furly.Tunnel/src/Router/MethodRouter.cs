@@ -392,12 +392,8 @@ namespace Furly.Tunnel.Router.Services
                         {
                             throw ex;
                         }
-                        throw new MethodCallStatusException(ex != null ?
-                           _serializer.SerializeToMemory(new
-                           {
-                               ex.Message,
-                               Details = ex
-                           }) : default, status);
+                        throw new MethodCallStatusException(status,
+                            ex?.Message ?? ex?.ToString() ?? "Unknown");
                     }
                     return _serializer.SerializeToMemory((object?)tr.Result);
                 }, scheduler: TaskScheduler.Default);
@@ -423,12 +419,8 @@ namespace Furly.Tunnel.Router.Services
                         {
                             throw ex;
                         }
-                        throw new MethodCallStatusException(ex != null ?
-                            _serializer.SerializeToMemory(new
-                            {
-                                ex.Message,
-                                Details = ex
-                            }) : default, status);
+                        throw new MethodCallStatusException(status,
+                            ex?.Message ?? ex?.ToString() ?? "Unknown");
                     }
                     return ReadOnlyMemory<byte>.Empty;
                 }, scheduler: TaskScheduler.Default);
