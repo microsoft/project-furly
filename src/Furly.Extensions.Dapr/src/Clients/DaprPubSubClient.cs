@@ -5,6 +5,7 @@
 
 namespace Furly.Extensions.Dapr.Clients
 {
+    using Furly.Exceptions;
     using Furly.Extensions.Messaging;
     using global::Dapr.Client;
     using Microsoft.Extensions.Options;
@@ -39,6 +40,7 @@ namespace Furly.Extensions.Dapr.Clients
 
             _component = options.Value.PubSubComponent;
             _client = options.Value.CreateClient();
+            _checkHealth = options.Value.CheckSideCarHealthBeforeAccess;
 
             MaxEventPayloadSizeInBytes =
                 options.Value.MessageMaxBytes ?? 512 * 1024 * 1024;
@@ -179,6 +181,13 @@ namespace Furly.Extensions.Dapr.Clients
                     topic = topic[(split + 1)..];
                 }
 
+                if (_outer._checkHealth &&
+                    !await _outer._client.CheckOutboundHealthAsync(ct).ConfigureAwait(false))
+                {
+                    throw new ExternalDependencyException(
+                        "Failed to publish message. Dapr side car is in unhealthy state.");
+                }
+
                 foreach (var buffer in _buffers)
                 {
                     await _outer._client.PublishByteEventAsync(pubSubName, topic,
@@ -209,6 +218,7 @@ namespace Furly.Extensions.Dapr.Clients
         }
 
         private readonly string? _component;
+        private readonly bool _checkHealth;
         private readonly DaprClient _client;
     }
 }

@@ -38,6 +38,7 @@ namespace Furly.Extensions.Dapr.Clients
             _store = string.IsNullOrEmpty(options.Value.StateStoreName)
                 ? "default" : options.Value.StateStoreName;
             _client = options.Value.CreateClient(provider);
+            _checkHealth = options.Value.CheckSideCarHealthBeforeAccess;
             _logger = logger;
 
             StartStateSynchronization();
@@ -67,6 +68,11 @@ namespace Furly.Extensions.Dapr.Clients
         protected override async ValueTask OnChangesAsync(
             IDictionary<string, VariantValue?> batch, CancellationToken ct)
         {
+            if (_checkHealth)
+            {
+                await _client.WaitForSidecarAsync(ct).ConfigureAwait(false);
+            }
+
             // Process changes one by one
             foreach (var item in batch)
             {
@@ -96,6 +102,11 @@ namespace Furly.Extensions.Dapr.Clients
         {
             try
             {
+                if (_checkHealth)
+                {
+                    await _client.WaitForSidecarAsync(ct).ConfigureAwait(false);
+                }
+
                 var response = await _client.QueryStateAsync<VariantValue>(_store,
                     "{}", cancellationToken: ct).ConfigureAwait(false);
 
@@ -132,6 +143,7 @@ namespace Furly.Extensions.Dapr.Clients
 
         private readonly string? _store;
         private readonly DaprClient _client;
+        private readonly bool _checkHealth;
         private readonly ILogger<DaprStateStoreClient> _logger;
     }
 }

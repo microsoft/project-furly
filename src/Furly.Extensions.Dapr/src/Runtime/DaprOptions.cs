@@ -46,6 +46,12 @@ namespace Furly.Extensions.Dapr
         public int? MessageMaxBytes { get; set; }
 
         /// <summary>
+        /// Check and wait until the side car is healthy before
+        /// sending requests
+        /// </summary>
+        public bool CheckSideCarHealthBeforeAccess { get; set; }
+
+        /// <summary>
         /// Grpc channel options
         /// </summary>
         public GrpcChannelOptions GrpcChannelOptions { get; } = new();
