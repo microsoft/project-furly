@@ -120,6 +120,7 @@ namespace Furly.Extensions.AspNetCore.OpenApi
                 else if (paramType.IsEnum)
                 {
                     model.Type = "string";
+                    model.Format = null;
                     model.Enum = Enum.GetValues(paramType)
                         .Cast<object>()
                         .Select(v => JsonConvert.SerializeObject(v, new StringEnumConverter())

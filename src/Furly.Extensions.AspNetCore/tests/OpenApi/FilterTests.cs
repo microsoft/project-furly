@@ -32,7 +32,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
         }
 
         [Fact]
-        public async Task TestFilterWithVariantValue()
+        public async Task TestFilter()
         {
             var httpClient = _factory.CreateClient();
             var response = await httpClient.GetStringAsync(new Uri("http://localhost/swagger/v2/openapi.json"));
@@ -58,6 +58,43 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     "http"
   ],
   "paths": {
+    "/test/v2/enums": {
+      "post": {
+        "tags": [
+          "EnumTests"
+        ],
+        "operationId": "GetTestModel",
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "enumeration",
+            "type": "string",
+            "enum": [
+              "None",
+              "Value1",
+              "Value2"
+            ],
+            "x-ms-enum": {
+              "name": "TestEnum",
+              "modelAsString": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/TestEnum"
+            }
+          }
+        }
+      }
+    },
     "/test/v2/filter": {
       "post": {
         "tags": [
@@ -96,6 +133,18 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     }
   },
   "definitions": {
+    "TestEnum": {
+      "enum": [
+        "None",
+        "Value1",
+        "Value2"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "TestEnum",
+        "modelAsString": false
+      }
+    },
     "TestModel": {
       "required": [
         "VariantValueValue1"
@@ -200,5 +249,33 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
         /// </summary>
         [DataMember(Name = "VariantValueValue2", Order = 2)]
         public VariantValue? VariantValueValue2 { get; set; }
+    }
+
+    [ApiVersion("2")]
+    [Route("test/v{version:apiVersion}/enums")]
+    [ApiController]
+    public class EnumTestsController : ControllerBase
+    {
+        [HttpPost]
+        public TestEnum GetTestModel(TestEnum enumeration)
+        {
+            ArgumentNullException.ThrowIfNull(enumeration);
+            return _myEnum;
+        }
+
+        private readonly TestEnum _myEnum = TestEnum.Value1;
+    }
+
+    [DataContract]
+    public enum TestEnum
+    {
+        [EnumMember(Value = "None")]
+        None = 0,
+
+        [EnumMember(Value = "Value1")]
+        Value1 = 1,
+
+        [EnumMember(Value = "Value2")]
+        Value2 = 2
     }
 }
