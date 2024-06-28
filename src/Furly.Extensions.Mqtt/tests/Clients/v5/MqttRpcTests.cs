@@ -78,7 +78,7 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 "test/rpcserver1", _ => throw new NotSupportedException())).ConfigureAwait(false)).ConfigureAwait(false))
             {
                 (await rpcClient.Invoking(r => r.CallMethodAsync("test/rpcserver1", method, input).AsTask())
-                    .Should().ThrowAsync<MethodCallStatusException>().ConfigureAwait(false)).Which.Result.Should().Be(500);
+                    .Should().ThrowAsync<MethodCallStatusException>().ConfigureAwait(false)).Which.Details.Should().Be(500);
             }
         }
 
@@ -150,7 +150,7 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             }
             catch (Exception ex)
             {
-                ex.Should().BeOfType<MethodCallStatusException>().Which.Result.Should().Be(405);
+                ex.Should().BeOfType<MethodCallStatusException>().Which.Details.Should().Be(405);
             }
             finally
             {

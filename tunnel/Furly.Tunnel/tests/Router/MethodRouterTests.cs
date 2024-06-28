@@ -313,8 +313,8 @@ namespace Furly.Tunnel.Router.Tests
             }
             catch (MethodCallStatusException m)
             {
-                Assert.Equal(400, m.Result);
-                Assert.Equal("Value cannot be null. (Parameter 'request')", m.ResponseMessage);
+                Assert.Equal(400, m.Details.Status);
+                Assert.Equal("Value cannot be null. (Parameter 'request')", m.Details.Detail);
                 return;
             }
             Assert.False(true);
@@ -352,8 +352,8 @@ namespace Furly.Tunnel.Router.Tests
             }
             catch (MethodCallStatusException m)
             {
-                Assert.Equal(410, m.Result);
-                Assert.Equal("Value cannot be null. (Parameter 'Test4')", m.ResponseMessage);
+                Assert.Equal(410, m.Details.Status);
+                Assert.Equal("Value cannot be null. (Parameter 'Test4')", m.Details.Detail);
                 return;
             }
             Assert.False(true);
@@ -373,8 +373,8 @@ namespace Furly.Tunnel.Router.Tests
             }
             catch (MethodCallStatusException m)
             {
-                Assert.Equal(403, m.Result);
-                Assert.Equal("Test5", m.ResponseMessage);
+                Assert.Equal(403, m.Details.Status);
+                Assert.Equal("Test5", m.Details.Detail);
                 return;
             }
             Assert.False(true);
@@ -394,8 +394,8 @@ namespace Furly.Tunnel.Router.Tests
             }
             catch (MethodCallStatusException m)
             {
-                Assert.Equal(506, m.Result);
-                Assert.Equal("Test6", m.ResponseMessage);
+                Assert.Equal(506, m.Details.Status);
+                Assert.Equal("Test6", m.Details.Detail);
                 return;
             }
             Assert.False(true);
@@ -415,8 +415,8 @@ namespace Furly.Tunnel.Router.Tests
             }
             catch (MethodCallStatusException m)
             {
-                Assert.Equal(4423, m.Result);
-                Assert.Equal("Operation canceled", m.ResponseMessage);
+                Assert.Equal(4423, m.Details.Status);
+                Assert.Equal("Operation canceled", m.Details.Detail);
                 return;
             }
             Assert.False(true);

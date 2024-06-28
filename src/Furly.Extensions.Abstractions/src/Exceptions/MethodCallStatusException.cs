@@ -5,8 +5,10 @@
 
 namespace Furly.Exceptions
 {
+    using Furly.Extensions.Serializers;
     using System;
     using System.Text;
+    using System.Text.Json;
 
     /// <summary>
     /// This exception is thrown when method call returned a
@@ -15,105 +17,215 @@ namespace Furly.Exceptions
     public class MethodCallStatusException : MethodCallException
     {
         /// <summary>
-        /// Result of method call
+        /// Problem details
         /// </summary>
-        public int Result { get; }
+        public ErrorDetails Details { get; }
 
         /// <summary>
-        /// Payload
+        /// Status code
         /// </summary>
-        public ReadOnlyMemory<byte> ResponsePayload { get; }
-
-        /// <summary>
-        /// As string
-        /// </summary>
-        public string ResponseMessage => ToString(ResponsePayload);
+        public int Status => Details.Status ?? 500;
 
         /// <inheritdoc/>
-        public MethodCallStatusException() :
-            this(500, "")
+        internal MethodCallStatusException() :
+            this((string?)null)
         {
         }
 
         /// <inheritdoc/>
         public MethodCallStatusException(string? message) :
-            this(500, message ?? string.Empty)
+            this(null, message)
         {
         }
 
         /// <inheritdoc/>
         public MethodCallStatusException(string? message, Exception innerException) :
-            this(500, message, innerException)
+            this(null, innerException, message)
         {
         }
 
         /// <summary>
         /// Create exception
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="errorMessage"></param>
-        public MethodCallStatusException(int result, string? errorMessage = null) :
-            base($"Response {result} {errorMessage ?? ""}")
+        /// <param name="status"></param>
+        /// <param name="errorDetails"></param>
+        /// <param name="title"></param>
+        /// <param name="type"></param>
+        public MethodCallStatusException(int? status, string? errorDetails,
+            string? title = null, string? type = null) :
+            this(new ErrorDetails
+            {
+                Detail = errorDetails,
+                Title = title,
+                Type = type,
+                Status = status ?? 500
+            })
         {
-            Result = result;
-            ResponsePayload = Encoding.UTF8.GetBytes(errorMessage ?? "");
         }
 
         /// <summary>
         /// Create exception
         /// </summary>
-        /// <param name="result"></param>
-        /// <param name="errorMessage"></param>
+        /// <param name="status"></param>
         /// <param name="innerException"></param>
-        public MethodCallStatusException(int result, string? errorMessage,
+        /// <param name="errorDetails"></param>
+        /// <param name="title"></param>
+        /// <param name="type"></param>
+        public MethodCallStatusException(int? status, Exception innerException,
+            string? errorDetails, string? title = null, string? type = null) :
+            this(new ErrorDetails
+            {
+                Detail = errorDetails,
+                Title = title,
+                Type = type,
+                Status = status ?? 500
+            }, innerException)
+        {
+        }
+
+        /// <summary>
+        /// Create exception
+        /// </summary>
+        /// <param name="details"></param>
+        public MethodCallStatusException(ErrorDetails details) :
+            base(AsString(details))
+        {
+            Details = details;
+        }
+
+        /// <summary>
+        /// Create exception
+        /// </summary>
+        /// <param name="details"></param>
+        /// <param name="innerException"></param>
+        public MethodCallStatusException(ErrorDetails details,
             Exception innerException) :
-            base($"Response {result} {errorMessage ?? ""}", innerException)
+            base(AsString(details), innerException)
         {
-            Result = result;
-            ResponsePayload = Encoding.UTF8.GetBytes(errorMessage ?? "");
+            Details = details;
         }
 
         /// <summary>
-        /// Create exception
+        /// Try deserialize exception
         /// </summary>
-        /// <param name="responsePayload"></param>
-        /// <param name="result"></param>
-        /// <param name="errorMessage"></param>
-        public MethodCallStatusException(ReadOnlyMemory<byte> responsePayload, int result,
-            string? errorMessage = null) :
-            base($"Response {result} {errorMessage ?? ""}: {ToString(responsePayload)}")
+        /// <param name="response"></param>
+        /// <param name="serializer"></param>
+        /// <param name="outerStatus"></param>
+        public static MethodCallStatusException Deserialize(
+            ReadOnlyMemory<byte> response, ISerializer? serializer = null,
+            int? outerStatus = null)
         {
-            Result = result;
-            ResponsePayload = responsePayload;
+            var result = Deserialize(response, serializer,
+                outerStatus, out var innerException);
+            if (result != null)
+            {
+                return result;
+            }
+            var message = Encoding.UTF8.GetString(response.Span);
+            if (innerException != null)
+            {
+                return new MethodCallStatusException(outerStatus ?? 500,
+                    innerException, message);
+            }
+            return new MethodCallStatusException(outerStatus ?? 500, message);
         }
 
         /// <summary>
-        /// Create exception
+        /// Throw
         /// </summary>
-        /// <param name="responsePayload"></param>
-        /// <param name="result"></param>
-        /// <param name="errorMessage"></param>
+        /// <param name="response"></param>
+        /// <param name="serializer"></param>
+        /// <param name="outerStatus"></param>
+        public static void TryThrow(ReadOnlyMemory<byte> response,
+            ISerializer? serializer = null, int? outerStatus = null)
+        {
+            var result = Deserialize(response, serializer, outerStatus, out _);
+            if (result != null)
+            {
+                throw result;
+            }
+        }
+
+        /// <summary>
+        /// Get payload
+        /// </summary>
+        public ReadOnlyMemory<byte> Serialize(ISerializer? serializer = null)
+        {
+            if (serializer != null)
+            {
+                return serializer.SerializeObjectToMemory(Details);
+            }
+            return JsonSerializer.SerializeToUtf8Bytes(Details).AsMemory();
+        }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return AsString(Details);
+        }
+
+        /// <summary>
+        /// Convert to string message
+        /// </summary>
+        /// <param name="details"></param>
+        /// <returns></returns>
+        private static string AsString(ErrorDetails details)
+        {
+            return JsonSerializer.Serialize(details);
+        }
+
+        /// <summary>
+        /// Helper to deserialize the payload
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="serializer"></param>
+        /// <param name="outerStatus"></param>
         /// <param name="innerException"></param>
-        public MethodCallStatusException(ReadOnlyMemory<byte> responsePayload, int result,
-            string? errorMessage, Exception innerException) :
-            base($"Response {result} {errorMessage ?? ""}: {ToString(responsePayload)}",
-                innerException)
+        /// <returns></returns>
+        private static MethodCallStatusException? Deserialize(
+            ReadOnlyMemory<byte> response, ISerializer? serializer,
+            int? outerStatus, out Exception? innerException)
         {
-            Result = result;
-            ResponsePayload = responsePayload;
-        }
-
-        private static string ToString(ReadOnlyMemory<byte> buffer)
-        {
+            innerException = null;
+            if (response.Length == 0)
+            {
+                return new MethodCallStatusException(outerStatus ?? 500, string.Empty);
+            }
+            if (serializer != null)
+            {
+                try
+                {
+                    var details = serializer.Deserialize<ErrorDetails>(response);
+                    if (details != null)
+                    {
+                        details.Status ??= outerStatus;
+                        return new MethodCallStatusException(details);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    innerException = ex;
+                }
+            }
             try
             {
-                return Encoding.UTF8.GetString(buffer.Span);
+                var details = JsonSerializer.Deserialize<ErrorDetails>(response.Span);
+                if (details != null)
+                {
+                    details.Status ??= outerStatus;
+                    if (innerException != null)
+                    {
+                        return new MethodCallStatusException(details, innerException);
+                    }
+                    return new MethodCallStatusException(details);
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                // TODO hex string?
-                return "Unknown response";
+                innerException = innerException != null ?
+                    new AggregateException(ex, innerException) : ex;
             }
+            return null;
         }
     }
 }

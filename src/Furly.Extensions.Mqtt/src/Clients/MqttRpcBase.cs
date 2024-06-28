@@ -24,6 +24,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Channels;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Mqtt rpc client base
@@ -43,12 +44,14 @@ namespace Furly.Extensions.Mqtt.Clients
         /// Create service client
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        protected MqttRpcBase(IOptions<MqttOptions> options, ILogger logger)
+        protected MqttRpcBase(IOptions<MqttOptions> options, ISerializer serializer,
+            ILogger logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options ?? throw new ArgumentNullException(nameof(options));
-
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             MaxMethodPayloadSizeInBytes =
                 Math.Max(_options.Value.MaxPayloadSize ?? int.MaxValue, 268435455); // (256 MB)
             // http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718023
@@ -250,8 +253,11 @@ namespace Furly.Extensions.Mqtt.Clients
                         throw new MethodCallException("Did not get correct request id back.");
                     }
                 }
-                return status == 200 ? message.PayloadSegment :
-                    throw new MethodCallStatusException(message.PayloadSegment, status);
+                if (status != 200)
+                {
+                    MethodCallStatusException.TryThrow(message.PayloadSegment, _serializer, status);
+                }
+                return message.PayloadSegment;
             }
             finally
             {
@@ -434,9 +440,9 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (MethodCallStatusException mex)
                 {
-                    payload = mex.ResponsePayload;
+                    payload = mex.Serialize(_serializer);
                     return (payload.Length > MaxMethodPayloadSizeInBytes ? null :
-                        payload, mex.Result);
+                        payload, mex.Details.Status ?? 500);
                 }
                 catch (NotSupportedException)
                 {
@@ -541,6 +547,7 @@ namespace Furly.Extensions.Mqtt.Clients
         private const string kStatusCodeKey = "StatusCode";
         private readonly Lazy<Executor> _executor;
         private readonly IOptions<MqttOptions> _options;
+        private readonly ISerializer _serializer;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<Guid,
             (IRpcHandler, IAsyncDisposable)> _handlers = new();

@@ -32,6 +32,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Threading.Tasks;
     using System.Net;
     using MQTTnet.Exceptions;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Mqtt event client
@@ -50,9 +51,11 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         /// <param name="options"></param>
         /// <param name="logger"></param>
+        /// <param name="serializer"></param>
         /// <param name="registry"></param>
         public MqttClient(IOptions<MqttOptions> options, ILogger<MqttClient> logger,
-            ISchemaRegistry? registry = null) : base(options, logger)
+            ISerializer serializer, ISchemaRegistry? registry = null)
+            : base(options, serializer, logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

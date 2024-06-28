@@ -52,7 +52,7 @@ namespace Furly.Tunnel.AspNetCore.Tests
             const int kMaxMessageSize = 127 * 1024;
             return result.Length > kMaxMessageSize
                 ? throw new MethodCallStatusException(
-                    (int)HttpStatusCode.RequestEntityTooLarge)
+                    (int)HttpStatusCode.RequestEntityTooLarge, "The resonse is too long to send.")
                 : result;
         }
 

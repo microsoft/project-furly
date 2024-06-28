@@ -11,6 +11,7 @@ namespace Furly.Tunnel.Router.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -65,12 +66,16 @@ namespace Furly.Tunnel.Router.Services
         /// <param name="servers"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="summarizer"></param>
         /// <param name="options"></param>
         public MethodRouter(IEnumerable<IRpcServer> servers, IJsonSerializer serializer,
-            ILogger<MethodRouter> logger, IOptions<RouterOptions>? options = null)
+            ILogger<MethodRouter> logger, IExceptionSummarizer? summarizer = null,
+            IOptions<RouterOptions>? options = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _summarizer = summarizer;
+
             MountPoint = options?.Value.MountPoint ?? string.Empty;
 
             // Create chunk server always
@@ -181,7 +186,7 @@ namespace Furly.Tunnel.Router.Services
                     var versionedName = name + version;
                     if (!_chunks.TryGetValue(versionedName, out var invoker))
                     {
-                        invoker = new DynamicInvoker(_logger, name);
+                        invoker = new DynamicInvoker(_logger, name, _summarizer);
                         _chunks.Add(versionedName, invoker);
                     }
                     if (invoker is DynamicInvoker dynamicInvoker)
@@ -211,10 +216,12 @@ namespace Furly.Tunnel.Router.Services
             /// </summary>
             /// <param name="logger"></param>
             /// <param name="methodName"></param>
-            public DynamicInvoker(ILogger logger, string methodName)
+            /// <param name="summarizer"></param>
+            public DynamicInvoker(ILogger logger, string methodName, IExceptionSummarizer? summarizer)
             {
                 MethodName = methodName;
                 _logger = logger;
+                _summarizer = summarizer;
                 _invokers = new List<JsonMethodInvoker>();
             }
 
@@ -228,7 +235,7 @@ namespace Furly.Tunnel.Router.Services
             {
                 _logger.LogTrace("Adding {Controller}.{Method} method to invoker...",
                     controller.GetType().Name, controllerMethod.Name);
-                _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger));
+                _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger, _summarizer));
                 MethodName = controllerMethod.Name;
             }
 
@@ -255,6 +262,7 @@ namespace Furly.Tunnel.Router.Services
             }
 
             private readonly ILogger _logger;
+            private readonly IExceptionSummarizer? _summarizer;
             private readonly List<JsonMethodInvoker> _invokers;
         }
 
@@ -285,10 +293,12 @@ namespace Furly.Tunnel.Router.Services
             /// <param name="controllerMethod"></param>
             /// <param name="serializer"></param>
             /// <param name="logger"></param>
+            /// <param name="summarizer"></param>
             public JsonMethodInvoker(object controller, MethodInfo controllerMethod,
-                IJsonSerializer serializer, ILogger logger)
+                IJsonSerializer serializer, ILogger logger, IExceptionSummarizer? summarizer)
             {
                 _logger = logger;
+                _summarizer = summarizer;
                 _serializer = serializer;
                 _controller = controller;
                 _controllerMethod = controllerMethod;
@@ -330,14 +340,22 @@ namespace Furly.Tunnel.Router.Services
                         }
 
                         if ((_methodParams.Length == 2) &&
+                            _methodParams[0].ParameterType != _methodParams[1].ParameterType &&
                             (_methodParams[1].ParameterType == typeof(CancellationToken) ||
                              _methodParams[0].ParameterType == typeof(CancellationToken)))
                         {
-                            var singleParam = _serializer.Deserialize(payload,
-                                _methodParams[0].ParameterType);
-                            return _methodParams[1].ParameterType == typeof(CancellationToken) ?
-                                ([singleParam, ct]) :
-                                ([ct, singleParam]);
+                            if (_methodParams[1].ParameterType == typeof(CancellationToken))
+                            {
+                                var singleParam = _serializer.Deserialize(payload,
+                                    _methodParams[0].ParameterType);
+                                return [singleParam, ct];
+                            }
+                            else
+                            {
+                                var singleParam = _serializer.Deserialize(payload,
+                                    _methodParams[1].ParameterType);
+                                return [ct, singleParam];
+                            }
                         }
 
                         var data = _serializer.Parse(payload);
@@ -366,9 +384,8 @@ namespace Furly.Tunnel.Router.Services
                 {
                     return await VoidContinuationAsync((Task)task).ConfigureAwait(false);
                 }
-                return await ((Task<ReadOnlyMemory<byte>>)_methodTaskContinuation.Invoke(this, [
-                    task
-                ])!).ConfigureAwait(false);
+                return await ((Task<ReadOnlyMemory<byte>>)_methodTaskContinuation.Invoke(
+                    this, [task])!).ConfigureAwait(false);
             }
 
             /// <summary>
@@ -391,6 +408,13 @@ namespace Furly.Tunnel.Router.Services
                         if (ex is MethodCallStatusException)
                         {
                             throw ex;
+                        }
+                        if (_summarizer != null)
+                        {
+                            var summary = _summarizer.Summarize(ex);
+                            throw new MethodCallStatusException(status,
+                                summary.AdditionalDetails, summary.Description,
+                                summary.ExceptionType);
                         }
                         throw new MethodCallStatusException(status,
                             ex?.Message ?? ex?.ToString() ?? "Unknown");
@@ -419,6 +443,13 @@ namespace Furly.Tunnel.Router.Services
                         {
                             throw ex;
                         }
+                        if (_summarizer != null)
+                        {
+                            var summary = _summarizer.Summarize(ex);
+                            throw new MethodCallStatusException(status,
+                                summary.AdditionalDetails, summary.Description,
+                                summary.ExceptionType);
+                        }
                         throw new MethodCallStatusException(status,
                             ex?.Message ?? ex?.ToString() ?? "Unknown");
                     }
@@ -431,6 +462,7 @@ namespace Furly.Tunnel.Router.Services
                     BindingFlags.Public | BindingFlags.Instance)!;
             private readonly IJsonSerializer _serializer;
             private readonly ILogger _logger;
+            private readonly IExceptionSummarizer? _summarizer;
             private readonly object _controller;
             private readonly ParameterInfo[] _methodParams;
             private readonly ExceptionFilterAttribute _ef;
@@ -439,6 +471,7 @@ namespace Furly.Tunnel.Router.Services
         }
 
         private readonly ILogger _logger;
+        private readonly IExceptionSummarizer? _summarizer;
         private readonly IJsonSerializer _serializer;
         private readonly ChunkMethodServer _chunks;
         private readonly Task<List<IAsyncDisposable>> _connections;

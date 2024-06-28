@@ -18,6 +18,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Rpc server which uses an IoT Edge module or device client to
@@ -35,9 +36,12 @@ namespace Furly.Azure.IoT.Edge.Services
         /// Create connection
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public IoTEdgeRpcServer(IIoTEdgeDeviceClient client, ILogger<IoTEdgeRpcServer> logger)
+        public IoTEdgeRpcServer(IIoTEdgeDeviceClient client, ISerializer serializer,
+            ILogger<IoTEdgeRpcServer> logger)
         {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _listeners = ImmutableHashSet<Listener>.Empty;
@@ -195,9 +199,9 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
                 catch (MethodCallStatusException mex)
                 {
-                    var payload = mex.ResponsePayload;
+                    var payload = mex.Serialize(_outer._serializer);
                     return new MethodResponse(payload.Length > kMaxMessageSize ? null :
-                        payload.ToArray(), mex.Result);
+                        payload.ToArray(), mex.Details.Status ?? 500);
                 }
                 catch (NotSupportedException)
                 {
@@ -216,6 +220,7 @@ namespace Furly.Azure.IoT.Edge.Services
         private const int kMaxMessageSize = 127 * 1024;
         private readonly IIoTEdgeDeviceClient _client;
         private readonly ILogger _logger;
+        private readonly ISerializer _serializer;
         private bool _registered;
         private ImmutableHashSet<Listener> _listeners;
         private readonly object _lock = new();

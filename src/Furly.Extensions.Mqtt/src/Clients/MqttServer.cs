@@ -21,6 +21,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Security.Authentication;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Mqtt broker that can serve as event client
@@ -38,9 +39,11 @@ namespace Furly.Extensions.Mqtt.Clients
         /// Create service client
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public MqttServer(IOptions<MqttOptions> options, ILogger<MqttServer> logger)
-            : base(options, logger)
+        public MqttServer(IOptions<MqttOptions> options, ISerializer serializer,
+            ILogger<MqttServer> logger)
+            : base(options, serializer, logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

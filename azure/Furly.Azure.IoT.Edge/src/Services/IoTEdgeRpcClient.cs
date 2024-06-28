@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Furly.Azure.IoT.Edge;
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.Devices.Client;
     using System;
     using System.Threading;
@@ -28,9 +29,11 @@ namespace Furly.Azure.IoT.Edge.Services
         /// Create method client
         /// </summary>
         /// <param name="client"></param>
-        public IoTEdgeRpcClient(IIoTEdgeDeviceClient client)
+        /// <param name="serializer"></param>
+        public IoTEdgeRpcClient(IIoTEdgeDeviceClient client, ISerializer serializer)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -54,12 +57,15 @@ namespace Furly.Azure.IoT.Edge.Services
                 response = await _client.InvokeMethodAsync(deviceId, moduleId,
                     request, ct).ConfigureAwait(false);
             }
-            return response.Status != 200
-                ? throw new MethodCallStatusException(
-                    response.Result, response.Status)
-                : response.Result;
+            if (response.Status != 200)
+            {
+                MethodCallStatusException.TryThrow(response.Result.AsMemory(),
+                    _serializer, response.Status);
+            }
+            return response.Result;
         }
 
+        private readonly ISerializer _serializer;
         private readonly IIoTEdgeDeviceClient _client;
     }
 }

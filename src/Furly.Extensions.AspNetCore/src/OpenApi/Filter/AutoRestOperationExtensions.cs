@@ -5,6 +5,7 @@
 
 namespace Furly.Extensions.AspNetCore.OpenApi
 {
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Swashbuckle.AspNetCore.SwaggerGen;
@@ -59,13 +60,9 @@ namespace Furly.Extensions.AspNetCore.OpenApi
                 }
             }
 
-            // Fix up produces
             foreach (var produces in operation.Responses.ToList())
             {
-                if (produces.Key != "200")
-                {
-                    operation.Responses.Remove(produces.Key);
-                }
+                produces.Value.Description = produces.Value.Description.SingleSpacesNoLineBreak();
             }
 
             foreach (var param in operation.Parameters)

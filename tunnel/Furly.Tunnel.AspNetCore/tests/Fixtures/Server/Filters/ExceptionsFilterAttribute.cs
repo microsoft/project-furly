@@ -65,8 +65,7 @@ namespace Furly.Tunnel.AspNetCore.Tests.Server.Filters
                         context.Exception);
                     break;
                 case MethodCallStatusException mcs:
-                    context.Result = GetResponse((HttpStatusCode)mcs.Result,
-                        context.Exception);
+                    context.Result = new ObjectResult(mcs.Details);
                     break;
                 case SerializerException _:
                 case MethodCallException _:
@@ -145,11 +144,10 @@ namespace Furly.Tunnel.AspNetCore.Tests.Server.Filters
         /// <returns></returns>
         private static ObjectResult GetResponse(HttpStatusCode code, Exception exception)
         {
-            var result = new ObjectResult(exception)
+            return new ObjectResult(exception)
             {
                 StatusCode = (int)code
             };
-            return result;
         }
     }
 }

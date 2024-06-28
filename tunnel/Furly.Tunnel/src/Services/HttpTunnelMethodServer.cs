@@ -132,7 +132,8 @@ namespace Furly.Tunnel.Services
                 var outbound = await _processor.ProcessAsync(inbound, ct).ConfigureAwait(false);
                 if (outbound.Status != (int)HttpStatusCode.OK)
                 {
-                    throw new MethodCallStatusException(outbound.Status);
+                    MethodCallStatusException.TryThrow(outbound.Payload, _serializer,
+                        outbound.Status);
                 }
                 return outbound.Payload ?? Array.Empty<byte>();
             }

@@ -102,15 +102,11 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
         ],
         "operationId": "GetTestModel",
         "consumes": [
-          "application/json-patch+json",
           "application/json",
-          "text/json",
-          "application/*+json"
+          "application/x-msgpack"
         ],
         "produces": [
-          "text/plain",
-          "application/json",
-          "text/json"
+          "application/json"
         ],
         "parameters": [
           {
@@ -127,12 +123,40 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
             "schema": {
               "$ref": "#/definitions/TestModel"
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ProblemDetails"
+            }
           }
         }
       }
     }
   },
   "definitions": {
+    "ProblemDetails": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "instance": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": { }
+    },
     "TestEnum": {
       "enum": [
         "None",
@@ -222,8 +246,12 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     [ApiVersion("2")]
     [Route("test/v{version:apiVersion}/filter")]
     [ApiController]
+    [Produces("application/json")]
+    [Consumes("application/json", "application/x-msgpack")]
     public class FilterTestsController : ControllerBase
     {
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
         [HttpPost]
         public TestModel GetTestModel(TestModel model)
         {

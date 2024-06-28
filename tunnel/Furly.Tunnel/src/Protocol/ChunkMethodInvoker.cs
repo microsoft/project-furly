@@ -206,8 +206,8 @@ namespace Furly.Tunnel.Protocol
                     }
                     catch (MethodCallStatusException mex)
                     {
-                        _payload = mex.ResponsePayload.ToArray().Zip();
-                        status = mex.Result;
+                        _payload = mex.Serialize(_outer._serializer).ToArray().Zip();
+                        status = mex.Details.Status ?? 500;
                     }
                     catch (Exception ex)
                     {

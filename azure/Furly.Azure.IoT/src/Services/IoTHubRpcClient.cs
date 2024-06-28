@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Services
     using Furly.Azure.IoT;
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
+    using Furly.Extensions.Serializers;
     using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
@@ -34,10 +35,12 @@ namespace Furly.Azure.IoT.Services
         /// Create client
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public IoTHubRpcClient(IOptions<IoTHubServiceOptions> options,
-            ILogger<IoTHubRpcClient> logger)
+            ISerializer serializer, ILogger<IoTHubRpcClient> logger)
         {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
                 !ConnectionString.TryParse(options.Value.ConnectionString, out var cs) ||
@@ -86,7 +89,7 @@ namespace Furly.Azure.IoT.Services
                     _logger.LogDebug("Call {Method} on {Device} ({Module}) with {Payload} " +
                         "returned with error {Status}: {Result} after {Elapsed}",
                         method, deviceId, moduleId, payload, result.Status, resultPayload, sw.Elapsed);
-                    throw new MethodCallStatusException(GetPayload(contentType, resultPayload),
+                    MethodCallStatusException.TryThrow(GetPayload(contentType, resultPayload), _serializer,
                         result.Status);
                 }
                 _logger.LogDebug("Call {Method} on {Device} ({Module}) took {Elapsed}... ",
@@ -147,6 +150,7 @@ namespace Furly.Azure.IoT.Services
             }
         }
 
+        private readonly ISerializer _serializer;
         private readonly Task<ServiceClient> _client;
         private readonly ILogger _logger;
         private const int kDefaultMethodTimeout = 300; // 5 minutes - default is 30 seconds
