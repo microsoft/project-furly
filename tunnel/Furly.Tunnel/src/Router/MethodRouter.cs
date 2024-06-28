@@ -18,6 +18,7 @@ namespace Furly.Tunnel.Router.Services
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
+    using Furly.Tunnel.Exceptions;
 
     /// <summary>
     /// Provides request routing to module controllers
@@ -405,19 +406,7 @@ namespace Furly.Tunnel.Router.Services
                         ex ??= new TaskCanceledException(tr);
                         _logger.LogTrace(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
-                        if (ex is MethodCallStatusException)
-                        {
-                            throw ex;
-                        }
-                        if (_summarizer != null)
-                        {
-                            var summary = _summarizer.Summarize(ex);
-                            throw new MethodCallStatusException(status,
-                                summary.AdditionalDetails, summary.Description,
-                                summary.ExceptionType);
-                        }
-                        throw new MethodCallStatusException(status,
-                            ex?.Message ?? ex?.ToString() ?? "Unknown");
+                        throw ex.AsMethodCallStatusException(status, _summarizer);
                     }
                     return _serializer.SerializeToMemory((object?)tr.Result);
                 }, scheduler: TaskScheduler.Default);
@@ -439,19 +428,7 @@ namespace Furly.Tunnel.Router.Services
                         ex ??= new TaskCanceledException(tr);
                         _logger.LogTrace(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
-                        if (ex is MethodCallStatusException)
-                        {
-                            throw ex;
-                        }
-                        if (_summarizer != null)
-                        {
-                            var summary = _summarizer.Summarize(ex);
-                            throw new MethodCallStatusException(status,
-                                summary.AdditionalDetails, summary.Description,
-                                summary.ExceptionType);
-                        }
-                        throw new MethodCallStatusException(status,
-                            ex?.Message ?? ex?.ToString() ?? "Unknown");
+                        throw ex.AsMethodCallStatusException(status, _summarizer);
                     }
                     return ReadOnlyMemory<byte>.Empty;
                 }, scheduler: TaskScheduler.Default);

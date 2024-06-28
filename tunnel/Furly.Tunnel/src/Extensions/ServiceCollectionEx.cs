@@ -5,13 +5,58 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    using Furly.Tunnel.Exceptions;
     using Furly.Tunnel.Services;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
+    using System;
 
     /// <summary>
     /// DI extension
     /// </summary>
     public static partial class ServiceCollectionEx
     {
+        /// <summary>
+        /// Add a exception summary
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddExceptionSummarization(
+            this IServiceCollection services)
+        {
+            return services.AddExceptionSummarizer(
+                builder => AddDefaultProviders(builder));
+        }
+
+        /// <summary>
+        /// Add a exception summary
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configure"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddExceptionSummarization(
+            this IServiceCollection services,
+            Action<IExceptionSummarizationBuilder> configure)
+        {
+            return services.AddExceptionSummarizer(builder =>
+            {
+                AddDefaultProviders(builder);
+                configure.Invoke(builder);
+            });
+        }
+
+        /// <summary>
+        /// Add built in providers
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IExceptionSummarizationBuilder AddDefaultProviders(
+            this IExceptionSummarizationBuilder builder)
+        {
+            builder.AddProvider<HttpExceptionProvider>();
+            builder.AddProvider<BuiltInExceptionProvider>();
+            return builder;
+        }
+
         /// <summary>
         /// Add a tunnel client
         /// </summary>

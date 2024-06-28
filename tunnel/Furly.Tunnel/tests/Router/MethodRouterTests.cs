@@ -20,6 +20,8 @@ namespace Furly.Tunnel.Router.Tests
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
+    using Microsoft.Extensions.DependencyInjection;
 
     public class MethodRouterTests
     {
@@ -381,6 +383,114 @@ namespace Furly.Tunnel.Router.Tests
         }
 
         [Fact]
+        public async Task Test4InvocationV2NonChunkedWithExceptionSummarizerAsync()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddExceptionSummarization();
+            using var provider = serviceCollection.BuildServiceProvider();
+            var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
+
+            await using var router = GetRouter(out _, summarizer: summarizer);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test4_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(410, m.Details.Status);
+                Assert.Equal("Value cannot be null. (Parameter 'Test4')", m.Details.Detail);
+                Assert.Equal("A parameter of an operation was unexpectedly null.", m.Details.Title);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
+        public async Task Test5InvocationV2NonChunkedWithExceptionSummarizerAsync()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddExceptionSummarization();
+            using var provider = serviceCollection.BuildServiceProvider();
+            var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
+
+            await using var router = GetRouter(out _, summarizer: summarizer);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test5_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(403, m.Details.Status);
+                Assert.Equal("-2146232800", m.Details.Detail);
+                Assert.Equal("Unknown", m.Details.Title);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
+        public async Task Test6InvocationV2NonChunkedWithExceptionSummarizerAsync()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddExceptionSummarization();
+            using var provider = serviceCollection.BuildServiceProvider();
+            var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
+
+            await using var router = GetRouter(out _, summarizer: summarizer);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test6_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(506, m.Details.Status);
+                Assert.Equal("Test6", m.Details.Detail);
+                Assert.Null(m.Details.Title);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
+        public async Task Test7InvocationV2NonChunkedWithExceptionSummarizerAsync()
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddExceptionSummarization();
+            using var provider = serviceCollection.BuildServiceProvider();
+            var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
+
+            await using var router = GetRouter(out _, summarizer: summarizer);
+            var buffer = new byte[1049];
+            FillRandom(buffer);
+            try
+            {
+                var response = await router.InvokeAsync(
+                    "Test7_v2", _serializer.SerializeObjectToMemory(buffer),
+                    ContentMimeType.Json, default);
+            }
+            catch (MethodCallStatusException m)
+            {
+                Assert.Equal(4423, m.Details.Status);
+                Assert.Equal("Reason unknown", m.Details.Detail);
+                Assert.Equal("The operation was cancelled by the system or due to user action.", m.Details.Title);
+                return;
+            }
+            Assert.False(true);
+        }
+
+        [Fact]
         public async Task Test6InvocationV2NonChunkedAsync()
         {
             await using var router = GetRouter(out _);
@@ -429,12 +539,13 @@ namespace Furly.Tunnel.Router.Tests
 #pragma warning restore CA5394 // Do not use insecure randomness
         }
 
-        internal MethodRouter GetRouter(out IRpcClient client, int size = 128 * 1024)
+        internal MethodRouter GetRouter(out IRpcClient client, int size = 128 * 1024,
+            IExceptionSummarizer? summarizer = null)
         {
             var server = new TestRpcServer(_serializer, size);
             client = server;
             return new MethodRouter(server.YieldReturn(), _serializer,
-                _output.ToLogger<MethodRouter>())
+                _output.ToLogger<MethodRouter>(), summarizer)
             {
                 Controllers = GetControllers()
             };
