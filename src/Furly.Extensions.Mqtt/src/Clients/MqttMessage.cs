@@ -7,7 +7,6 @@ namespace Furly.Extensions.Mqtt.Clients
 {
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Utils;
     using Microsoft.Extensions.Options;
     using MQTTnet;
     using MQTTnet.Protocol;
@@ -17,6 +16,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Globalization;
 
     /// <summary>
     /// Mqtt message
@@ -124,6 +124,11 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <inheritdoc/>
         public IEvent SetTimestamp(DateTime value)
         {
+            if (_version != MqttVersion.v311)
+            {
+                _builder.WithUserProperty("TimeStamp",
+                    value.ToString(CultureInfo.InvariantCulture));
+            }
             return this;
         }
 
