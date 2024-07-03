@@ -94,10 +94,10 @@ namespace Furly.Tunnel.AspNetCore.Tests
             }
 
             /// <inheritdoc/>
-            public DateTime Timestamp { get; private set; }
+            public DateTimeOffset Timestamp { get; private set; }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 Timestamp = value;
                 return this;

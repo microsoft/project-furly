@@ -186,7 +186,7 @@ namespace Furly.Azure.IoT.Services
             }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 return this;
             }

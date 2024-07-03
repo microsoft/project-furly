@@ -33,7 +33,7 @@ namespace Furly.Extensions.Storage
         /// <param name="contentType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask WriteAsync(string fileName, DateTime timestamp,
+        ValueTask WriteAsync(string fileName, DateTimeOffset timestamp,
             IEnumerable<ReadOnlySequence<byte>> buffers,
             IReadOnlyDictionary<string, string?> metadata,
             IEventSchema? schema, string contentType,

@@ -163,7 +163,7 @@ namespace Furly.Azure.EventHubs.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 return this;
             }

@@ -40,8 +40,10 @@ namespace Furly.Tunnel.Services
         /// <param name="receiver"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         protected HttpTunnelBaseEventServer(ITunnelServer server,
-            IEventSubscriber receiver, IJsonSerializer serializer, ILogger logger)
+            IEventSubscriber receiver, IJsonSerializer serializer,
+            ILogger logger, TimeProvider? timeProvider)
         {
             Serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
@@ -49,6 +51,8 @@ namespace Furly.Tunnel.Services
                 throw new ArgumentNullException(nameof(server));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
+            _timeProvider = timeProvider ??
+                TimeProvider.System;
 
             // Subscribe for tunnel requests
             _subscription = receiver.SubscribeAsync(
@@ -206,7 +210,8 @@ namespace Furly.Tunnel.Services
             /// <summary>
             /// Whether the request timed out
             /// </summary>
-            public bool IsTimedOut => DateTime.UtcNow > _lastActivity + _timeout;
+            public bool IsTimedOut
+                => _outer._timeProvider.GetElapsedTime(_lastActivity) > _timeout;
 
             /// <summary>
             /// Create chunk
@@ -224,6 +229,7 @@ namespace Furly.Tunnel.Services
                 RequestId = requestId;
                 _outer = outer;
                 _timeout = timeout ?? TimeSpan.FromSeconds(20);
+                _lastActivity = _outer._timeProvider.GetTimestamp();
                 _request = request;
                 _chunks = chunks + 1;
                 _payload = new byte[_chunks][];
@@ -269,7 +275,7 @@ namespace Furly.Tunnel.Services
                     return false;
                 }
                 _payload[id] = payload;
-                _lastActivity = DateTime.UtcNow;
+                _lastActivity = _outer._timeProvider.GetTimestamp();
                 return !_payload.Any(p => p == null);
             }
 
@@ -278,7 +284,7 @@ namespace Furly.Tunnel.Services
             private readonly HttpTunnelRequestModel _request;
             private readonly int _chunks;
             private readonly byte[][] _payload;
-            private DateTime _lastActivity;
+            private long _lastActivity;
         }
 
         /// <summary>
@@ -302,6 +308,7 @@ namespace Furly.Tunnel.Services
         private readonly Timer _timer;
         private readonly ITunnelServer _server;
         private readonly ILogger _logger;
+        private readonly TimeProvider _timeProvider;
         private bool _disposedValue;
     }
 }

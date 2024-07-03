@@ -85,7 +85,7 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         /// <inheritdoc/>
-        public IEvent SetTimestamp(DateTime value)
+        public IEvent SetTimestamp(DateTimeOffset value)
         {
             return this;
         }

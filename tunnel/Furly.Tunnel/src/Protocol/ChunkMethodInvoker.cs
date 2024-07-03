@@ -38,14 +38,16 @@ namespace Furly.Tunnel.Protocol
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="timeout"></param>
+        /// <param name="timeProvider"></param>
         public ChunkMethodInvoker(IJsonSerializer serializer, ILogger logger,
-            TimeSpan timeout)
+            TimeSpan timeout, TimeProvider timeProvider)
         {
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _timeout = timeout;
+            _timeProvider = timeProvider;
             _requests = new ConcurrentDictionary<string, ChunkProcessor>();
             _timer = new Timer(_ => OnTimer(), null,
                 kTimeoutCheckInterval, kTimeoutCheckInterval);
@@ -121,7 +123,8 @@ namespace Furly.Tunnel.Protocol
             /// <summary>
             /// Whether the request timed out
             /// </summary>
-            public bool IsTimedOut => DateTime.UtcNow > _lastActivity + _timeout;
+            public bool IsTimedOut
+                => _outer._timeProvider.GetElapsedTime(_lastActivity) > _timeout;
 
             /// <summary>
             /// Create chunk
@@ -152,7 +155,7 @@ namespace Furly.Tunnel.Protocol
                 _payload = new byte[contentLength.Value];
                 _timeout = timeout;
                 _properties = properties;
-                _lastActivity = DateTime.UtcNow;
+                _lastActivity = _outer._timeProvider.GetTimestamp();
                 _maxChunkLength = maxChunkLength ?? 64 * 1024;
                 _contentType = contentType ?? ContentMimeType.Json;
             }
@@ -178,7 +181,7 @@ namespace Furly.Tunnel.Protocol
                     if (_received < _payload.Length)
                     {
                         // Continue upload
-                        _lastActivity = DateTime.UtcNow;
+                        _lastActivity = _outer._timeProvider.GetTimestamp();
                         _outer._logger.LogDebug("Received on handle {Handle}", Handle);
                         return new MethodChunkModel
                         {
@@ -239,7 +242,7 @@ namespace Furly.Tunnel.Protocol
                 else
                 {
                     response.Handle = Handle;
-                    _lastActivity = DateTime.UtcNow;
+                    _lastActivity = _outer._timeProvider.GetTimestamp();
                     _outer._logger.LogDebug("Responded on handle {Handle}", Handle);
                 }
                 return response;
@@ -272,7 +275,7 @@ namespace Furly.Tunnel.Protocol
             private byte[] _payload;
             private int _received;
             private int _sent = -1;
-            private DateTime _lastActivity;
+            private long _lastActivity;
         }
 
         private static long _requestCounter;
@@ -280,6 +283,7 @@ namespace Furly.Tunnel.Protocol
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly TimeSpan _timeout;
+        private readonly TimeProvider _timeProvider;
         private readonly ConcurrentDictionary<string, ChunkProcessor> _requests;
         private static readonly ActivitySource kActivity = new(typeof(ChunkMethodInvoker).FullName!);
         private readonly Timer _timer;

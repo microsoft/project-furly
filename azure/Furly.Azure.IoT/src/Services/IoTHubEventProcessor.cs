@@ -39,12 +39,14 @@ namespace Furly.Azure.IoT.Services
         /// <param name="service"></param>
         /// <param name="storage"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public IoTHubEventProcessor(IOptions<IoTHubEventProcessorOptions> options,
             IOptions<IoTHubServiceOptions> service, IOptions<StorageOptions> storage,
-            ILogger<IoTHubEventProcessor> logger)
+            ILogger<IoTHubEventProcessor> logger, TimeProvider? timeProvider = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options ?? throw new ArgumentNullException(nameof(options));
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _cts = new CancellationTokenSource();
 
             var storageCs = ProcessOptions(options.Value, service.Value,
@@ -132,7 +134,7 @@ namespace Furly.Azure.IoT.Services
             if (!_options.Value.InitialReadFromStart ||
                 _options.Value.SkipEventsOlderThan != null)
             {
-                var start = DateTime.UtcNow;
+                var start = _timeProvider.GetUtcNow();
                 if (_options.Value.SkipEventsOlderThan != null)
                 {
                     start -= _options.Value.SkipEventsOlderThan.Value;
@@ -577,6 +579,7 @@ namespace Furly.Azure.IoT.Services
         private readonly Task _task;
         private readonly ILogger _logger;
         private readonly IOptions<IoTHubEventProcessorOptions> _options;
+        private readonly TimeProvider _timeProvider;
         private readonly EventHubConsumerClient? _client;
         private readonly EventProcessorClient? _processor;
         private readonly CancellationTokenSource _cts;

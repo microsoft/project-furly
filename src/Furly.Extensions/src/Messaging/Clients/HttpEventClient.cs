@@ -76,10 +76,10 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 _request.AddHeader("ETag",
-                    value.ToBinary().ToString(CultureInfo.InvariantCulture));
+                    value.UtcDateTime.ToBinary().ToString(CultureInfo.InvariantCulture));
                 return this;
             }
 

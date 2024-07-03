@@ -141,7 +141,7 @@ namespace Furly.Extensions.Kafka.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 _timestamp = new Timestamp(value);
                 return this;

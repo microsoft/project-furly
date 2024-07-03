@@ -37,14 +37,17 @@ namespace Furly.Extensions.Kafka.Clients
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <param name="identity"></param>
+        /// <param name="timeProvider"></param>
         public KafkaConsumerClient(IKafkaAdminClient admin,
             IOptions<KafkaServerOptions> server, IOptions<KafkaConsumerOptions> config,
-            ILogger<KafkaConsumerClient> logger, IProcessIdentity? identity = null)
+            ILogger<KafkaConsumerClient> logger, IProcessIdentity? identity = null,
+            TimeProvider? timeProvider = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _admin = admin ?? throw new ArgumentNullException(nameof(admin));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _server = server ?? throw new ArgumentNullException(nameof(server));
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _consumerId = identity?.Identity ?? Guid.NewGuid().ToString();
             _interval = (int?)config.Value.CheckpointInterval?.TotalMilliseconds;
             _runner = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
@@ -134,7 +137,7 @@ namespace Furly.Extensions.Kafka.Clients
                             }
                             if (_config.Value.SkipEventsOlderThan != null &&
                                 ev.Timestamp.UtcDateTime +
-                                    _config.Value.SkipEventsOlderThan < DateTime.UtcNow)
+                                    _config.Value.SkipEventsOlderThan < _timeProvider.GetUtcNow())
                             {
                                 // Skip this one and catch up
                                 continue;
@@ -275,6 +278,7 @@ namespace Furly.Extensions.Kafka.Clients
         private readonly IOptions<KafkaServerOptions> _server;
         private readonly string _consumerId;
         private readonly int? _interval;
+        private readonly TimeProvider _timeProvider;
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _runner;
     }

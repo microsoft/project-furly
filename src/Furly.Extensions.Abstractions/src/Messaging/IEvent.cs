@@ -24,7 +24,7 @@ namespace Furly.Extensions.Messaging
         /// <summary>
         /// Processing timestamp
         /// </summary>
-        IEvent SetTimestamp(DateTime value);
+        IEvent SetTimestamp(DateTimeOffset value);
 
         /// <summary>
         /// Content type

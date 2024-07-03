@@ -16,6 +16,7 @@ namespace Furly.Tunnel.Services
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System;
 
     /// <summary>
     /// Provides server side handling of tunnel requests and returns
@@ -33,9 +34,12 @@ namespace Furly.Tunnel.Services
         /// <param name="responder"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public HttpTunnelHybridServer(ITunnelServer server, IEventSubscriber subscriber,
-            IRpcClient responder, IJsonSerializer serializer, ILoggerFactory logger)
-            : base(server, subscriber, serializer, logger.CreateLogger<HttpTunnelHybridServer>())
+            IRpcClient responder, IJsonSerializer serializer, ILoggerFactory logger,
+            TimeProvider? timeProvider = null) : base(
+            server, subscriber, serializer, logger.CreateLogger<HttpTunnelHybridServer>(),
+                timeProvider)
         {
             _responder = new ChunkMethodClient(responder, serializer,
                 logger.CreateLogger<ChunkMethodClient>());

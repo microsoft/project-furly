@@ -122,7 +122,7 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        public IEvent SetTimestamp(DateTime value)
+        public IEvent SetTimestamp(DateTimeOffset value)
         {
             if (_version != MqttVersion.v311)
             {

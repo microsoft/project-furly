@@ -39,7 +39,7 @@ namespace Furly.Tunnel.Protocol.Tests
                 test2 = fixture.Create<string>()
             });
             using var methods = new ChunkMethodServer(_serializer,
-                Log.Console<ChunkMethodServer>(), TimeSpan.FromSeconds(10))
+                Log.Console<ChunkMethodServer>(), TimeSpan.FromSeconds(10), TimeProvider.System)
             {
                 Delegate = new FuncDelegate(string.Empty, (method, buffer, type, _) =>
                 {
@@ -82,7 +82,7 @@ namespace Furly.Tunnel.Protocol.Tests
 #pragma warning restore CA5394 // Do not use insecure randomness
 
             using var methods = new ChunkMethodServer(_serializer,
-                Log.Console<ChunkMethodServer>(), TimeSpan.FromSeconds(10))
+                Log.Console<ChunkMethodServer>(), TimeSpan.FromSeconds(10), TimeProvider.System)
             {
                 Delegate = new FuncDelegate(string.Empty, (method, buffer, type, _) =>
                 {

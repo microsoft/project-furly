@@ -64,7 +64,7 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
-            public async ValueTask WriteAsync(string fileName, DateTime timestamp,
+            public async ValueTask WriteAsync(string fileName, DateTimeOffset timestamp,
                 IEnumerable<ReadOnlySequence<byte>> buffers,
                 IReadOnlyDictionary<string, string?> metadata,
                 IEventSchema? schema, string contentType, CancellationToken ct)
@@ -80,7 +80,7 @@ namespace Furly.Extensions.Messaging.Clients
                         }
                     }
                 }
-                File.SetLastAccessTimeUtc(fileName, timestamp);
+                File.SetLastAccessTimeUtc(fileName, timestamp.DateTime);
             }
         }
 
@@ -126,7 +126,7 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 _timestamp = value;
                 return this;
@@ -212,7 +212,7 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             private string? _topic;
-            private DateTime _timestamp;
+            private DateTimeOffset _timestamp;
             private IEventSchema? _schema;
             private string? _contentType;
             private readonly Dictionary<string, string?> _metadata = new();

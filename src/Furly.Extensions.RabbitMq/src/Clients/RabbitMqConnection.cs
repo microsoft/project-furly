@@ -387,9 +387,10 @@ namespace Furly.Extensions.RabbitMq.Clients
                 }
 
                 /// <inheritdoc/>
-                public IEvent SetTimestamp(DateTime value)
+                public IEvent SetTimestamp(DateTimeOffset value)
                 {
-                    _properties.Timestamp = new AmqpTimestamp(value.ToFileTimeUtc());
+                    _properties.Timestamp
+                        = new AmqpTimestamp(value.UtcDateTime.ToFileTimeUtc());
                     return this;
                 }
 

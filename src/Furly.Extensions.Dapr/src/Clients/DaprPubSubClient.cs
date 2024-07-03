@@ -87,7 +87,7 @@ namespace Furly.Extensions.Dapr.Clients
             }
 
             /// <inheritdoc/>
-            public IEvent SetTimestamp(DateTime value)
+            public IEvent SetTimestamp(DateTimeOffset value)
             {
                 AddProperty("TimeStamp", value.ToString(CultureInfo.InvariantCulture));
                 return this;

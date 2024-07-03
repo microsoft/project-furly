@@ -42,16 +42,18 @@ namespace Furly.Tunnel.Services
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="timeout"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="mount"></param>
         public HttpTunnelHybridClientHandler(IRpcServer server, IEventClient client,
             IJsonSerializer serializer, ILogger<HttpTunnelHybridClientHandler> logger,
-            TimeSpan? timeout = null, string? mount = null) :
+            TimeSpan? timeout = null, TimeProvider? timeProvider = null, string? mount = null) :
             base(client, serializer)
         {
             _server = server ??
                 throw new ArgumentNullException(nameof(server));
             _chunks = new ChunkMethodServer(serializer, logger,
-                timeout ?? TimeSpan.FromSeconds(30), mount) {
+                timeout ?? TimeSpan.FromSeconds(30), timeProvider ?? TimeProvider.System, mount)
+            {
                 new ResponseHandler(this)
             };
         }

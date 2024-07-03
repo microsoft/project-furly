@@ -13,6 +13,7 @@ namespace Furly.Tunnel.Services
     using System.Globalization;
     using System.Threading;
     using System.Threading.Tasks;
+    using System;
 
     /// <summary>
     /// Provides server side handling of tunnel requests and returns
@@ -29,9 +30,11 @@ namespace Furly.Tunnel.Services
         /// <param name="subscriber"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         public HttpTunnelEventServer(ITunnelServer server, IEventSubscriber subscriber,
-            IJsonSerializer serializer, ILogger<HttpTunnelEventServer> logger)
-            : base(server, subscriber, serializer, logger)
+            IJsonSerializer serializer, ILogger<HttpTunnelEventServer> logger,
+            TimeProvider? timeProvider = null)
+            : base(server, subscriber, serializer, logger, timeProvider)
         {
         }
 

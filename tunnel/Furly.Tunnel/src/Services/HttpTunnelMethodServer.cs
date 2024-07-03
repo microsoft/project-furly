@@ -41,13 +41,14 @@ namespace Furly.Tunnel.Services
         /// <param name="processor"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="timeProvider"></param>
         /// <param name="timeout"></param>
         /// <param name="mount"></param>
         /// <exception cref="ArgumentNullException"></exception>
-        public HttpTunnelMethodServer(IRpcServer server,
-            ITunnelServer processor, IJsonSerializer serializer,
-            ILogger<HttpTunnelMethodServer> logger,
-            TimeSpan? timeout = null, string? mount = null)
+        public HttpTunnelMethodServer(IRpcServer server, ITunnelServer processor,
+            IJsonSerializer serializer, ILogger<HttpTunnelMethodServer> logger,
+            TimeProvider? timeProvider = null, TimeSpan? timeout = null,
+            string? mount = null)
         {
             MountPoint = mount ?? string.Empty;
 
@@ -59,7 +60,7 @@ namespace Furly.Tunnel.Services
             // Start to listen on the connect
             _connection = server.ConnectAsync(this).AsTask();
             _chunks = new ChunkMethodInvoker(_serializer, logger,
-                timeout ?? TimeSpan.FromSeconds(30));
+                timeout ?? TimeSpan.FromSeconds(30), timeProvider ?? TimeProvider.System);
         }
 
         /// <inheritdoc/>

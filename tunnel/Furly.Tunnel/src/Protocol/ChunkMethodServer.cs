@@ -44,12 +44,13 @@ namespace Furly.Tunnel.Protocol
         /// <param name="logger"></param>
         /// <param name="timeout"></param>
         /// <param name="mount"></param>
+        /// <param name="timeProvider"></param>
         public ChunkMethodServer(IJsonSerializer serializer, ILogger logger,
-            TimeSpan timeout, string? mount = null)
+            TimeSpan timeout, TimeProvider timeProvider, string? mount = null)
         {
             MountPoint = mount ?? string.Empty;
             Delegate = new NullDelegate(MountPoint);
-            _chunks = new ChunkMethodInvoker(serializer, logger, timeout);
+            _chunks = new ChunkMethodInvoker(serializer, logger, timeout, timeProvider);
             Add(_chunks);
         }
 

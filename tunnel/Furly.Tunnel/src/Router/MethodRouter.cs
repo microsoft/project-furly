@@ -69,9 +69,10 @@ namespace Furly.Tunnel.Router.Services
         /// <param name="logger"></param>
         /// <param name="summarizer"></param>
         /// <param name="options"></param>
+        /// <param name="timeProvider"></param>
         public MethodRouter(IEnumerable<IRpcServer> servers, IJsonSerializer serializer,
             ILogger<MethodRouter> logger, IExceptionSummarizer? summarizer = null,
-            IOptions<RouterOptions>? options = null)
+            IOptions<RouterOptions>? options = null, TimeProvider? timeProvider = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -81,7 +82,8 @@ namespace Furly.Tunnel.Router.Services
 
             // Create chunk server always
             _chunks = new ChunkMethodServer(_serializer, logger,
-                options?.Value.ChunkTimeout ?? TimeSpan.FromSeconds(30), MountPoint);
+                options?.Value.ChunkTimeout ?? TimeSpan.FromSeconds(30),
+                timeProvider ?? TimeProvider.System, MountPoint);
             _connections = ConnectAsync(servers);
         }
 
