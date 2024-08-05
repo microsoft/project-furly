@@ -128,7 +128,7 @@ namespace Furly.Azure.IoT.Edge.Services
         private async Task<MethodResponse> InvokeMethodAsync(MethodRequest request)
         {
             using var cts = new CancellationTokenSource(request.ResponseTimeout
-                ?? TimeSpan.FromSeconds(5));
+                ?? TimeSpan.FromSeconds(60));
             try
             {
                 foreach (var listener in _listeners)
