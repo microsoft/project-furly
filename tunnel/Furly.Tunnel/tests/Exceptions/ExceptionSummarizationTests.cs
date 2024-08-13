@@ -7,6 +7,7 @@ namespace Furly.Tunnel.Exceptions.Tests
 {
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Json;
+    using Furly.Exceptions;
     using Autofac;
     using System;
     using System.Linq;
@@ -15,17 +16,9 @@ namespace Furly.Tunnel.Exceptions.Tests
     using Xunit.Abstractions;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
-    using Furly.Exceptions;
 
     public class ExceptionSummarizationTests
     {
-        private readonly ITestOutputHelper _output;
-
-        public ExceptionSummarizationTests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         [Fact]
         public void SummarizeResourceNotFoundException()
         {

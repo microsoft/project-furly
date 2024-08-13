@@ -29,7 +29,7 @@ namespace Furly.Azure.IoT.Edge.Services
         public string Identity => _identity.AsString();
 
         /// <inheritdoc/>
-        public int MaxEventPayloadSizeInBytes { get; } = 252 * 1024; // 256 KB - leave 4 kb for properties
+        public int MaxEventPayloadSizeInBytes { get; } = (256 * 1024) - kPropertyReservation;
 
         /// <inheritdoc/>
         string IProcessIdentity.Identity
@@ -211,11 +211,32 @@ namespace Furly.Azure.IoT.Edge.Services
                     {
                         await _outer._client.SendEventAsync(messages[0],
                             _topic, ct).ConfigureAwait(false);
+                        return;
                     }
-                    else
+
+                    // Safely send as batches ensuring total batch is within limits
+                    var batch = new List<Message>();
+                    var size = 0L;
+                    foreach (var message in messages)
                     {
-                        await _outer._client.SendEventBatchAsync(messages,
-                            _topic, ct).ConfigureAwait(false);
+                        var messageSize =
+                            (message.BodyStream.Length + kPropertyReservation);
+                        if (size + messageSize >= _outer.MaxEventPayloadSizeInBytes
+                            && batch.Count > 0)
+                        {
+                            // Send batch now and reset
+                            await _outer._client.SendEventBatchAsync(batch,
+                                _topic, ct).ConfigureAwait(false);
+                            batch.Clear();
+                            size = 0;
+                        }
+                        batch.Add(message);
+                        size += messageSize;
+                    }
+                    if (batch.Count > 0) // Send remaining messages
+                    {
+                        await _outer._client.SendEventBatchAsync(batch,
+                                _topic, ct).ConfigureAwait(false);
                     }
                 }
                 finally
@@ -297,6 +318,7 @@ namespace Furly.Azure.IoT.Edge.Services
             private readonly IoTEdgeEventClient _outer;
         }
 
+        private const int kPropertyReservation = 4 * 1024;
         private readonly Lazy<Task> _receiver;
         private readonly IIoTEdgeDeviceClient _client;
         private readonly IIoTEdgeDeviceIdentity _identity;
