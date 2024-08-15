@@ -114,7 +114,7 @@ namespace Furly.Extensions.Dapr.Clients
                 {
                     foreach (var item in response.Results)
                     {
-                        state.AddOrUpdate(item.Key, item.Data);
+                        state.AddOrUpdate(item.Key, item.Data ?? VariantValue.Null);
                     }
                 });
             }
