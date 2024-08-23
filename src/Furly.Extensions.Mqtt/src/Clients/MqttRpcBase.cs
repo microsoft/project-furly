@@ -255,7 +255,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 if (status != 200)
                 {
-                    MethodCallStatusException.TryThrow(message.PayloadSegment, _serializer, status);
+                    MethodCallStatusException.Throw(message.PayloadSegment, _serializer, status);
                 }
                 return message.PayloadSegment;
             }
@@ -457,7 +457,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     return (default, (int)HttpStatusCode.MethodNotAllowed);
                 }
             }
-            return (default, 500);
+            return (default, (int)HttpStatusCode.NotImplemented);
         }
 
         /// <summary>

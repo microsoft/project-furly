@@ -29,6 +29,7 @@ namespace Furly.Extensions.Mqtt.Clients
             try
             {
                 var publisher = new ContainerBuilder();
+                publisher.AddNewtonsoftJsonSerializer();
                 publisher.AddMqttClient(options =>
                 {
                     options.ClientId = "Publisher";
@@ -40,6 +41,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 _publisher = publisher.Build();
 
                 var subscriber = new ContainerBuilder();
+                subscriber.AddNewtonsoftJsonSerializer();
                 subscriber.AddMqttClient(options =>
                 {
                     options.ClientId = "Subscriber";

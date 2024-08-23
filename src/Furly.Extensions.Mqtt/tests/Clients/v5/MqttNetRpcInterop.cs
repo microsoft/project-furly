@@ -34,13 +34,13 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             _harness.Dispose();
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallMethodSimpleTestAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
-            using var client = await CreateMqttClientAsync().ConfigureAwait(false);
+            Assert.NotNull(rpcServer);
+            using var client = await CreateMqttClientAsync();
             using var rpcClient = CreateRpcClient(client);
 
             var method = fix.Create<string>();
@@ -53,21 +53,21 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 args.Data.Should().BeEquivalentTo(Encoding.UTF8.GetBytes(input));
 
                 return Encoding.UTF8.GetBytes(output);
-            })).ConfigureAwait(false)).ConfigureAwait(false))
+            }))).ConfigureAwait(false))
             {
                 var result = await rpcClient.ExecuteAsync(TimeSpan.FromMinutes(5), "test/rpcserver1/" + method,
-                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).ConfigureAwait(false);
+                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce);
                 Encoding.UTF8.GetString(result).Should().Be(output);
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallUnsupportedMethodAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
-            using var client = await CreateMqttClientAsync().ConfigureAwait(false);
+            Assert.NotNull(rpcServer);
+            using var client = await CreateMqttClientAsync();
             using var rpcClient = CreateRpcClient(client);
 
             var method = fix.Create<string>();
@@ -75,10 +75,10 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             var output = fix.Create<string>();
 
             await using (var s = (await rpcServer.ConnectAsync(new CallbackHandler(
-                "test/rpcserver1", _ => throw new NotSupportedException())).ConfigureAwait(false)).ConfigureAwait(false))
+                "test/rpcserver1", _ => throw new NotSupportedException()))).ConfigureAwait(false))
             {
                 var result = await rpcClient.ExecuteAsync(TimeSpan.FromMinutes(5), "test/rpcserver1/" + method,
-                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).ConfigureAwait(false);
+                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce);
 
                 // We support interop with mqttnet rpc client by returning a single byte of 0.
                 // TODO: Remove once bugs are fixed
@@ -87,13 +87,13 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallMethodWIthMultipleServersTestAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
-            using var client = await CreateMqttClientAsync().ConfigureAwait(false);
+            Assert.NotNull(rpcServer);
+            using var client = await CreateMqttClientAsync();
             using var rpcClient = CreateRpcClient(client);
 
             var method = fix.Create<string>();
@@ -107,27 +107,27 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 args.Data.Should().BeEquivalentTo(Encoding.UTF8.GetBytes(input));
 
                 return Encoding.UTF8.GetBytes(output);
-            })).ConfigureAwait(false)).ToArray()).ConfigureAwait(false);
+            })).ConfigureAwait(false)).ToArray());
             try
             {
                 var result = await rpcClient.ExecuteAsync(TimeSpan.FromSeconds(5), "test/rpcserver1/" + method,
-                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).ConfigureAwait(false);
+                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce);
                 Encoding.UTF8.GetString(result).Should().Be(output);
                 result = await rpcClient.ExecuteAsync(TimeSpan.FromSeconds(5), "test/rpcserver6/" + method,
-                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).ConfigureAwait(false);
+                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce);
                 Encoding.UTF8.GetString(result).Should().Be(output);
                 result = await rpcClient.ExecuteAsync(TimeSpan.FromSeconds(5), "test/rpcserver5/" + method,
-                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).ConfigureAwait(false);
+                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce);
                 Encoding.UTF8.GetString(result).Should().Be(output);
                 result = await rpcClient.ExecuteAsync(TimeSpan.FromSeconds(5), "test/rpcserver7/" + method,
-                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce).ConfigureAwait(false);
+                    input, MQTTnet.Protocol.MqttQualityOfServiceLevel.AtLeastOnce);
                 Encoding.UTF8.GetString(result).Should().Be(output);
             }
             finally
             {
                 await Task.WhenAll(servers
                     .Select(async s => await s.DisposeAsync().ConfigureAwait(false))
-                    .ToArray()).ConfigureAwait(false);
+                    .ToArray());
             }
         }
 

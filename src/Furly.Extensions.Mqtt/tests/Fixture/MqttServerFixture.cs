@@ -31,6 +31,7 @@ namespace Furly.Extensions.Mqtt.Clients
             try
             {
                 var builder = new ContainerBuilder();
+                builder.AddNewtonsoftJsonSerializer();
                 builder.AddMqttServer();
                 builder.RegisterInstance(sink.ToLoggerFactory())
                     .As<ILoggerFactory>();

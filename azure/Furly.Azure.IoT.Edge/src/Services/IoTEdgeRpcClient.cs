@@ -59,7 +59,7 @@ namespace Furly.Azure.IoT.Edge.Services
             }
             if (response.Status != 200)
             {
-                MethodCallStatusException.TryThrow(response.Result.AsMemory(),
+                MethodCallStatusException.Throw(response.Result.AsMemory(),
                     _serializer, response.Status);
             }
             return response.Result;

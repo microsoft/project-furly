@@ -145,7 +145,7 @@ namespace Furly.Tunnel.Protocol
                     _logger.LogDebug("Chunked call on {Method} on {Target} with {Payload} " +
                          "returned with error {Status}: {Result}",
                          method, target, payload, status, AsString(responsePayload));
-                    MethodCallStatusException.TryThrow(responsePayload, _serializer, status);
+                    MethodCallStatusException.Throw(responsePayload, _serializer, status);
                 }
                 return responsePayload;
             }

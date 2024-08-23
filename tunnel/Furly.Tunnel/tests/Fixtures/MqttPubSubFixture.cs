@@ -29,6 +29,7 @@ namespace Furly.Tunnel.Services
             try
             {
                 var publisher = new ContainerBuilder();
+                publisher.AddNewtonsoftJsonSerializer();
                 publisher.AddMqttClient();
                 publisher.Configure<MqttOptions>(options => options.ClientId = "Publisher");
                 publisher.RegisterInstance(output.ToLoggerFactory()).As<ILoggerFactory>();
@@ -36,6 +37,7 @@ namespace Furly.Tunnel.Services
                 _publisher = publisher.Build();
 
                 var subscriber = new ContainerBuilder();
+                subscriber.AddNewtonsoftJsonSerializer();
                 subscriber.AddMqttClient();
                 subscriber.Configure<MqttOptions>(options => options.ClientId = "Subscriber");
                 subscriber.RegisterInstance(output.ToLoggerFactory()).As<ILoggerFactory>();

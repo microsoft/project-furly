@@ -89,7 +89,7 @@ namespace Furly.Azure.IoT.Services
                     _logger.LogDebug("Call {Method} on {Device} ({Module}) with {Payload} " +
                         "returned with error {Status}: {Result} after {Elapsed}",
                         method, deviceId, moduleId, payload, result.Status, resultPayload, sw.Elapsed);
-                    MethodCallStatusException.TryThrow(GetPayload(contentType, resultPayload), _serializer,
+                    MethodCallStatusException.Throw(GetPayload(contentType, resultPayload), _serializer,
                         result.Status);
                 }
                 _logger.LogDebug("Call {Method} on {Device} ({Module}) took {Elapsed}... ",

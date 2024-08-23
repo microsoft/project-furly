@@ -35,14 +35,14 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             _harness.Dispose();
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallMethodSimpleTestAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
+            Assert.NotNull(rpcServer);
             var rpcClient = _harness.GetRpcClient();
-            Skip.If(rpcClient == null);
+            Assert.NotNull(rpcClient);
 
             var method = fix.Create<string>();
             var input = fix.Create<string>();
@@ -54,42 +54,42 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 args.Data.Should().BeEquivalentTo(Encoding.UTF8.GetBytes(input));
 
                 return Encoding.UTF8.GetBytes(output);
-            })).ConfigureAwait(false)).ConfigureAwait(false))
+            }))).ConfigureAwait(false))
             {
-                var result = await rpcClient.CallMethodAsync("test/rpcserver1", method, input).ConfigureAwait(false);
+                var result = await rpcClient.CallMethodAsync("test/rpcserver1", method, input);
                 result.Should().Be(output);
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallUnsupportedMethodAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
+            Assert.NotNull(rpcServer);
             var rpcClient = _harness.GetRpcClient();
-            Skip.If(rpcClient == null);
+            Assert.NotNull(rpcClient);
 
             var method = fix.Create<string>();
             var input = fix.Create<string>();
             var output = fix.Create<string>();
 
             await using (var s = (await rpcServer.ConnectAsync(new CallbackHandler(
-                "test/rpcserver1", _ => throw new NotSupportedException())).ConfigureAwait(false)).ConfigureAwait(false))
+                "test/rpcserver1", _ => throw new NotSupportedException()))).ConfigureAwait(false))
             {
                 (await rpcClient.Invoking(r => r.CallMethodAsync("test/rpcserver1", method, input).AsTask())
-                    .Should().ThrowAsync<MethodCallStatusException>().ConfigureAwait(false)).Which.Details.Should().Be(500);
+                    .Should().ThrowAsync<MethodCallStatusException>()).Which.Details.Status.Should().Be(501);
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallMethodWIthMultipleServersTestAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
+            Assert.NotNull(rpcServer);
             var rpcClient = _harness.GetRpcClient();
-            Skip.If(rpcClient == null);
+            Assert.NotNull(rpcClient);
 
             var method = fix.Create<string>();
             var input = fix.Create<string>();
@@ -102,34 +102,34 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 args.Data.Should().BeEquivalentTo(Encoding.UTF8.GetBytes(input));
 
                 return Encoding.UTF8.GetBytes(output);
-            })).ConfigureAwait(false)).ToArray()).ConfigureAwait(false);
+            })).ConfigureAwait(false)).ToArray());
             try
             {
-                var result = await rpcClient.CallMethodAsync("test/rpcserver1", method, input).ConfigureAwait(false);
+                var result = await rpcClient.CallMethodAsync("test/rpcserver1", method, input);
                 result.Should().Be(output);
-                result = await rpcClient.CallMethodAsync("test/rpcserver6", method, input).ConfigureAwait(false);
+                result = await rpcClient.CallMethodAsync("test/rpcserver6", method, input);
                 result.Should().Be(output);
-                result = await rpcClient.CallMethodAsync("test/rpcserver5", method, input).ConfigureAwait(false);
+                result = await rpcClient.CallMethodAsync("test/rpcserver5", method, input);
                 result.Should().Be(output);
-                result = await rpcClient.CallMethodAsync("test/rpcserver7", method, input).ConfigureAwait(false);
+                result = await rpcClient.CallMethodAsync("test/rpcserver7", method, input);
                 result.Should().Be(output);
             }
             finally
             {
                 await Task.WhenAll(servers
                     .Select(async s => await s.DisposeAsync().ConfigureAwait(false))
-                    .ToArray()).ConfigureAwait(false);
+                    .ToArray());
             }
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task CallUnsupportedMethodWIthMultipleServersTestAsync()
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
+            Assert.NotNull(rpcServer);
             var rpcClient = _harness.GetRpcClient();
-            Skip.If(rpcClient == null);
+            Assert.NotNull(rpcClient);
 
             var method = fix.Create<string>();
             var input = fix.Create<string>();
@@ -142,25 +142,25 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                     args.Data.Should().BeEquivalentTo(Encoding.UTF8.GetBytes(input));
 
                     return Encoding.UTF8.GetBytes(output);
-                })).ConfigureAwait(false)).ToArray()).ConfigureAwait(false);
+                })).ConfigureAwait(false)).ToArray());
             try
             {
-                var result = await rpcClient.CallMethodAsync("test/rpcserver7", method + "2", input).ConfigureAwait(false);
+                var result = await rpcClient.CallMethodAsync("test/rpcserver7", method + "2", input);
                 false.Should().Be(true);
             }
             catch (Exception ex)
             {
-                ex.Should().BeOfType<MethodCallStatusException>().Which.Details.Should().Be(405);
+                ex.Should().BeOfType<MethodCallStatusException>().Which.Details.Status.Should().Be(405);
             }
             finally
             {
                 await Task.WhenAll(servers
                     .Select(async s => await s.DisposeAsync().ConfigureAwait(false))
-                    .ToArray()).ConfigureAwait(false);
+                    .ToArray());
             }
         }
 
-        [SkippableTheory]
+        [Theory]
         [InlineData(1)]
         [InlineData(100)]
         [InlineData(1000)]
@@ -169,9 +169,9 @@ namespace Furly.Extensions.Mqtt.Clients.v5
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
+            Assert.NotNull(rpcServer);
             var rpcClient = _harness.GetRpcClient();
-            Skip.If(rpcClient == null);
+            Assert.NotNull(rpcClient);
 
             var method = fix.Create<string>();
             var input = fix.Create<string>();
@@ -182,12 +182,12 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             {
                 Try.Async(() => Task.Delay(TimeSpan.FromMinutes(10), timeout.Token)).GetAwaiter().GetResult();
                 return Encoding.UTF8.GetBytes(output);
-            })).ConfigureAwait(false)).ConfigureAwait(false))
+            }))).ConfigureAwait(false))
             {
                 try
                 {
                     await rpcClient.CallMethodAsync("test/rpcserver1", method, input,
-                        TimeSpan.FromMilliseconds(callTimeout)).ConfigureAwait(false);
+                        TimeSpan.FromMilliseconds(callTimeout));
                     false.Should().Be(true);
                 }
                 catch (Exception ex)
@@ -198,7 +198,7 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             await timeout.CancelAsync();
         }
 
-        [SkippableTheory]
+        [Theory]
         [InlineData(1)]
         [InlineData(100)]
         [InlineData(1000)]
@@ -207,9 +207,9 @@ namespace Furly.Extensions.Mqtt.Clients.v5
         {
             var fix = new Fixture();
             var rpcServer = _harness.GetRpcServer();
-            Skip.If(rpcServer == null);
+            Assert.NotNull(rpcServer);
             var rpcClient = _harness.GetRpcClient();
-            Skip.If(rpcClient == null);
+            Assert.NotNull(rpcClient);
 
             var method = fix.Create<string>();
             var input = fix.Create<string>();
@@ -220,12 +220,12 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             {
                 Try.Async(() => Task.Delay(TimeSpan.FromMinutes(10), timeout.Token)).GetAwaiter().GetResult();
                 return Encoding.UTF8.GetBytes(output);
-            })).ConfigureAwait(false)).ConfigureAwait(false))
+            }))).ConfigureAwait(false))
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(callTimeout));
                 try
                 {
-                    await rpcClient.CallMethodAsync("test/rpcserver1", method, input, ct: cts.Token).ConfigureAwait(false);
+                    await rpcClient.CallMethodAsync("test/rpcserver1", method, input, ct: cts.Token);
                     false.Should().Be(true);
                 }
                 catch (Exception ex)

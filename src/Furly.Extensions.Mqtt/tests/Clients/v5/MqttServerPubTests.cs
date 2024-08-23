@@ -33,7 +33,7 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             _harness.Dispose();
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task SendEventTest1Async()
         {
             var fix = new Fixture();
@@ -48,17 +48,17 @@ namespace Furly.Extensions.Mqtt.Clients.v5
             var tcs = new TaskCompletionSource<EventConsumerArg>(TaskCreationOptions.RunContinuationsAsynchronously);
             var eventSubscriber = _harness.GetSubscriberEventSubscriber();
             Skip.If(eventSubscriber == null);
-            await eventSubscriber.SubscribeAsync(target, new CallbackConsumer(arg => tcs.TrySetResult(arg))).ConfigureAwait(false);
+            await eventSubscriber.SubscribeAsync(target, new CallbackConsumer(arg => tcs.TrySetResult(arg)));
 
-            await eventClient.SendEventAsync(target, data, contentType).ConfigureAwait(false);
+            await eventClient.SendEventAsync(target, data, contentType);
 
-            var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
+            var result = await tcs.Task.With2MinuteTimeout();
             Assert.Equal(target, result.Target);
             Assert.Equal(contentType, result.ContentType);
             data.Should().BeEquivalentTo(result.Data);
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task SendEventTest2Async()
         {
             var fix = new Fixture();
@@ -80,24 +80,24 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 {
                     tcs.TrySetResult(arg);
                 }
-            })).ConfigureAwait(false);
+            }));
 
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "1").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "2").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "3").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "4").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, data, contentType).ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "5").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "6").ConfigureAwait(false);
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "1");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "2");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "3");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "4");
+            await eventClient.SendEventAsync(target, data, contentType);
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "5");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "6");
 
-            var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
+            var result = await tcs.Task.With2MinuteTimeout();
             Assert.Equal(target, result.Target);
             Assert.Equal(contentType, result.ContentType);
             Assert.Equal(data.Length, result.Data.Length);
             data.Should().BeEquivalentTo(result.Data);
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task SendEventTestBatch1Async()
         {
             var fix = new Fixture();
@@ -120,22 +120,22 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 {
                     tcs.TrySetResult(arg);
                 }
-            })).ConfigureAwait(false);
+            }));
 
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(0, 10).Select(_ => (ReadOnlyMemory<byte>)fix.CreateMany<byte>().ToArray()), "1").ConfigureAwait(false);
+                Enumerable.Range(0, 10).Select(_ => (ReadOnlyMemory<byte>)fix.CreateMany<byte>().ToArray()), "1");
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(1, 5).Select(_ => (ReadOnlyMemory<byte>)fix.CreateMany<byte>().ToArray()), "2").ConfigureAwait(false);
+                Enumerable.Range(1, 5).Select(_ => (ReadOnlyMemory<byte>)fix.CreateMany<byte>().ToArray()), "2");
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(0, 10).Select(_ => (ReadOnlyMemory<byte>)data), contentType).ConfigureAwait(false);
+                Enumerable.Range(0, 10).Select(_ => (ReadOnlyMemory<byte>)data), contentType);
 
-            var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
+            var result = await tcs.Task.With2MinuteTimeout();
             Assert.Equal(target, result.Target);
             Assert.Equal(contentType, result.ContentType);
             data.Should().BeEquivalentTo(result.Data);
         }
 
-        [SkippableTheory]
+        [Theory]
         [InlineData(10)]
         // [InlineData(50)]
         // [InlineData(100)]
@@ -162,19 +162,19 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 {
                     tcs.TrySetResult(arg);
                 }
-            })).ConfigureAwait(false);
+            }));
 
             var rand = new Random();
             await eventClient.SendEventAsync(target,
-                Enumerable.Range(0, max).Select(_ => (ReadOnlyMemory<byte>)data), contentType).ConfigureAwait(false);
+                Enumerable.Range(0, max).Select(_ => (ReadOnlyMemory<byte>)data), contentType);
 
-            var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
+            var result = await tcs.Task.With2MinuteTimeout();
             Assert.Equal(target, result.Target);
             Assert.Equal(contentType, result.ContentType);
             data.Should().BeEquivalentTo(result.Data);
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task SendEventTest3Async()
         {
             var fix = new Fixture();
@@ -197,16 +197,16 @@ namespace Furly.Extensions.Mqtt.Clients.v5
                 {
                     tcs.TrySetResult(arg);
                 }
-            })).ConfigureAwait(false);
+            }));
 
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "1").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "2").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "3").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, data, contentType).ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "4").ConfigureAwait(false);
-            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "5").ConfigureAwait(false);
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "1");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "2");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "3");
+            await eventClient.SendEventAsync(target, data, contentType);
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "4");
+            await eventClient.SendEventAsync(target, fix.CreateMany<byte>().ToArray(), "5");
 
-            var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
+            var result = await tcs.Task.With2MinuteTimeout();
             Assert.Equal(target, result.Target);
             Assert.Equal(contentType, result.ContentType);
             Assert.Equal(data.Length, result.Data.Length);

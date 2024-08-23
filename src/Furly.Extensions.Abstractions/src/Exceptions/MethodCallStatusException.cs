@@ -7,6 +7,7 @@ namespace Furly.Exceptions
 {
     using Furly.Extensions.Serializers;
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Text;
     using System.Text.Json;
 
@@ -115,19 +116,20 @@ namespace Furly.Exceptions
             ReadOnlyMemory<byte> response, ISerializer? serializer = null,
             int? outerStatus = null)
         {
-            var result = Deserialize(response, serializer,
-                outerStatus, out var innerException);
-            if (result != null)
+            try
             {
-                return result;
+                var result = Deserialize(response, serializer, outerStatus, out _);
+                if (result != null)
+                {
+                    return result;
+                }
+                var message = Encoding.UTF8.GetString(response.Span);
+                return new MethodCallStatusException(outerStatus ?? 500, message);
             }
-            var message = Encoding.UTF8.GetString(response.Span);
-            if (innerException != null)
+            catch (Exception ex)
             {
-                return new MethodCallStatusException(outerStatus ?? 500,
-                    innerException, message);
+                return new MethodCallStatusException(outerStatus ?? 500, ex, ex.Message);
             }
-            return new MethodCallStatusException(outerStatus ?? 500, message);
         }
 
         /// <summary>
@@ -136,14 +138,20 @@ namespace Furly.Exceptions
         /// <param name="response"></param>
         /// <param name="serializer"></param>
         /// <param name="outerStatus"></param>
-        public static void TryThrow(ReadOnlyMemory<byte> response,
+        [DoesNotReturn]
+        public static void Throw(ReadOnlyMemory<byte> response,
             ISerializer? serializer = null, int? outerStatus = null)
         {
-            var result = Deserialize(response, serializer, outerStatus, out _);
+            var result = Deserialize(response, serializer, outerStatus, out var inner);
             if (result != null)
             {
                 throw result;
             }
+            if (inner != null)
+            {
+                throw new MethodCallStatusException(outerStatus ?? 500, inner, inner.Message);
+            }
+            throw new MethodCallStatusException(outerStatus ?? 500, "Undefined error.");
         }
 
         /// <summary>
@@ -187,7 +195,7 @@ namespace Furly.Exceptions
             int? outerStatus, out Exception? innerException)
         {
             innerException = null;
-            if (response.Length == 0)
+            if (response.Length == 0 || response.Span[0] == 0)
             {
                 return new MethodCallStatusException(outerStatus ?? 500, string.Empty);
             }
