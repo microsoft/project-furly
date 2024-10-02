@@ -3,14 +3,14 @@
     <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.8" />
-    <PackageReference Include="xunit.assert" Version="2.9.0" />
+    <PackageReference Include="xunit.assert" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit" Version="2.9.0">
+    <PackageReference Include="xunit" Version="2.9.2">
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
     <PackageReference Include="coverlet.msbuild" Version="6.0.2">
@@ -25,5 +25,8 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

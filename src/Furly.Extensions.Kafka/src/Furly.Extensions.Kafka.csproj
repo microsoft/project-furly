@@ -7,10 +7,13 @@
     <Description>Furly Kafka extensions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.5.2" />
+    <PackageReference Include="Confluent.Kafka" Version="2.5.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
     <ProjectReference Include="..\..\Furly.Extensions\src\Furly.Extensions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

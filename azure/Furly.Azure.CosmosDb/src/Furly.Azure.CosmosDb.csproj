@@ -7,7 +7,7 @@
     <Description>Azure CosmosDB support</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.42.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.43.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
@@ -17,5 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Azure\src\Furly.Azure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

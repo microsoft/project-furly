@@ -8,8 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.5" />
-    <PackageReference Include="Azure.Identity" Version="1.12.0" />
-    <PackageReference Include="Azure.Core" Version="1.42.0" />
+    <PackageReference Include="Azure.Identity" Version="1.12.1" />
+    <PackageReference Include="Azure.Core" Version="1.43.0" />
     <PackageReference Include="Microsoft.Azure.Data.SchemaRegistry.ApacheAvro" Version="1.0.1" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>
@@ -18,5 +18,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Azure\src\Furly.Azure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

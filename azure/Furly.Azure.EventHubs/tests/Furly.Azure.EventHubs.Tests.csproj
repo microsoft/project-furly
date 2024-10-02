@@ -4,12 +4,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoFixture" Version="4.18.1" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageReference Include="FluentAssertions" Version="6.12.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
     <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
-    <PackageReference Include="xunit.assert" Version="2.9.0" />
-    <PackageReference Include="xunit" Version="2.9.0">
+    <PackageReference Include="xunit.assert" Version="2.9.2" />
+    <PackageReference Include="xunit" Version="2.9.2">
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
@@ -36,5 +36,8 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>
