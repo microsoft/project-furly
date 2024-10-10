@@ -43,8 +43,8 @@ POST method HTTP/1.1
 
 """;
             // Configure input and output paths
-            const string input = "/input";
-            const string output = "/output";
+            var input = Path.Combine(Path.GetTempPath(), "input");
+            var output = Path.Combine(Path.GetTempPath(), "output");
             const string reqFileName = "request";
             var options = new OptionsMock<FileSystemOptions>();
             options.Value.RequestPath = input;
@@ -107,8 +107,8 @@ POST method HTTP/1.1
         public async Task FileSystemRpcServerTest2()
         {
             // Configure input and output paths
-            const string input = "/a";
-            const string output = "/b";
+            var input = Path.Combine(Path.GetTempPath(), "a");
+            var output = Path.Combine(Path.GetTempPath(), "b");
             const string reqFileName = "request";
             var options = new OptionsMock<FileSystemOptions>();
             options.Value.RequestPath = input;
