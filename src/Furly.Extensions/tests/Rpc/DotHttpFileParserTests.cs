@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Furly.Extensions.Rpc
+namespace Furly.Extensions.Rpc.Servers
 {
-    using Furly.Extensions.Rpc.Servers;
+    using Furly.Extensions.Rpc;
     using Furly.Extensions.Storage;
     using Microsoft.Extensions.FileProviders;
     using Moq;
@@ -82,7 +82,7 @@ Content-Type: application/json
                 Assert.Equal(15, r.Length);
                 Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
                 return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
-            }, provider.Object, default);
+            }, null, provider.Object, default);
             Assert.Equal(res, result);
         }
 
@@ -326,7 +326,7 @@ Authorization:Bearer token
                 Assert.Equal(15, r.Length);
                 Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
                 return Task.FromResult((200, (ReadOnlyMemory<byte>)Encoding.UTF8.GetBytes("{\"a\":\"b\"}")));
-            }, provider.Object, default);
+            }, null, provider.Object, default);
 
             Assert.Equal(res, result);
             Assert.Equal("{\"a\":\"b\"}", Encoding.UTF8.GetString(output.ToArray()));
@@ -371,7 +371,7 @@ Authorization: Bearer token
                 Assert.Equal("Bearer token", h["Authorization"]);
                 Assert.Equal(0, r.Length);
                 return Task.FromResult((200, (ReadOnlyMemory<byte>)guid.ToByteArray()));
-            }, provider.Object, default);
+            }, null, provider.Object, default);
 
             Assert.Equal(res, result);
             Assert.Equal(guid, new Guid(output.ToArray()));

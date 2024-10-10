@@ -12,7 +12,7 @@ namespace Furly.Extensions.Messaging.Runtime
     /// <summary>
     /// Http options
     /// </summary>
-    public class HttpOptions
+    public class HttpEventClientOptions
     {
         /// <summary>
         /// Host name. If not specified the first part of the

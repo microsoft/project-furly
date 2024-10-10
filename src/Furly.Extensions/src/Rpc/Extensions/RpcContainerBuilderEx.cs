@@ -11,7 +11,7 @@ namespace Autofac
     using System;
 
     /// <summary>
-    /// Database
+    /// Container builder extensions
     /// </summary>
     public static class RpcContainerBuilderEx
     {
@@ -19,7 +19,7 @@ namespace Autofac
         /// Add server
         /// </summary>
         /// <param name="builder"></param>
-        public static ContainerBuilder AddFileSystemServer(this ContainerBuilder builder)
+        public static ContainerBuilder AddFileSystemRpcServer(this ContainerBuilder builder)
         {
             builder.RegisterType<FileSystemRpcServer>()
                 .AsSelf()

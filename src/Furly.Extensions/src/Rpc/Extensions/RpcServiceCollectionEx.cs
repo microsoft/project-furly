@@ -16,12 +16,12 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class RpcServiceCollectionEx
     {
         /// <summary>
-        /// Add file system event client
+        /// Add file system Rpc client
         /// </summary>
         /// <param name="services"></param>
         /// <param name="configureOptions"></param>
-        public static IServiceCollection AddFileSystemEventClient(this IServiceCollection services,
-            Action<FileSystemOptions>? configureOptions = null)
+        public static IServiceCollection AddFileSystemRpcServer(this IServiceCollection services,
+            Action<FileSystemRpcServerOptions>? configureOptions = null)
         {
             if (configureOptions != null)
             {

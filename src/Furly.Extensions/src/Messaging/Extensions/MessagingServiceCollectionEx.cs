@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services"></param>
         /// <param name="configureOptions"></param>
         public static IServiceCollection AddFileSystemEventClient(this IServiceCollection services,
-            Action<FileSystemOptions>? configureOptions = null)
+            Action<FileSystemEventClientOptions>? configureOptions = null)
         {
             if (configureOptions != null)
             {
@@ -38,14 +38,14 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services"></param>
         /// <param name="configureOptions"></param>
         public static IServiceCollection AddHttpEventClient(this IServiceCollection services,
-            Action<HttpOptions>? configureOptions = null)
+            Action<HttpEventClientOptions>? configureOptions = null)
         {
             if (configureOptions != null)
             {
                 services.Configure(configureOptions);
             }
             return services
-                .AddScoped<IEventClient, FileSystemEventClient>()
+                .AddScoped<IEventClient, HttpEventClient>()
                 ;
         }
 

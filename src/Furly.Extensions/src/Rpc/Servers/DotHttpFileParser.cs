@@ -48,15 +48,17 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="execute"></param>
+        /// <param name="root"></param>
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         public DotHttpFileParser(Stream request, Stream response, Execute execute,
-            IFileProvider? provider = null, CancellationToken ct = default)
+            string? root = null, IFileProvider? provider = null, CancellationToken ct = default)
         {
+            _root = root ?? Directory.GetCurrentDirectory();
             _request = new StreamReader(request, leaveOpen: true);
             _response = new StreamWriter(response, leaveOpen: true);
-            _provider = provider;
             _headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _provider = provider;
             _execute = execute;
             _parser = ParseAsync(ct);
         }
@@ -67,15 +69,16 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="execute"></param>
+        /// <param name="root"></param>
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task ParseAsync(Stream request, Stream response,
-            Execute execute, IFileProvider? provider = null,
+            Execute execute, string? root = null, IFileProvider? provider = null,
             CancellationToken ct = default)
         {
             await using var parser = new DotHttpFileParser(request,
-                response, execute, provider, ct: ct).ConfigureAwait(false);
+                response, execute, root, provider, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -83,11 +86,12 @@ namespace Furly.Extensions.Rpc.Servers
         /// </summary>
         /// <param name="request"></param>
         /// <param name="execute"></param>
+        /// <param name="root"></param>
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<string> ParseAsync(string request,
-            Execute execute, IFileProvider? provider = null,
+            Execute execute, string? root = null, IFileProvider? provider = null,
             CancellationToken ct = default)
         {
             var req = new MemoryStream(Encoding.UTF8.GetBytes(request));
@@ -97,7 +101,7 @@ namespace Furly.Extensions.Rpc.Servers
                 await using (res.ConfigureAwait(false))
                 {
                     await DotHttpFileParser.ParseAsync(req, res, execute,
-                        provider, ct).ConfigureAwait(false);
+                        root, provider, ct).ConfigureAwait(false);
                     return Encoding.UTF8.GetString(res.ToArray());
                 }
             }
@@ -373,9 +377,12 @@ namespace Furly.Extensions.Rpc.Servers
         private async Task WriteFileAsync(string file, bool append,
             ReadOnlyMemory<byte> result, CancellationToken ct)
         {
-            var stream = _provider?.GetFileInfo(file) is IFileInfoEx fi && fi.IsWritable
+            file = Path.GetFileName(file);
+            var stream = _provider?.GetFileInfo(file) is IFileInfoEx fi
+                && fi.IsWritable
                 ? fi.CreateWriteStream()
-                : File.Open(file, append ? FileMode.Append : FileMode.Create);
+                : File.Open(Path.Combine(_root, file), append
+                    ? FileMode.Append : FileMode.Create);
             await using (stream.ConfigureAwait(false))
             {
                 await stream.WriteAsync(result, ct).ConfigureAwait(false);
@@ -390,6 +397,7 @@ namespace Furly.Extensions.Rpc.Servers
         /// <returns></returns>
         private async Task<byte[]> ReadFileAsync(string file, CancellationToken ct)
         {
+            file = Path.GetFileName(file);
             if (_provider != null)
             {
                 var stream = _provider.GetFileInfo(file).CreateReadStream();
@@ -403,7 +411,8 @@ namespace Furly.Extensions.Rpc.Servers
                     }
                 }
             }
-            return await File.ReadAllBytesAsync(file, ct).ConfigureAwait(false);
+            return await File.ReadAllBytesAsync(Path.Combine(_root, file),
+                ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -484,6 +493,7 @@ namespace Furly.Extensions.Rpc.Servers
         private readonly IFileProvider? _provider;
         private readonly Execute _execute;
         private readonly Task _parser;
+        private readonly string _root;
         private int _lineNumber;
         private Method? _method;
         private bool _executionFailure;

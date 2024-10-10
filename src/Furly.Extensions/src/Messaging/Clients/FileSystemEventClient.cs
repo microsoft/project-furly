@@ -38,7 +38,7 @@ namespace Furly.Extensions.Messaging.Clients
         /// </summary>
         /// <param name="options"></param>
         /// <param name="writers"></param>
-        public FileSystemEventClient(IOptions<FileSystemOptions> options,
+        public FileSystemEventClient(IOptions<FileSystemEventClientOptions> options,
             IEnumerable<IFileWriter>? writers = null)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -220,7 +220,7 @@ namespace Furly.Extensions.Messaging.Clients
             private readonly FileSystemEventClient _outer;
         }
 
-        private readonly IOptions<FileSystemOptions> _options;
+        private readonly IOptions<FileSystemEventClientOptions> _options;
         private readonly string _rootFolder;
         private readonly IFileWriter[] _writers;
         private readonly ConcurrentDictionary<string, IFileWriter> _cache = new();

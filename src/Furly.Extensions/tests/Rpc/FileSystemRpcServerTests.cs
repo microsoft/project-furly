@@ -46,13 +46,17 @@ POST method HTTP/1.1
             var input = Path.Combine(Path.GetTempPath(), "input");
             var output = Path.Combine(Path.GetTempPath(), "output");
             const string reqFileName = "request";
-            var options = new OptionsMock<FileSystemOptions>();
+            var options = new OptionsMock<FileSystemRpcServerOptions>();
             options.Value.RequestPath = input;
             options.Value.ResponsePath = output;
 
-            var provider = new Mock<IFileProvider>();
+            var reqProvider = new Mock<IFileProvider>();
             var reqPath = new Mock<IDirectoryContents>();
+            var resProvider = new Mock<IFileProvider>();
             var resPath = new Mock<IDirectoryContents>();
+            var factory = new Mock<IFileProviderFactory>();
+            factory.Setup(factory => factory.Create(It.Is<string>(d => d == input))).Returns(reqProvider.Object);
+            factory.Setup(factory => factory.Create(It.Is<string>(d => d == output))).Returns(resProvider.Object);
 
             var reqFile = new Mock<IFileInfo>();
             reqFile.SetupGet(file => file.Exists).Returns(true);
@@ -66,15 +70,15 @@ POST method HTTP/1.1
             resFile.SetupGet(file => file.Exists).Returns(false);
             resFile.Setup(file => file.CreateWriteStream())
                 .Returns(outputStream);
-            provider.Setup(provider => provider.GetFileInfo(
-                It.Is<string>(d => d == Path.Combine(output, reqFileName + ".resp"))))
+            resProvider.Setup(provider => provider.GetFileInfo(
+                It.Is<string>(d => d == reqFileName + ".resp")))
                 .Returns(resFile.Object);
 
-            provider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == input)))
+            reqProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
                 .Returns(reqPath.Object);
-            provider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == output)))
+            resProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
                 .Returns(resPath.Object);
-            provider.Setup(provider => provider.Watch(It.IsAny<string>()))
+            reqProvider.Setup(provider => provider.Watch(It.IsAny<string>()))
                 .Returns(new Mock<IChangeToken>().Object);
 
             reqPath.Setup(dir => dir.GetEnumerator())
@@ -82,7 +86,7 @@ POST method HTTP/1.1
             resPath.Setup(dir => dir.GetEnumerator())
                 .Returns(Enumerable.Empty<IFileInfo>().GetEnumerator()); // No files there yet
 
-            await using (var server = new FileSystemRpcServer(provider.Object,
+            await using (var server = new FileSystemRpcServer(factory.Object,
                 new Mock<ISerializer>().Object, options, Logging.Log.Console<FileSystemRpcServer>()))
             {
                 var handler = new FuncDelegate("test", (method, payload, contentType, ct) =>
@@ -100,7 +104,7 @@ POST method HTTP/1.1
                 await Task.Delay(1000); // Wait for processing
             }
             Assert.Equal(expectedResponse, Encoding.UTF8.GetString(outputStream.ToArray()));
-            provider.Verify();
+            factory.Verify();
         }
 
         [Fact]
@@ -110,13 +114,17 @@ POST method HTTP/1.1
             var input = Path.Combine(Path.GetTempPath(), "a");
             var output = Path.Combine(Path.GetTempPath(), "b");
             const string reqFileName = "request";
-            var options = new OptionsMock<FileSystemOptions>();
+            var options = new OptionsMock<FileSystemRpcServerOptions>();
             options.Value.RequestPath = input;
             options.Value.ResponsePath = output;
 
-            var provider = new Mock<IFileProvider>();
+            var reqProvider = new Mock<IFileProvider>();
             var reqPath = new Mock<IDirectoryContents>();
+            var resProvider = new Mock<IFileProvider>();
             var resPath = new Mock<IDirectoryContents>();
+            var factory = new Mock<IFileProviderFactory>();
+            factory.Setup(factory => factory.Create(It.Is<string>(d => d == input))).Returns(reqProvider.Object);
+            factory.Setup(factory => factory.Create(It.Is<string>(d => d == output))).Returns(resProvider.Object);
 
             var reqFile = new Mock<IFileInfo>();
             reqFile.SetupGet(file => file.Name).Returns(reqFileName + ".http");
@@ -124,12 +132,12 @@ POST method HTTP/1.1
             var resFile = new Mock<IFileInfo>();
             resFile.SetupGet(file => file.Name).Returns(reqFileName + ".resp");
 
-            provider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == input)))
-                .Returns(reqPath.Object);
-            provider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == output)))
-                .Returns(resPath.Object);
-            provider.Setup(provider => provider.Watch(It.IsAny<string>()))
+            reqProvider.Setup(provider => provider.Watch(It.IsAny<string>()))
                 .Returns(new Mock<IChangeToken>().Object);
+            reqProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
+                .Returns(reqPath.Object);
+            resProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
+                .Returns(resPath.Object);
 
             reqPath.Setup(dir => dir.GetEnumerator())
                 .Returns(reqFile.Object.YieldReturn().GetEnumerator()); // One file there
@@ -137,7 +145,7 @@ POST method HTTP/1.1
                 .Returns(resFile.Object.YieldReturn().GetEnumerator()); // One file there
 
             var called = false;
-            await using (var server = new FileSystemRpcServer(provider.Object,
+            await using (var server = new FileSystemRpcServer(factory.Object,
                 new Mock<ISerializer>().Object, options, Logging.Log.Console<FileSystemRpcServer>()))
             {
                 var handler = new FuncDelegate("test", (method, payload, contentType, ct) =>
@@ -151,7 +159,7 @@ POST method HTTP/1.1
                 await Task.Delay(1000); // Wait for processing
             }
             Assert.False(called);
-            provider.Verify();
+            factory.Verify();
         }
     }
 }

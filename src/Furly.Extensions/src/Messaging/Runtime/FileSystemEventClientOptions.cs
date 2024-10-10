@@ -8,7 +8,7 @@ namespace Furly.Extensions.Messaging.Runtime
     /// <summary>
     /// File system options
     /// </summary>
-    public class FileSystemOptions
+    public class FileSystemEventClientOptions
     {
         /// <summary>
         /// Output folder

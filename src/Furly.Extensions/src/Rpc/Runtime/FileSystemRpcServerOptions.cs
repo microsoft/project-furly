@@ -8,7 +8,7 @@ namespace Furly.Extensions.Rpc.Runtime
     /// <summary>
     /// File system options
     /// </summary>
-    public class FileSystemOptions
+    public class FileSystemRpcServerOptions
     {
         /// <summary>
         /// Request path

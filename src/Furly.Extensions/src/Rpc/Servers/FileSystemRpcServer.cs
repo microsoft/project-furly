@@ -29,8 +29,7 @@ namespace Furly.Extensions.Rpc.Servers
     /// of the .http files used in the REST Client extension for
     /// Visual Studio Code.
     /// </summary>
-    public sealed class FileSystemRpcServer : IRpcServer,
-        IDisposable, IAsyncDisposable
+    public sealed class FileSystemRpcServer : IRpcServer, IDisposable, IAsyncDisposable
     {
         /// <inheritdoc/>
         public string Name => "FileSystem";
@@ -48,25 +47,18 @@ namespace Furly.Extensions.Rpc.Servers
         }
 
         /// <inheritdoc/>
-        public FileSystemRpcServer(IFileProvider fileprovider, ISerializer serializer,
-            IOptions<FileSystemOptions> options, ILogger<FileSystemRpcServer> logger)
+        public FileSystemRpcServer(IFileProviderFactory fileprovider, ISerializer serializer,
+            IOptions<FileSystemRpcServerOptions> options, ILogger<FileSystemRpcServer> logger)
         {
             _logger = logger;
-            _fileprovider = fileprovider;
             _serializer = serializer;
 
             _requestExtension = GetExtension(options.Value.RequestExtension, ".http");
             _requestPath = options.Value.RequestPath ?? Environment.CurrentDirectory;
-            if (!Directory.Exists(_requestPath))
-            {
-                Directory.CreateDirectory(_requestPath);
-            }
+            _requestProvider = fileprovider.Create(_requestPath);
             _responseExtension = GetExtension(options.Value.ResponseExtension, ".resp");
             _responsePath = options.Value.ResponsePath ?? Environment.CurrentDirectory;
-            if (!Directory.Exists(_responsePath))
-            {
-                Directory.CreateDirectory(_responsePath);
-            }
+            _responseProvider = fileprovider.Create(_responsePath);
             _processor = Task.CompletedTask;
 
             static string GetExtension(string? configuredExtension, string defaultExt)
@@ -146,9 +138,8 @@ namespace Furly.Extensions.Rpc.Servers
                     await _tcs.Task.ConfigureAwait(false);
                     _tcs = new TaskCompletionSource();
 
-                    var requests = _fileprovider.GetDirectoryContents(_requestPath);
-                    var responses = _fileprovider
-                        .GetDirectoryContents(_responsePath)
+                    var requests = _requestProvider.GetDirectoryContents(".");
+                    var responses = _responseProvider.GetDirectoryContents(".")
                         .Where(f => f.Name.EndsWith(_responseExtension,
                             StringComparison.OrdinalIgnoreCase))
                         .Select(f => Path.GetFileNameWithoutExtension(f.Name))
@@ -170,8 +161,8 @@ namespace Furly.Extensions.Rpc.Servers
                                 var stream = request.CreateReadStream();
                                 await using (stream.ConfigureAwait(false))
                                 {
-                                    await DotHttpFileParser.ParseAsync(stream, response,
-                                        InvokeAsync, _fileprovider, ct).ConfigureAwait(false);
+                                    await DotHttpFileParser.ParseAsync(stream, response, InvokeAsync,
+                                        _responsePath, _responseProvider, ct).ConfigureAwait(false);
                                 }
                                 if (response.Length == 0)
                                 {
@@ -179,8 +170,8 @@ namespace Furly.Extensions.Rpc.Servers
                                     continue;
                                 }
                                 // Success: Write response file
-                                var file = Path.Combine(_responsePath, name + _responseExtension);
-                                await WriteResponseAsync(file, response, ct).ConfigureAwait(false);
+                                await WriteResponseAsync(name + _responseExtension, response,
+                                    ct).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (e is not OperationCanceledException)
@@ -205,9 +196,9 @@ namespace Furly.Extensions.Rpc.Servers
             async Task WriteResponseAsync(string file, Stream response,
                 CancellationToken ct)
             {
-                var stream = _fileprovider.GetFileInfo(file) is IFileInfoEx fi
+                var stream = _responseProvider.GetFileInfo(file) is IFileInfoEx fi
                     ? fi.CreateWriteStream()
-                    : File.Open(file, FileMode.Create);
+                    : File.Open(Path.Combine(_responsePath, file), FileMode.Create);
                 await using (stream.ConfigureAwait(false))
                 {
                     await response.FlushAsync(ct).ConfigureAwait(false);
@@ -229,8 +220,7 @@ namespace Furly.Extensions.Rpc.Servers
             }
             var currentChangeToken = _watch;
 
-            _watch = _fileprovider.Watch(Path.GetFileName(
-                Path.Combine(_requestPath, "*" + _requestExtension)));
+            _watch = _requestProvider.Watch("*" + _requestExtension);
             _watch.RegisterChangeCallback(ChangeCallback, this);
 
             if (currentChangeToken?.HasChanged == true)
@@ -317,13 +307,14 @@ namespace Furly.Extensions.Rpc.Servers
             private readonly FileSystemRpcServer _outer;
         }
 
-        private readonly IFileProvider _fileprovider;
         private readonly ISerializer _serializer;
         private readonly ILogger<FileSystemRpcServer> _logger;
         private readonly HashSet<Handler> _handlers = new();
         private readonly string _requestPath;
         private readonly string _requestExtension;
+        private readonly IFileProvider _requestProvider;
         private readonly string _responsePath;
+        private readonly IFileProvider _responseProvider;
         private readonly string _responseExtension;
         private readonly CancellationTokenSource _cts = new();
         private Task _processor;

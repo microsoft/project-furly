@@ -36,7 +36,7 @@ namespace Furly.Extensions.Messaging.Clients
         /// </summary>
         /// <param name="options"></param>
         /// <param name="factory"></param>
-        public HttpEventClient(IOptions<HttpOptions> options, IHttpClientFactory factory)
+        public HttpEventClient(IOptions<HttpEventClientOptions> options, IHttpClientFactory factory)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
@@ -232,7 +232,7 @@ namespace Furly.Extensions.Messaging.Clients
             private readonly HttpRequestMessage _request = new();
         }
 
-        private readonly IOptions<HttpOptions> _options;
+        private readonly IOptions<HttpEventClientOptions> _options;
         private readonly IHttpClientFactory _factory;
     }
 }

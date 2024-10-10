@@ -9,7 +9,7 @@ namespace Autofac
     using Furly.Extensions.Messaging.Clients;
 
     /// <summary>
-    /// Database
+    /// Container builder extensions
     /// </summary>
     public static class MessagingContainerBuilderEx
     {
