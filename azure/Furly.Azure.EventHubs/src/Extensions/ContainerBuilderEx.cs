@@ -5,8 +5,8 @@
 
 namespace Autofac
 {
-    using Furly.Azure.EventHubs.Runtime;
     using Furly.Azure.EventHubs.Clients;
+    using Furly.Azure.EventHubs.Runtime;
 
     /// <summary>
     /// Container builder extensions

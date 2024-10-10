@@ -7,12 +7,9 @@
     <Description>Shared Azure related code</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions.Abstractions\src\Furly.Extensions.Abstractions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

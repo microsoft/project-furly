@@ -5,8 +5,8 @@
 
 namespace Microsoft.AspNetCore.Http
 {
-    using Furly.Exceptions;
     using Microsoft.AspNetCore.Mvc;
+    using Furly.Exceptions;
     using System;
 
     /// <summary>

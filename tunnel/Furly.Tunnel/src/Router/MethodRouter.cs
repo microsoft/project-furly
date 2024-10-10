@@ -5,20 +5,20 @@
 
 namespace Furly.Tunnel.Router.Services
 {
+    using Furly.Tunnel.Exceptions;
     using Furly.Tunnel.Protocol;
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Tunnel.Exceptions;
 
     /// <summary>
     /// Provides request routing to module controllers

@@ -10,8 +10,8 @@ namespace Furly.Tunnel.Exceptions
     using System.Collections.Frozen;
     using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Net.Sockets;
     using System.Net;
+    using System.Net.Sockets;
 
     /// <summary>
     /// Http exception diagnosis for telemetry.

@@ -8,6 +8,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     using Furly.Extensions.AspNetCore.Tests.Fixtures;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.Serializers;
+    using Asp.Versioning;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.DependencyInjection;
@@ -20,7 +21,6 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     using System.Runtime.Serialization;
     using System.Threading.Tasks;
     using Xunit;
-    using Asp.Versioning;
 
     public class FilterTests : IClassFixture<WebAppFixture<FilterStartup>>
     {

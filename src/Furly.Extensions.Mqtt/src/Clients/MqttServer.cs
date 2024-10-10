@@ -7,6 +7,7 @@ namespace Furly.Extensions.Mqtt.Clients
 {
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
     using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -21,7 +22,6 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Security.Authentication;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Mqtt broker that can serve as event client

@@ -9,7 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.66.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.66.0">
+    <PackageReference Include="Grpc.Tools" Version="2.67.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -48,8 +48,5 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

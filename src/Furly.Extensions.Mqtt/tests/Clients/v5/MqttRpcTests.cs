@@ -6,18 +6,18 @@
 namespace Furly.Extensions.Mqtt.Clients.v5
 {
     using Furly.Extensions.Rpc;
+    using Furly.Extensions.Utils;
     using Furly.Exceptions;
     using AutoFixture;
     using FluentAssertions;
     using System;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Categories;
-    using System.Threading;
-    using Furly.Extensions.Utils;
 
     [SystemTest]
     [Collection(MqttCollection.Name)]

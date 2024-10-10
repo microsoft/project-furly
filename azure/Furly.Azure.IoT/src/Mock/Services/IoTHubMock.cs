@@ -495,6 +495,12 @@ namespace Furly.Azure.IoT.Mock.Services
             }
 
             /// <inheritdoc/>
+            public void Start()
+            {
+                // Nothing to do
+            }
+
+            /// <inheritdoc/>
             public ValueTask<VariantValue?> TryPageInAsync(string key, CancellationToken ct)
             {
                 if (!TryGetValue(key, out var value))

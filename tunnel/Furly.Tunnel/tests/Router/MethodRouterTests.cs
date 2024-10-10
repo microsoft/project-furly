@@ -13,6 +13,8 @@ namespace Furly.Tunnel.Router.Tests
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Serializers.Json;
     using Autofac;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -20,8 +22,6 @@ namespace Furly.Tunnel.Router.Tests
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
-    using Microsoft.Extensions.DependencyInjection;
 
     public class MethodRouterTests
     {

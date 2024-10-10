@@ -7,15 +7,13 @@
     <Description>Common utilities used by Furly and friends</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="Autofac" Version="8.1.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Autofac" Version="8.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Abstractions\src\Furly.Extensions.Abstractions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Nerdbank.GitVersioning" Version="3.6.143" />
   </ItemGroup>
 </Project>

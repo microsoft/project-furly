@@ -9,9 +9,9 @@ namespace Microsoft.Extensions.DependencyInjection
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Runtime;
     using Furly.Azure.IoT.Services;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;
-    using Furly.Extensions.Hosting;
 
     /// <summary>
     /// DI extension

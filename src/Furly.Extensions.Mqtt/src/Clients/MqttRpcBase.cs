@@ -6,8 +6,9 @@
 namespace Furly.Extensions.Mqtt.Clients
 {
     using Furly.Extensions.Mqtt;
-    using Furly.Extensions.Rpc;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Rpc;
+    using Furly.Extensions.Serializers;
     using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
@@ -22,9 +23,8 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Linq;
     using System.Net;
     using System.Threading;
-    using System.Threading.Tasks;
     using System.Threading.Channels;
-    using Furly.Extensions.Serializers;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Mqtt rpc client base
@@ -83,6 +83,12 @@ namespace Furly.Extensions.Mqtt.Clients
                     await handler.Item2.DisposeAsync().ConfigureAwait(false);
                 }
             });
+        }
+
+        /// <inheritdoc/>
+        public void Start()
+        {
+            // Nothing to do
         }
 
         /// <inheritdoc/>

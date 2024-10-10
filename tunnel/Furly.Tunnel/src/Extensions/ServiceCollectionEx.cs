@@ -5,9 +5,9 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Furly.Tunnel.Exceptions;
     using Furly.Tunnel.Services;
-    using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using System;
 
     /// <summary>

@@ -44,5 +44,11 @@ namespace Furly.Extensions.Rpc
         /// <returns></returns>
         ValueTask<IAsyncDisposable> ConnectAsync(IRpcHandler server,
             CancellationToken ct = default);
+
+        /// <summary>
+        /// The server must be started after all handlers were
+        /// connected.
+        /// </summary>
+        void Start();
     }
 }

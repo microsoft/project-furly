@@ -8,7 +8,9 @@ namespace Furly.Azure.IoT.Services
     using Furly.Azure.IoT;
     using Furly.Azure;
     using Furly.Exceptions;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
+    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -16,11 +18,9 @@ namespace Furly.Azure.IoT.Services
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Hosting;
-    using System.Diagnostics;
-    using global::Azure.Identity;
 
     /// <summary>
     /// IoT Hub cloud to device event client

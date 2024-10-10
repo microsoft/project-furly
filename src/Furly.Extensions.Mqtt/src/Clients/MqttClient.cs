@@ -7,12 +7,14 @@ namespace Furly.Extensions.Mqtt.Clients
 {
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Serializers;
     using Furly.Exceptions;
     using Autofac;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using MQTTnet;
     using MQTTnet.Client;
+    using MQTTnet.Exceptions;
     using MQTTnet.Extensions.ManagedClient;
     using MQTTnet.Formatter;
     using MQTTnet.Packets;
@@ -26,13 +28,11 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using System.Net;
     using System.Net.Security;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Net;
-    using MQTTnet.Exceptions;
-    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Mqtt event client

@@ -5,8 +5,8 @@
 
 namespace Furly.Extensions.Dapr.Clients
 {
-    using Furly.Exceptions;
     using Furly.Extensions.Messaging;
+    using Furly.Exceptions;
     using global::Dapr.Client;
     using Microsoft.Extensions.Options;
     using System;

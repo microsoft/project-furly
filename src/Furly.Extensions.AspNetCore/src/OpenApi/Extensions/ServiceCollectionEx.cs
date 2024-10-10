@@ -10,12 +10,12 @@ namespace Microsoft.OpenApi.Models
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
+    using Asp.Versioning;
     using Furly.Extensions.AspNetCore.OpenApi;
     using Furly.Extensions.AspNetCore.OpenApi.Runtime;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.IO;
-    using Asp.Versioning;
 
     /// <summary>
     /// Service collection extensions

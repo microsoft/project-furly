@@ -13,10 +13,10 @@ namespace Furly.Tunnel.Services
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
+    using System;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System;
 
     /// <summary>
     /// Provides server side handling of tunnel requests and returns

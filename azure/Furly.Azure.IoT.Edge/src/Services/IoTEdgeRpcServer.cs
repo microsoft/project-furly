@@ -9,6 +9,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
+    using Furly.Extensions.Serializers;
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Extensions.Logging;
     using System;
@@ -18,7 +19,6 @@ namespace Furly.Azure.IoT.Edge.Services
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using Furly.Extensions.Serializers;
 
     /// <summary>
     /// Rpc server which uses an IoT Edge module or device client to
@@ -45,6 +45,12 @@ namespace Furly.Azure.IoT.Edge.Services
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _listeners = ImmutableHashSet<Listener>.Empty;
+        }
+
+        /// <inheritdoc/>
+        public void Start()
+        {
+            // Nothing to do
         }
 
         /// <inheritdoc/>

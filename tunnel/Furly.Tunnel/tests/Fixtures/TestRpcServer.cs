@@ -45,6 +45,12 @@ namespace Furly.Tunnel
         }
 
         /// <inheritdoc/>
+        public void Start()
+        {
+            // Nothing to do
+        }
+
+        /// <inheritdoc/>
         public async ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
             ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
         {
