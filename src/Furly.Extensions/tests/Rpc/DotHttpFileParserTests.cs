@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Furly.Extensions.Rpc.Servers
+namespace Furly.Extensions.Rpc
 {
-    using Furly.Extensions.Rpc;
+    using Furly.Extensions.Rpc.Servers;
     using Furly.Extensions.Storage;
     using Microsoft.Extensions.FileProviders;
     using Moq;
@@ -34,6 +34,7 @@ namespace Furly.Extensions.Rpc.Servers
             });
             Assert.Equal(res, result);
         }
+
         [Fact]
         public async Task ParseGetMethodWithUriTestWithoutPayload()
         {
@@ -56,6 +57,7 @@ namespace Furly.Extensions.Rpc.Servers
         public async Task ParsePostWithInputFileTest()
         {
             const string req = """
+// @no-redirect
 POST method
 Content-Type: application/json
 
@@ -178,7 +180,7 @@ GET second
         }
 
         [Fact]
-        public async Task ParseMultiMethodWithJsonPayloadNoContinueTest()
+        public async Task ParseMultiMethodWithJsonPayloadStopsOnErrorTest()
         {
             const string req = """
 # @no-log
@@ -187,10 +189,11 @@ Content-Type: application/json
 
 {"key":"value"}
 ###
-// @stop-on-error
+// @no-log
 GET first
 ###
 GET second
+// @no-log
 
 
 ###
@@ -203,7 +206,77 @@ GET second
                 return Task.FromResult((401, ReadOnlyMemory<byte>.Empty));
             });
             Assert.Equal(1, counter);
-            Assert.Equal(string.Empty, result);
+            Assert.Equal("GET second" + Environment.NewLine, result);
+        }
+
+        [Fact]
+        public async Task ParseMultiMethodWithJsonPayloadRunOnErrorTest()
+        {
+            const string req = """
+# @no-log
+error
+Content-Type: application/json
+
+{"key":"value"}
+###
+// @no-log
+// @on-error
+catch
+###
+second
+
+
+###
+""";
+            var res = "second" +
+                Environment.NewLine +
+                "// @skipped reason = error" +
+                Environment.NewLine +
+                "###" +
+                Environment.NewLine +
+                Environment.NewLine;
+            var counter = 0;
+            var methods = new[] { "error", "catch" };
+            var result = await DotHttpFileParser.ParseAsync(req, (method, r, h, ct) =>
+            {
+                Assert.Equal(methods[counter], method.String);
+                counter++;
+                return Task.FromResult((401, ReadOnlyMemory<byte>.Empty));
+            });
+            Assert.Equal(2, counter);
+            Assert.Equal(res, result);
+        }
+
+        [Fact]
+        public async Task ParseMultiMethodWithJsonPayloadContinueOnErrorTest()
+        {
+            const string req = """
+# @no-log
+POST add
+Content-Type: application/json
+
+{"key":"value"}
+// @continue-on-error
+###
+# @no-log
+GET first
+// @continue-on-error
+###
+GET second
+// @no-log
+// @continue-on-error
+###
+""";
+            var counter = 0;
+            var methods = new[] { "add", "first", "second" };
+            var result = await DotHttpFileParser.ParseAsync(req, (method, r, h, ct) =>
+            {
+                Assert.Equal(methods[counter], method.String);
+                counter++;
+                return Task.FromResult((401, ReadOnlyMemory<byte>.Empty));
+            });
+            Assert.Equal(3, counter);
+            Assert.Equal("GET second" + Environment.NewLine, result);
         }
 
         [Fact]

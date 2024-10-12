@@ -52,12 +52,14 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         public DotHttpFileParser(Stream request, Stream response, Execute execute,
-            string? root = null, IFileProvider? provider = null, CancellationToken ct = default)
+            string? root = null, IFileProvider? provider = null,
+            CancellationToken ct = default)
         {
             _root = root ?? Directory.GetCurrentDirectory();
             _request = new StreamReader(request, leaveOpen: true);
             _response = new StreamWriter(response, leaveOpen: true);
             _headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _directives = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _provider = provider;
             _execute = execute;
             _parser = ParseAsync(ct);
@@ -128,7 +130,7 @@ namespace Furly.Extensions.Rpc.Servers
         /// <returns></returns>
         private async Task ParseAsync(CancellationToken ct)
         {
-            while (!_executionFailure && !_directives.HasFlag(Directive.NoContinue))
+            while (true)
             {
                 var line = ReadLine();
 
@@ -186,6 +188,11 @@ namespace Furly.Extensions.Rpc.Servers
             }
         }
 
+        /// <summary>
+        /// Parse comment
+        /// </summary>
+        /// <param name="line"></param>
+        /// <returns></returns>
         private bool ParseComment(string line)
         {
             var comment = line;
@@ -204,24 +211,81 @@ namespace Furly.Extensions.Rpc.Servers
 
             if (comment.StartsWith('@'))
             {
-                switch (comment)
-                {
-                    case "@no-log":
-                        _directives |= Directive.NoLog;
-                        break;
-                    case "@stop-on-error":
-                        _directives |= Directive.NoContinue;
-                        break;
-                    default:
-                        ThrowFormatException("Unsupported directive", line);
-                        break;
-                }
+                ParseDirective(line, comment);
                 return true;
             }
 
             // Parse through comments but skip
             WriteLine(line);
             return true;
+        }
+
+        /// <summary>
+        /// Parse directive
+        /// </summary>
+        /// <param name="line"></param>
+        /// <param name="comment"></param>
+        private void ParseDirective(string line, string comment)
+        {
+            var value = string.Empty;
+            var directive = comment;
+
+            var idx = directive.IndexOf(' ', StringComparison.Ordinal);
+            if (idx >= 0)
+            {
+                directive = comment.Substring(0, idx).Trim();
+                value = comment.Substring(idx).Trim();
+            }
+            switch (comment)
+            {
+                case Directive.NoLog:
+                case Directive.ContinueOnError:
+                case Directive.OnError:
+                    if (value.Length == 0)
+                    {
+                        // Nothing should follow
+                        break;
+                    }
+                    ThrowFormatException("Directive has not arguments",
+                        line);
+                    break;
+                case Directive.Name:
+                    if (value.Length != 0)
+                    {
+                        // A string should follow
+                        break;
+                    }
+                    ThrowFormatException(
+                        "String argument missing in directive", line);
+                    break;
+                case Directive.Retries:
+                    if (int.TryParse(value, out _))
+                    {
+                        // An integer should follow
+                        break;
+                    }
+                    ThrowFormatException(
+                        "Argument for directive must be an integer", line);
+                    break;
+                case Directive.Delay:
+                case Directive.Timeout:
+                    if (int.TryParse(value, out _))
+                    {
+                        break;
+                    }
+                    ThrowFormatException(
+                        "Argument for diretive must be a duration", line);
+                    break;
+                case "@connection-timeout":
+                case "@no-redirect":
+                case "@no-cookie-jar":
+                    // No op
+                    return;
+                default:
+                    ThrowFormatException("Unsupported directive", line);
+                    break;
+            }
+            _directives.AddOrUpdate(comment, value);
         }
 
         /// <summary>
@@ -243,6 +307,9 @@ namespace Furly.Extensions.Rpc.Servers
                     case "DELETE":
                     case "PATCH":
                     case "OPTIONS":
+                    case "TRACE":
+                    case "CONNECT":
+                    case "HEAD":
                         try
                         {
                             var uri = new Uri(parts[1], UriKind.RelativeOrAbsolute);
@@ -329,6 +396,22 @@ namespace Furly.Extensions.Rpc.Servers
                 return;
             }
 
+            if (_executionFailure) // Current execution is in failed state
+            {
+                // Previously failed, skip unless instructed to run on error
+                if (!_directives.ContainsKey(Directive.OnError))
+                {
+                    WriteLine("// @skipped reason = error");
+                    return;
+                }
+            }
+            else if (_directives.ContainsKey(Directive.OnError))
+            {
+                // There was no error, therefore do not run this request
+                WriteLine("// @skipped reason = success");
+                return;
+            }
+
             // Get content type
             if (!_headers.TryGetValue("Content-Type", out var contentType))
             {
@@ -343,27 +426,57 @@ namespace Furly.Extensions.Rpc.Servers
             }
             else if (!jsonPayload && payload.Length > 0)
             {
-                throw new FormatException("Only json content type supported inline");
+                throw new FormatException(
+                    "Only json content type supported inline");
             }
 
-            var (status, result) = await _execute(_method, payload, _headers,
-                ct).ConfigureAwait(false);
-
-            // Write status and result
-            WriteLine(status.ToString(CultureInfo.InvariantCulture));
-            WriteLine();
-
-            if (!string.IsNullOrEmpty(_output))
+            if (!TryGetCount(Directive.Retries, out var retries))
             {
-                await WriteFileAsync(_output, _append, result, ct).ConfigureAwait(false);
+                retries = 0;
             }
-            else if (jsonPayload && result.Length > 0)
+
+            for (var i = 0; i < retries + 1; i++)
             {
-                WriteLine(Encoding.UTF8.GetString(result.Span));
+                if (TryGetDuration(Directive.Delay, out var delay))
+                {
+                    await Task.Delay(delay, ct).ConfigureAwait(false);
+                }
+
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                if (TryGetDuration(Directive.Timeout, out var timeout))
+                {
+                    cts.CancelAfter(timeout);
+                }
+
+                var (status, result) = await _execute(_method, payload, _headers,
+                    cts.Token).ConfigureAwait(false);
+
+                if (retries != 0)
+                {
+                    WriteLine("// @retry attempt = " + (i + 1));
+                }
+
+                // Write status and result
+                WriteLine(status.ToString(CultureInfo.InvariantCulture));
                 WriteLine();
-            }
 
-            _executionFailure = status >= 400;
+                if (!string.IsNullOrEmpty(_output))
+                {
+                    await WriteFileAsync(_output, _append, result, ct).ConfigureAwait(false);
+                }
+                else if (jsonPayload && result.Length > 0)
+                {
+                    WriteLine(Encoding.UTF8.GetString(result.Span));
+                    WriteLine();
+                }
+
+                _executionFailure = !_directives.ContainsKey(Directive.ContinueOnError)
+                    && status >= 400;
+                if (!_executionFailure)
+                {
+                    break;
+                }
+            }
         }
 
         /// <summary>
@@ -421,7 +534,7 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="line"></param>
         private void WriteLine(string? line = null)
         {
-            if (_directives.HasFlag(Directive.NoLog))
+            if (_directives.ContainsKey(Directive.NoLog))
             {
                 return;
             }
@@ -442,6 +555,42 @@ namespace Furly.Extensions.Rpc.Servers
                 _lineNumber++;
             }
             return line;
+        }
+
+        /// <summary>
+        /// Get duration directive
+        /// </summary>
+        /// <param name="directive"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private bool TryGetDuration(string directive, out TimeSpan value)
+        {
+            if (_directives.TryGetValue(directive, out var s) &&
+                int.TryParse(s, out var seconds))
+            {
+                value = TimeSpan.FromSeconds(seconds);
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Get counter
+        /// </summary>
+        /// <param name="directive"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private bool TryGetCount(string directive, out int value)
+        {
+            if (_directives.TryGetValue(directive, out var s) &&
+                int.TryParse(s, out var count))
+            {
+                value = count;
+                return true;
+            }
+            value = default;
+            return false;
         }
 
         /// <summary>
@@ -467,7 +616,7 @@ namespace Furly.Extensions.Rpc.Servers
             _append = false;
             _headers.Clear();
             _state = State.Method;
-            _directives = 0;
+            _directives.Clear();
         }
 
         /// <summary>
@@ -480,14 +629,59 @@ namespace Furly.Extensions.Rpc.Servers
             Body
         }
 
-        [Flags]
-        private enum Directive
+        /// <summary>
+        /// Request directives
+        /// </summary>
+        internal static class Directive
         {
-            NoLog = 1,
-            NoContinue = 2,
+            /// <summary>
+            /// Disable logging for this request after this directive.
+            /// This directive must be applied for every request and
+            /// on the first line so that nothing is emitted to the log.
+            /// </summary>
+            public const string NoLog = "@no-log";
+
+            /// <summary>
+            /// Timeout for the request. If the request times out it
+            /// will be an error and all further requests are not sent.
+            /// </summary>
+            public const string Timeout = "@timeout";
+
+            /// <summary>
+            /// Retry this number of times in case of an error. An error
+            /// is any request that returns with status code >= 400.
+            /// </summary>
+            public const string Retries = "@retries";
+
+            /// <summary>
+            /// Delay before executing a request. If retries are specified
+            /// the delay applies before every attempt.
+            /// </summary>
+            public const string Delay = "@delay";
+
+            /// <summary>
+            /// Invoke the request only when the previous request failed.
+            /// If the previous request has @continue-on-error directive
+            /// this request will not be executed. If the request succeeds
+            /// the next request after is run.
+            /// </summary>
+            public const string OnError = "@on-error";
+
+            /// <summary>
+            /// Continue to next request even if the request failed.
+            /// The default behavior is to stop execution of requests
+            /// except for the next request with @on-error directive.
+            /// </summary>
+            public const string ContinueOnError = "@continue-on-error";
+
+            /// <summary>
+            /// Name of the request for annotation purposes only.
+            /// </summary>
+            public const string Name = "@name";
         }
 
         private readonly Dictionary<string, string> _headers;
+        private readonly Dictionary<string, string> _directives;
         private readonly StreamReader _request;
         private readonly StreamWriter _response;
         private readonly IFileProvider? _provider;
@@ -500,7 +694,6 @@ namespace Furly.Extensions.Rpc.Servers
         private string _body = string.Empty;
         private string _input = string.Empty;
         private bool _append;
-        private Directive _directives;
         private string _output = string.Empty;
         private State _state = State.Method;
     }

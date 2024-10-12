@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Furly.Extensions.Rpc.Servers
+namespace Furly.Extensions.Rpc
 {
+    using Furly.Extensions.Rpc.Servers;
     using Furly.Extensions.Rpc.Runtime;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Serializers;
