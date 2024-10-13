@@ -22,6 +22,7 @@ namespace Furly.Tunnel.Router.Tests
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
+    using System.Threading;
 
     public class MethodRouterTests
     {
@@ -532,6 +533,122 @@ namespace Furly.Tunnel.Router.Tests
             Assert.False(true);
         }
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(64 * 1024)]
+        [InlineData(95 * 1024)]
+        public async Task TestValueTaskInvocationV1NonChunkedAsync(int size)
+        {
+            await using var router = GetRouter(out _);
+            var expected = new byte[size];
+            FillRandom(expected);
+            var response = await router.InvokeAsync(
+                "Value1_V1", _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, default);
+            var returned = _serializer.Deserialize<byte[]>(response);
+            Assert.Equal(expected, returned);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(64 * 1024)]
+        [InlineData(95 * 1024)]
+        public async Task TestValueTaskInvocationV2NonChunkedAsync(int size)
+        {
+            await using var router = GetRouter(out _);
+            var expected = new byte[size];
+            FillRandom(expected);
+            var response = await router.InvokeAsync(
+                "Value1_V2", _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, default);
+            var returned = _serializer.Deserialize<byte[]>(response);
+            Assert.Equal(expected, returned);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        [InlineData(1049)]
+        [InlineData(64 * 1024)]
+        [InlineData(95 * 1024)]
+        public async Task TestValueTaskVoidInvocationV2NonChunkedAsync(int size)
+        {
+            await using var router = GetRouter(out _);
+            var expected = new byte[size];
+            FillRandom(expected);
+            var response = await router.InvokeAsync(
+                "Value2_V2", _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, default);
+            Assert.Equal(0, response.Length);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        public async Task TestAsyncEnumerableInvocationV1NonChunkedAsync(int size)
+        {
+            await using var router = GetRouter(out _);
+            var expected = new byte[size];
+            FillRandom(expected);
+            var response = await router.InvokeAsync(
+                "Enumerate1_V1", _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, default);
+            var returned = _serializer.Deserialize<List<byte[]>>(response);
+            Assert.NotNull(returned);
+            Assert.Equal(expected, returned.Select(f => f.FirstOrDefault()).ToArray());
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(19)]
+        public async Task TestAsyncEnumerableInvocationWithCancellationV1NonChunkedAsync(int size)
+        {
+            await using var router = GetRouter(out _);
+            var expected = new byte[size];
+            FillRandom(expected);
+            var response = await router.InvokeAsync(
+                "Enumerate2_V1", _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, default);
+            var returned = _serializer.Deserialize<List<byte[]>>(response);
+            Assert.NotNull(returned);
+            Assert.Equal(expected, returned.Select(f => f.FirstOrDefault()).ToArray());
+        }
+
+        [Fact]
+        public async Task TestAsyncEnumerableInvocationCancelledNonChunked1Async()
+        {
+            await using var router = GetRouter(out _);
+            var expected = Array.Empty<byte>();
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+            var response = await router.InvokeAsync(
+                "Enumerate2_V1", _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, cts.Token);
+            var returned = _serializer.Deserialize<List<byte[]>>(response);
+            Assert.NotNull(returned);
+            Assert.Equal(expected, returned.Select(f => f.FirstOrDefault()).ToArray());
+        }
+
+        [Fact]
+        public async Task TestAsyncEnumerableInvocationCancelledNonChunked2Async()
+        {
+            await using var router = GetRouter(out _);
+            var expected = new byte[23];
+            FillRandom(expected);
+            using var cts = new CancellationTokenSource();
+            await cts.CancelAsync();
+            var ex = await Assert.ThrowsAsync<MethodCallStatusException>(async () => 
+                await router.InvokeAsync("Enumerate2_V1", 
+                    _serializer.SerializeObjectToMemory(expected),
+                    ContentMimeType.Json, cts.Token));
+            Assert.Equal(400, ex.Status);
+            Assert.Equal("A task was canceled.", ex.Details.Detail);
+        }
+
         internal static void FillRandom(byte[] expected)
         {
 #pragma warning disable CA5394 // Do not use insecure randomness
@@ -589,11 +706,13 @@ namespace Furly.Tunnel.Router.Tests
         internal static List<IMethodController> GetControllers()
         {
             return new List<IMethodController> {
+                new TestControllerValueTaskV1And2(),
                 new TestControllerV1(),
                 new TestControllerV1WithCancellationToken(),
                 new TestControllerV2(),
                 new TestControllerV1And2(),
-                new TestControllerV2WithExceptionFilter()
+                new TestControllerV2WithExceptionFilter(),
+                new TestControllerAsyncEnumerable()
             };
         }
     }

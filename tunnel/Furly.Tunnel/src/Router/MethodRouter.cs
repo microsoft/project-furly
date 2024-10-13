@@ -5,16 +5,17 @@
 
 namespace Furly.Tunnel.Router.Services
 {
-    using Furly.Tunnel.Exceptions;
-    using Furly.Tunnel.Protocol;
-    using Furly.Exceptions;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
+    using Furly.Tunnel.Exceptions;
+    using Furly.Tunnel.Protocol;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
@@ -165,18 +166,33 @@ namespace Furly.Tunnel.Router.Services
                     // Should be ignored
                     continue;
                 }
-                if (!typeof(Task).IsAssignableFrom(methodInfo.ReturnType))
+
+                var returnType = methodInfo.ReturnType;
+                if (!returnType.IsGenericType)
                 {
-                    // must be assignable from task
-                    continue;
+                    if (returnType != typeof(Task) &&
+                        returnType != typeof(ValueTask))
+                    {
+                        // must be task or valuetask
+                        continue;
+                    }
                 }
-                var tArgs = methodInfo.ReturnParameter.ParameterType
-                    .GetGenericArguments();
-                if (tArgs.Length > 1)
+                else
                 {
-                    // must have exactly 0 or one (serializable) type to return
-                    continue;
+                    returnType = returnType.GetGenericTypeDefinition();
+                    if (returnType != typeof(IAsyncEnumerable<>) &&
+                        returnType != typeof(Task<>) &&
+                        returnType != typeof(ValueTask<>))
+                    {
+                        continue;
+                    }
+                    if (returnType.GetGenericArguments().Length > 1)
+                    {
+                        // must have exactly  one (serializable) type
+                        continue;
+                    }
                 }
+
                 var name = methodInfo.Name;
                 if (name.EndsWith("Async", StringComparison.Ordinal))
                 {
@@ -309,11 +325,34 @@ namespace Furly.Tunnel.Router.Services
                 _ef = _controllerMethod.GetCustomAttribute<ExceptionFilterAttribute>(true) ??
                     controller.GetType().GetCustomAttribute<ExceptionFilterAttribute>(true) ??
                     new DefaultFilter();
-                var returnArgs = _controllerMethod.ReturnParameter.ParameterType.GetGenericArguments();
-                if (returnArgs.Length > 0)
+
+                var returnType = _controllerMethod.ReturnParameter.ParameterType;
+                if (!returnType.IsGenericType)
                 {
-                    _methodTaskContinuation = kMethodResponseAsContinuation.MakeGenericMethod(
-                        returnArgs[0]);
+                    _valueTask = returnType == typeof(ValueTask);
+                    return;
+                }
+
+                var returnArgs = returnType.GetGenericArguments();
+                Debug.Assert(returnArgs.Length == 1);
+
+                returnType = returnType.GetGenericTypeDefinition();
+                if (returnType == typeof(IAsyncEnumerable<>))
+                {
+                    _methodTaskContinuation =
+                        kMethodResponseAsContinuation3.MakeGenericMethod(returnArgs[0]);
+                }
+                else if (returnType == typeof(ValueTask<>))
+                {
+                    _valueTask = true;
+                    _methodTaskContinuation =
+                        kMethodResponseAsContinuation2.MakeGenericMethod(returnArgs[0]);
+                }
+                else
+                {
+                    Debug.Assert(returnType == typeof(Task<>));
+                    _methodTaskContinuation =
+                        kMethodResponseAsContinuation1.MakeGenericMethod(returnArgs[0]);
                 }
             }
 
@@ -324,7 +363,7 @@ namespace Furly.Tunnel.Router.Services
                 object task;
                 try
                 {
-                    object?[] GetInputsArguments()
+                    object?[] GetInputArguments()
                     {
                         if (_methodParams.Length == 0)
                         {
@@ -376,7 +415,7 @@ namespace Furly.Tunnel.Router.Services
                             return param.HasDefaultValue ? param.DefaultValue : null;
                         }).ToArray();
                     }
-                    task = _controllerMethod.Invoke(_controller, GetInputsArguments())!;
+                    task = _controllerMethod.Invoke(_controller, GetInputArguments())!;
                 }
                 catch (Exception e)
                 {
@@ -385,7 +424,10 @@ namespace Furly.Tunnel.Router.Services
 
                 if (_methodTaskContinuation == null)
                 {
-                    return await VoidContinuationAsync((Task)task).ConfigureAwait(false);
+                    // Void method
+                    return _valueTask
+                        ? await VoidValueTaskAsync((ValueTask)task).ConfigureAwait(false)
+                        : await VoidTaskContinuationAsync((Task)task).ConfigureAwait(false);
                 }
                 return await ((Task<ReadOnlyMemory<byte>>)_methodTaskContinuation.Invoke(
                     this, [task])!).ConfigureAwait(false);
@@ -398,20 +440,69 @@ namespace Furly.Tunnel.Router.Services
             /// <typeparam name="T"></typeparam>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<ReadOnlyMemory<byte>> MethodResultConverterContinuationAsync<T>(Task<T> task)
+            public Task<ReadOnlyMemory<byte>> MethodResultConverterTaskContinuation<T>(
+                Task<T> task)
             {
                 return task.ContinueWith(tr =>
                 {
                     if (tr.IsFaulted || tr.IsCanceled)
                     {
-                        var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
-                        ex ??= new TaskCanceledException(tr);
-                        _logger.LogTrace(ex, "Method call error");
-                        ex = _ef.Filter(ex, out var status);
-                        throw ex.AsMethodCallStatusException(status, _summarizer);
+                        ThrowAsMethodCallStatusException(tr);
                     }
                     return _serializer.SerializeToMemory((object?)tr.Result);
                 }, scheduler: TaskScheduler.Default);
+            }
+
+            /// <summary>
+            /// Helper to convert a typed response to buffer or throw appropriate
+            /// exception as continuation.
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="task"></param>
+            /// <returns></returns>
+            public async Task<ReadOnlyMemory<byte>> MethodResultConverterValueTaskAsync<T>(
+                ValueTask<T> task)
+            {
+                try
+                {
+                    var result = await task.ConfigureAwait(false);
+                    return _serializer.SerializeToMemory(result);
+                }
+                catch (Exception ex)
+                {
+                    ThrowAsMethodCallStatusException(ex);
+                    throw;
+                }
+            }
+
+            /// <summary>
+            /// Helper to convert a typed response to buffer or throw appropriate
+            /// exception as continuation.
+            /// </summary>
+            /// <typeparam name="T"></typeparam>
+            /// <param name="enumerable"></param>
+            /// <returns></returns>
+            public Task<ReadOnlyMemory<byte>> MethodResultConverterForAsyncEnumerable<T>(
+                IAsyncEnumerable<T> enumerable)
+            {
+                return ToListAsync(enumerable).ContinueWith(tr =>
+                {
+                    if (tr.IsFaulted || tr.IsCanceled)
+                    {
+                        ThrowAsMethodCallStatusException(tr);
+                    }
+                    return _serializer.SerializeToMemory((object?)tr.Result);
+                }, scheduler: TaskScheduler.Default);
+
+                static async Task<IReadOnlyList<T>> ToListAsync(IAsyncEnumerable<T> e)
+                {
+                    var list = new List<T>();
+                    await foreach (var result in e.ConfigureAwait(false))
+                    {
+                        list.Add(result);
+                    }
+                    return list;
+                }
             }
 
             /// <summary>
@@ -420,24 +511,68 @@ namespace Furly.Tunnel.Router.Services
             /// </summary>
             /// <param name="task"></param>
             /// <returns></returns>
-            public Task<ReadOnlyMemory<byte>> VoidContinuationAsync(Task task)
+            public Task<ReadOnlyMemory<byte>> VoidTaskContinuationAsync(Task task)
             {
                 return task.ContinueWith(tr =>
                 {
                     if (tr.IsFaulted || tr.IsCanceled)
                     {
-                        var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
-                        ex ??= new TaskCanceledException(tr);
-                        _logger.LogTrace(ex, "Method call error");
-                        ex = _ef.Filter(ex, out var status);
-                        throw ex.AsMethodCallStatusException(status, _summarizer);
+                        ThrowAsMethodCallStatusException(tr);
                     }
                     return ReadOnlyMemory<byte>.Empty;
                 }, scheduler: TaskScheduler.Default);
             }
 
-            private static readonly MethodInfo kMethodResponseAsContinuation =
-                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterContinuationAsync),
+            /// <summary>
+            /// Helper to convert a typed response to buffer or throw appropriate
+            /// exception as continuation.
+            /// </summary>
+            /// <param name="task"></param>
+            /// <returns></returns>
+            public async Task<ReadOnlyMemory<byte>> VoidValueTaskAsync(ValueTask task)
+            {
+                try
+                {
+                    await task.ConfigureAwait(false);
+                    return ReadOnlyMemory<byte>.Empty;
+                }
+                catch (Exception ex)
+                {
+                    ThrowAsMethodCallStatusException(ex);
+                    throw;
+                }
+            }
+
+            [DoesNotReturn]
+            private void ThrowAsMethodCallStatusException(Exception ex)
+            {
+                if (ex is AggregateException aex)
+                {
+                    ex = aex.Flatten().InnerExceptions.FirstOrDefault() ?? ex;
+                }
+                _logger.LogTrace(ex, "Method call error");
+                ex = _ef.Filter(ex, out var status);
+                throw ex.AsMethodCallStatusException(status, _summarizer);
+            }
+
+            [DoesNotReturn]
+            private void ThrowAsMethodCallStatusException(Task tr)
+            {
+                var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
+                ex ??= new TaskCanceledException(tr);
+                _logger.LogTrace(ex, "Method call error");
+                ex = _ef.Filter(ex, out var status);
+                throw ex.AsMethodCallStatusException(status, _summarizer);
+            }
+
+            private static readonly MethodInfo kMethodResponseAsContinuation1 =
+                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterTaskContinuation),
+                    BindingFlags.Public | BindingFlags.Instance)!;
+            private static readonly MethodInfo kMethodResponseAsContinuation2 =
+                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterValueTaskAsync),
+                    BindingFlags.Public | BindingFlags.Instance)!;
+            private static readonly MethodInfo kMethodResponseAsContinuation3 =
+                typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterForAsyncEnumerable),
                     BindingFlags.Public | BindingFlags.Instance)!;
             private readonly IJsonSerializer _serializer;
             private readonly ILogger _logger;
@@ -447,6 +582,7 @@ namespace Furly.Tunnel.Router.Services
             private readonly ExceptionFilterAttribute _ef;
             private readonly MethodInfo _controllerMethod;
             private readonly MethodInfo? _methodTaskContinuation;
+            private readonly bool _valueTask;
         }
 
         private readonly ILogger _logger;
