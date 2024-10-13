@@ -11,23 +11,15 @@ namespace Furly.Extensions.Rpc.Runtime
     public class FileSystemRpcServerOptions
     {
         /// <summary>
-        /// Request path
+        /// Request file path. The file contains the
+        /// request in .http file format.
         /// </summary>
-        public string? RequestPath { get; set; }
+        public string? RequestFilePath { get; set; }
 
         /// <summary>
-        /// Request file extensions
+        /// Response file path, the folder with the
+        /// file in it must be writable.
         /// </summary>
-        public string? RequestExtension { get; set; }
-
-        /// <summary>
-        /// Response path
-        /// </summary>
-        public string? ResponsePath { get; set; }
-
-        /// <summary>
-        /// Response file extension
-        /// </summary>
-        public string? ResponseExtension { get; set; }
+        public string? ResponseFilePath { get; set; }
     }
 }

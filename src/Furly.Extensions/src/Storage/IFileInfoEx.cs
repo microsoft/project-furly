@@ -6,7 +6,10 @@
 namespace Furly.Extensions.Storage
 {
     using Microsoft.Extensions.FileProviders;
+    using System;
     using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// File info extensions
@@ -24,5 +27,18 @@ namespace Furly.Extensions.Storage
         /// </summary>
         /// <returns>The file stream</returns>
         Stream CreateWriteStream();
+
+        /// <summary>
+        /// Set last access time
+        /// </summary>
+        /// <param name="timestamp"></param>
+        void SetLastModified(DateTimeOffset timestamp);
+
+        /// <summary>
+        /// Delete file or folder
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task DeleteAsync(CancellationToken ct);
     }
 }

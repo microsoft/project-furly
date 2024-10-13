@@ -641,8 +641,8 @@ namespace Furly.Tunnel.Router.Tests
             FillRandom(expected);
             using var cts = new CancellationTokenSource();
             await cts.CancelAsync();
-            var ex = await Assert.ThrowsAsync<MethodCallStatusException>(async () => 
-                await router.InvokeAsync("Enumerate2_V1", 
+            var ex = await Assert.ThrowsAsync<MethodCallStatusException>(async () =>
+                await router.InvokeAsync("Enumerate2_V1",
                     _serializer.SerializeObjectToMemory(expected),
                     ContentMimeType.Json, cts.Token));
             Assert.Equal(400, ex.Status);

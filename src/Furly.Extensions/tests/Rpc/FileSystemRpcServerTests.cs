@@ -46,46 +46,39 @@ POST method HTTP/1.1
             // Configure input and output paths
             var input = Path.Combine(Path.GetTempPath(), "input");
             var output = Path.Combine(Path.GetTempPath(), "output");
-            const string reqFileName = "request";
+
             var options = new OptionsMock<FileSystemRpcServerOptions>();
-            options.Value.RequestPath = input;
-            options.Value.ResponsePath = output;
+            options.Value.RequestFilePath = Path.Combine(input, "request");
+            options.Value.ResponseFilePath = Path.Combine(output, "response");
 
             var reqProvider = new Mock<IFileProvider>();
-            var reqPath = new Mock<IDirectoryContents>();
             var resProvider = new Mock<IFileProvider>();
-            var resPath = new Mock<IDirectoryContents>();
             var factory = new Mock<IFileProviderFactory>();
             factory.Setup(factory => factory.Create(It.Is<string>(d => d == input))).Returns(reqProvider.Object);
             factory.Setup(factory => factory.Create(It.Is<string>(d => d == output))).Returns(resProvider.Object);
 
+            var dt = DateTimeOffset.UtcNow;
             var reqFile = new Mock<IFileInfo>();
             reqFile.SetupGet(file => file.Exists).Returns(true);
-            reqFile.SetupGet(file => file.Name).Returns(reqFileName + ".http");
+            reqFile.SetupGet(file => file.Name).Returns("request");
+            reqFile.SetupGet(file => file.LastModified).Returns(dt);
             reqFile.Setup(file => file.CreateReadStream())
                 .Returns(new MemoryStream(Encoding.UTF8.GetBytes(requestContent))); // Return file content
+            reqProvider.Setup(provider => provider.Watch(It.Is<string>(d => d == "request")))
+                .Returns(new Mock<IChangeToken>().Object);
+            reqProvider.Setup(provider => provider.GetFileInfo(It.Is<string>(d => d == "request")))
+                .Returns(reqFile.Object);
 
             var resFile = new Mock<IFileInfoEx>();
             var outputStream = new MemoryStream();
             resFile.SetupGet(file => file.IsWritable).Returns(true);
             resFile.SetupGet(file => file.Exists).Returns(false);
+            resFile.Setup(file => file.SetLastModified(It.Is<DateTimeOffset>(d => d == dt)))
+                .Verifiable(Times.Once);
             resFile.Setup(file => file.CreateWriteStream())
                 .Returns(outputStream);
-            resProvider.Setup(provider => provider.GetFileInfo(
-                It.Is<string>(d => d == reqFileName + ".resp")))
+            resProvider.Setup(provider => provider.GetFileInfo(It.Is<string>(d => d == "response")))
                 .Returns(resFile.Object);
-
-            reqProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
-                .Returns(reqPath.Object);
-            resProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
-                .Returns(resPath.Object);
-            reqProvider.Setup(provider => provider.Watch(It.IsAny<string>()))
-                .Returns(new Mock<IChangeToken>().Object);
-
-            reqPath.Setup(dir => dir.GetEnumerator())
-                .Returns(reqFile.Object.YieldReturn().GetEnumerator()); // One file there
-            resPath.Setup(dir => dir.GetEnumerator())
-                .Returns(Enumerable.Empty<IFileInfo>().GetEnumerator()); // No files there yet
 
             await using (var server = new FileSystemRpcServer(factory.Object,
                 new Mock<ISerializer>().Object, options, Logging.Log.Console<FileSystemRpcServer>()))
@@ -114,36 +107,31 @@ POST method HTTP/1.1
             // Configure input and output paths
             var input = Path.Combine(Path.GetTempPath(), "a");
             var output = Path.Combine(Path.GetTempPath(), "b");
-            const string reqFileName = "request";
             var options = new OptionsMock<FileSystemRpcServerOptions>();
-            options.Value.RequestPath = input;
-            options.Value.ResponsePath = output;
+            options.Value.RequestFilePath = Path.Combine(input, "request");
+            options.Value.ResponseFilePath = Path.Combine(output, "response");
 
             var reqProvider = new Mock<IFileProvider>();
-            var reqPath = new Mock<IDirectoryContents>();
             var resProvider = new Mock<IFileProvider>();
-            var resPath = new Mock<IDirectoryContents>();
             var factory = new Mock<IFileProviderFactory>();
             factory.Setup(factory => factory.Create(It.Is<string>(d => d == input))).Returns(reqProvider.Object);
             factory.Setup(factory => factory.Create(It.Is<string>(d => d == output))).Returns(resProvider.Object);
 
+            var dt = DateTimeOffset.UtcNow;
             var reqFile = new Mock<IFileInfo>();
-            reqFile.SetupGet(file => file.Name).Returns(reqFileName + ".http");
-
-            var resFile = new Mock<IFileInfo>();
-            resFile.SetupGet(file => file.Name).Returns(reqFileName + ".resp");
-
-            reqProvider.Setup(provider => provider.Watch(It.IsAny<string>()))
+            reqFile.SetupGet(file => file.Exists).Returns(true);
+            reqFile.SetupGet(file => file.LastModified).Returns(dt);
+            reqProvider.Setup(provider => provider.Watch(It.Is<string>(d => d == "request")))
                 .Returns(new Mock<IChangeToken>().Object);
-            reqProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
-                .Returns(reqPath.Object);
-            resProvider.Setup(provider => provider.GetDirectoryContents(It.Is<string>(d => d == ".")))
-                .Returns(resPath.Object);
+            reqProvider.Setup(provider => provider.GetFileInfo(It.Is<string>(d => d == "request")))
+                .Returns(reqFile.Object);
 
-            reqPath.Setup(dir => dir.GetEnumerator())
-                .Returns(reqFile.Object.YieldReturn().GetEnumerator()); // One file there
-            resPath.Setup(dir => dir.GetEnumerator())
-                .Returns(resFile.Object.YieldReturn().GetEnumerator()); // One file there
+            var resFile = new Mock<IFileInfoEx>();
+            var outputStream = new MemoryStream();
+            resFile.SetupGet(file => file.Exists).Returns(true);
+            resFile.SetupGet(file => file.LastModified).Returns(dt);
+            resProvider.Setup(provider => provider.GetFileInfo(It.Is<string>(d => d == "response")))
+                .Returns(resFile.Object);
 
             var called = false;
             await using (var server = new FileSystemRpcServer(factory.Object,
