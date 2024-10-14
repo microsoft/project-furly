@@ -7,6 +7,7 @@ namespace Furly.Extensions.Rpc.Servers
 {
     using Furly.Extensions.Storage;
     using Microsoft.Extensions.FileProviders;
+    using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -14,6 +15,7 @@ namespace Furly.Extensions.Rpc.Servers
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using static Furly.Extensions.Rpc.Servers.DotHttpFileParser;
 
     /// <summary>
     /// Callback
@@ -48,11 +50,12 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="execute"></param>
+        /// <param name="logger"></param>
         /// <param name="root"></param>
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         public DotHttpFileParser(Stream request, Stream response, Execute execute,
-            string? root = null, IFileProvider? provider = null,
+            ILogger logger, string? root = null, IFileProvider? provider = null,
             CancellationToken ct = default)
         {
             _root = root ?? Directory.GetCurrentDirectory();
@@ -62,6 +65,7 @@ namespace Furly.Extensions.Rpc.Servers
             _directives = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _provider = provider;
             _execute = execute;
+            _logger = logger;
             _parser = ParseAsync(ct);
         }
 
@@ -71,16 +75,17 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="execute"></param>
+        /// <param name="logger"></param>
         /// <param name="root"></param>
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task ParseAsync(Stream request, Stream response,
-            Execute execute, string? root = null, IFileProvider? provider = null,
-            CancellationToken ct = default)
+            Execute execute, ILogger logger, string? root = null,
+            IFileProvider? provider = null, CancellationToken ct = default)
         {
             await using var parser = new DotHttpFileParser(request,
-                response, execute, root, provider, ct: ct).ConfigureAwait(false);
+                response, execute, logger, root, provider, ct: ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -88,12 +93,13 @@ namespace Furly.Extensions.Rpc.Servers
         /// </summary>
         /// <param name="request"></param>
         /// <param name="execute"></param>
+        /// <param name="logger"></param>
         /// <param name="root"></param>
         /// <param name="provider"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<string> ParseAsync(string request,
-            Execute execute, string? root = null, IFileProvider? provider = null,
+        public static async Task<string> ParseAsync(string request, Execute execute,
+            ILogger logger, string? root = null, IFileProvider? provider = null,
             CancellationToken ct = default)
         {
             var req = new MemoryStream(Encoding.UTF8.GetBytes(request));
@@ -103,7 +109,7 @@ namespace Furly.Extensions.Rpc.Servers
                 await using (res.ConfigureAwait(false))
                 {
                     await DotHttpFileParser.ParseAsync(req, res, execute,
-                        root, provider, ct).ConfigureAwait(false);
+                        logger, root, provider, ct).ConfigureAwait(false);
                     return Encoding.UTF8.GetString(res.ToArray());
                 }
             }
@@ -246,8 +252,8 @@ namespace Furly.Extensions.Rpc.Servers
                         // Nothing should follow
                         break;
                     }
-                    ThrowFormatException($"Directive {directive} has not arguments",
-                        line);
+                    ThrowFormatException(
+                        $"Arguments for directive {directive} are not supported", line);
                     break;
                 case Directive.Name:
                     if (value.Length != 0)
@@ -279,11 +285,15 @@ namespace Furly.Extensions.Rpc.Servers
                 case "@connection-timeout":
                 case "@no-redirect":
                 case "@no-cookie-jar":
-                    // No op
+                    _logger.LogDebug(
+                        "Skipping unsupported directive {Directive} at line#{Line}.",
+                        directive, _lineNumber);
                     return;
                 default:
-                    ThrowFormatException($"Unsupported directive {directive}", line);
-                    break;
+                    _logger.LogWarning(
+                        "Skipping unsupported directive {Directive} at line#{Line}.",
+                        directive, _lineNumber);
+                    return;
             }
             _directives.AddOrUpdate(comment, value);
         }
@@ -534,6 +544,8 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="line"></param>
         private void WriteLine(string? line = null)
         {
+            _logger.LogDebug("line#{LineNumber}: {Line}.", _lineNumber, line);
+
             if (_directives.ContainsKey(Directive.NoLog))
             {
                 return;
@@ -686,6 +698,7 @@ namespace Furly.Extensions.Rpc.Servers
         private readonly StreamWriter _response;
         private readonly IFileProvider? _provider;
         private readonly Execute _execute;
+        private readonly ILogger _logger;
         private readonly Task _parser;
         private readonly string _root;
         private int _lineNumber;

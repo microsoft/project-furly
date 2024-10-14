@@ -163,7 +163,7 @@ namespace Furly.Extensions.Rpc.Servers
                             await using (stream.ConfigureAwait(false))
                             {
                                 await DotHttpFileParser.ParseAsync(stream, response, InvokeAsync,
-                                    _responsePath, _responseProvider, ct).ConfigureAwait(false);
+                                    _logger, _responsePath, _responseProvider, ct).ConfigureAwait(false);
                             }
                             // Success: Write response file
                             await WriteResponseAsync(response, requestFile.LastModified, ct).ConfigureAwait(false);
