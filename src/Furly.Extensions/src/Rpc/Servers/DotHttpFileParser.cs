@@ -236,7 +236,7 @@ namespace Furly.Extensions.Rpc.Servers
                 directive = comment.Substring(0, idx).Trim();
                 value = comment.Substring(idx).Trim();
             }
-            switch (comment)
+            switch (directive)
             {
                 case Directive.NoLog:
                 case Directive.ContinueOnError:
@@ -246,7 +246,7 @@ namespace Furly.Extensions.Rpc.Servers
                         // Nothing should follow
                         break;
                     }
-                    ThrowFormatException("Directive has not arguments",
+                    ThrowFormatException($"Directive {directive} has not arguments",
                         line);
                     break;
                 case Directive.Name:
@@ -256,7 +256,7 @@ namespace Furly.Extensions.Rpc.Servers
                         break;
                     }
                     ThrowFormatException(
-                        "String argument missing in directive", line);
+                        $"String argument missing in directive {directive}", line);
                     break;
                 case Directive.Retries:
                     if (int.TryParse(value, out _))
@@ -265,7 +265,7 @@ namespace Furly.Extensions.Rpc.Servers
                         break;
                     }
                     ThrowFormatException(
-                        "Argument for directive must be an integer", line);
+                        $"Argument for directive {directive} must be an integer", line);
                     break;
                 case Directive.Delay:
                 case Directive.Timeout:
@@ -274,7 +274,7 @@ namespace Furly.Extensions.Rpc.Servers
                         break;
                     }
                     ThrowFormatException(
-                        "Argument for diretive must be a duration", line);
+                        $"Argument for directive {directive} must be a duration", line);
                     break;
                 case "@connection-timeout":
                 case "@no-redirect":
@@ -282,7 +282,7 @@ namespace Furly.Extensions.Rpc.Servers
                     // No op
                     return;
                 default:
-                    ThrowFormatException("Unsupported directive", line);
+                    ThrowFormatException($"Unsupported directive {directive}", line);
                     break;
             }
             _directives.AddOrUpdate(comment, value);

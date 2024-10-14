@@ -259,6 +259,7 @@ Content-Type: application/json
 // @continue-on-error
 ###
 # @no-log
+// @delay 0
 GET first
 // @continue-on-error
 ###
