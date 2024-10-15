@@ -136,16 +136,18 @@ namespace Furly.Extensions.Rpc.Servers
                     var responseFile = _responseProvider.GetFileInfo(_responseFile);
                     try
                     {
-                        var exists = requestFile.Exists;
-                        if (responseFile.Exists && exists &&
+                        if (responseFile.Exists && requestFile.Exists &&
                             responseFile.LastModified == requestFile.LastModified)
                         {
                             // Already processed, dont run again
+                            _logger.LogInformation(
+                                "Skipping {Request} as it was already processed.",
+                                requestFile.Name);
                             continue;
                         }
 
                         await DeleteResponseAsync(ct).ConfigureAwait(false);
-                        if (!exists)
+                        if (!requestFile.Exists)
                         {
                             continue;
                         }
@@ -166,7 +168,8 @@ namespace Furly.Extensions.Rpc.Servers
                                     _logger, _responsePath, _responseProvider, ct).ConfigureAwait(false);
                             }
                             // Success: Write response file
-                            await WriteResponseAsync(response, requestFile.LastModified, ct).ConfigureAwait(false);
+                            await WriteResponseAsync(response, requestFile.LastModified,
+                                ct).ConfigureAwait(false);
                         }
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
@@ -202,7 +205,8 @@ namespace Furly.Extensions.Rpc.Servers
                 }
                 if (fi == null)
                 {
-                    File.SetLastAccessTimeUtc(p, timestamp.DateTime);
+                    // Despite the name, last modified property is the last write time
+                    File.SetLastWriteTimeUtc(p, timestamp.DateTime);
                     return;
                 }
                 fi.SetLastModified(timestamp);
