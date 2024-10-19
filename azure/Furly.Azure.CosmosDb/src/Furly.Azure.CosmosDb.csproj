@@ -7,7 +7,7 @@
     <Description>Azure CosmosDB support</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.44.0" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.44.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>

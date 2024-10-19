@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Mqtt messaging abstraction used by Furly and friends</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MQTTnet" Version="4.3.7.1207" />
+    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.7.1207" />
+    <PackageReference Include="Azure.Iot.Operations.Protocol" Version="0.5.0" />
+    <PackageReference Include="Azure.Iot.Operations.Mqtt" Version="0.5.0" />
+    <PackageReference Include="Azure.Iot.Operations.Services" Version="0.5.0" />
+    <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
+    <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
+  </ItemGroup>
+</Project>
