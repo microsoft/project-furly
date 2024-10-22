@@ -1933,7 +1933,6 @@ namespace Furly.Extensions.Mqtt.Clients
             public Metrics(Meter meter, MqttSession outer)
             {
                 _meter = meter;
-                _outer = outer;
 
                 Connect = meter.CreateCounter<long>("mqtt_connect",
                     description: "The number of connect results.");
@@ -1958,7 +1957,6 @@ namespace Furly.Extensions.Mqtt.Clients
                 _meter.Dispose();
             }
             private readonly Meter _meter;
-            private readonly MqttSession _outer;
         }
 
         private Task? _ackSenderTask;

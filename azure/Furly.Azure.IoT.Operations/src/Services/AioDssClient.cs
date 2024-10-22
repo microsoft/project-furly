@@ -35,7 +35,6 @@ namespace Furly.Azure.IoT.Operations.Services
             ILogger<AioDssClient> logger) : base(logger)
         {
             _logger = logger;
-            _client = client;
             _serializer = serializer;
             _dss = new StateStoreClient(client);
             _dss.KeyChangeMessageReceivedAsync += _client_KeyChangeMessageReceivedAsync;
@@ -166,7 +165,6 @@ namespace Furly.Azure.IoT.Operations.Services
             return Task.CompletedTask;
         }
 
-        private readonly IMqttPubSubClient _client;
         private readonly ISerializer _serializer;
         private readonly StateStoreClient _dss;
         private readonly ILogger<AioDssClient> _logger;
