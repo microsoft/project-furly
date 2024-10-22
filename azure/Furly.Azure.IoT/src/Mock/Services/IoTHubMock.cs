@@ -13,10 +13,10 @@ namespace Furly.Azure.IoT.Mock.Services
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
-    using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Options;
     using Nito.Disposables;
     using System;
+    using System.Buffers;
     using System.Collections;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -24,7 +24,6 @@ namespace Furly.Azure.IoT.Mock.Services
     using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
-    using System.Security.Principal;
     using System.Text;
     using System.Threading;
     using System.Threading.Channels;
@@ -178,8 +177,8 @@ namespace Furly.Azure.IoT.Mock.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
-            ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
+        public ValueTask<ReadOnlySequence<byte>> CallAsync(string target, string method,
+            ReadOnlySequence<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
         {
             lock (_lock)
             {
@@ -604,8 +603,8 @@ namespace Furly.Azure.IoT.Mock.Services
             /// <param name="contentType"></param>
             /// <param name="ct"></param>
             /// <returns></returns>
-            internal async ValueTask<ReadOnlyMemory<byte>> InvokeMethodAsync(string method,
-                ReadOnlyMemory<byte> bytes, string contentType, CancellationToken ct = default)
+            internal async ValueTask<ReadOnlySequence<byte>> InvokeMethodAsync(string method,
+                ReadOnlySequence<byte> bytes, string contentType, CancellationToken ct = default)
             {
                 foreach (var handler in _handlers.Values)
                 {

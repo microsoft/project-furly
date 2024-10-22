@@ -44,6 +44,37 @@ namespace Furly.Extensions.Serializers
             serializer.Serialize(writer, o, format);
             return writer.WrittenMemory;
         }
+        /// <summary>
+        /// Serialize to byte array
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="o"></param>
+        /// <param name="type"></param>
+        /// <param name="format"></param>
+        public static ReadOnlySequence<byte> SerializeToReadOnlySequence(
+            this ISerializer serializer, object? o, Type? type = null,
+            SerializeOption format = SerializeOption.None)
+        {
+            var writer = new ArrayBufferWriter<byte>();
+            serializer.SerializeObject(writer, o, type, format);
+            return new ReadOnlySequence<byte>(writer.WrittenMemory);
+        }
+
+        /// <summary>
+        /// Serialize to byte array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="serializer"></param>
+        /// <param name="o"></param>
+        /// <param name="format"></param>
+        public static ReadOnlySequence<byte> SerializeToReadOnlySequence<T>(
+            this ISerializer serializer, T? o,
+            SerializeOption format = SerializeOption.None)
+        {
+            var writer = new ArrayBufferWriter<byte>();
+            serializer.Serialize(writer, o, format);
+            return new ReadOnlySequence<byte>(writer.WrittenMemory);
+        }
 
         /// <summary>
         /// Serialize to string

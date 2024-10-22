@@ -19,14 +19,14 @@ namespace Furly.Tunnel.Router.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Abstractions;
-    using System.Threading;
 
     public class MethodRouterTests
     {
-        private readonly DefaultJsonSerializer _serializer = new();
+        private readonly IJsonSerializer _serializer = new DefaultJsonSerializer();
         private readonly ITestOutputHelper _output;
 
         public MethodRouterTests(ITestOutputHelper output)
@@ -43,7 +43,7 @@ namespace Furly.Tunnel.Router.Tests
             FillRandom(buffer);
             var expected = new TestModel { Test = buffer };
             var response = await router.InvokeAsync("Test1_V1",
-                _serializer.SerializeObjectToMemory(expected),
+                _serializer.SerializeToReadOnlySequence(expected),
                 ContentMimeType.Json, default);
 
             var returned = _serializer.Deserialize<TestModel>(response);
@@ -78,7 +78,7 @@ namespace Furly.Tunnel.Router.Tests
             FillRandom(buffer);
             var expected = new TestModel { Test = buffer };
             var response = await router.InvokeAsync("Test1C_V1",
-                _serializer.SerializeObjectToMemory(expected),
+                _serializer.SerializeToReadOnlySequence(expected),
                 ContentMimeType.Json, default);
 
             var returned = _serializer.Deserialize<TestModel>(response);
@@ -116,7 +116,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Test2_V1", _serializer.SerializeObjectToMemory(expected),
+                "Test2_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<byte[]>(response);
             Assert.Equal(expected, returned);
@@ -134,7 +134,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Test2C_V1", _serializer.SerializeObjectToMemory(expected),
+                "Test2C_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<byte[]>(response);
             Assert.Equal(expected, returned);
@@ -152,7 +152,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Test8_V1", _serializer.SerializeObjectToMemory(expected),
+                "Test8_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<byte[]>(response);
             Assert.Equal(expected, returned);
@@ -170,7 +170,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Test8_V2", _serializer.SerializeObjectToMemory(expected),
+                "Test8_V2", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<byte[]>(response);
             Assert.Equal(expected, returned);
@@ -275,7 +275,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[1049];
             FillRandom(expected);
             var response = await router.InvokeAsync("Test3_V1",
-                _serializer.SerializeObjectToMemory(new
+                _serializer.SerializeToReadOnlySequence(new
                 {
                     request = expected,
                     Value = 3254
@@ -292,7 +292,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[1049];
             FillRandom(expected);
             var response = await router.InvokeAsync("Test3C_V1",
-                _serializer.SerializeObjectToMemory(new
+                _serializer.SerializeToReadOnlySequence(new
                 {
                     request = expected,
                     Value = 3254
@@ -311,7 +311,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test2_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test2_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -331,7 +331,7 @@ namespace Furly.Tunnel.Router.Tests
             FillRandom(buffer);
             const int expected = 3254;
             var response = await router.InvokeAsync("Test3_v2",
-                _serializer.SerializeObjectToMemory(new
+                _serializer.SerializeToReadOnlySequence(new
                 {
                     request = buffer,
                     Value = expected
@@ -350,7 +350,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test4_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test4_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -371,7 +371,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test5_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test5_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -397,7 +397,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test4_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test4_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -424,7 +424,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test5_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test5_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -451,7 +451,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test6_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test6_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -478,7 +478,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test7_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test7_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -500,7 +500,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test6_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test6_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -521,7 +521,7 @@ namespace Furly.Tunnel.Router.Tests
             try
             {
                 var response = await router.InvokeAsync(
-                    "Test7_v2", _serializer.SerializeObjectToMemory(buffer),
+                    "Test7_v2", _serializer.SerializeToReadOnlySequence(buffer),
                     ContentMimeType.Json, default);
             }
             catch (MethodCallStatusException m)
@@ -545,7 +545,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Value1_V1", _serializer.SerializeObjectToMemory(expected),
+                "Value1_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<byte[]>(response);
             Assert.Equal(expected, returned);
@@ -563,7 +563,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Value1_V2", _serializer.SerializeObjectToMemory(expected),
+                "Value1_V2", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<byte[]>(response);
             Assert.Equal(expected, returned);
@@ -581,7 +581,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Value2_V2", _serializer.SerializeObjectToMemory(expected),
+                "Value2_V2", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             Assert.Equal(0, response.Length);
         }
@@ -595,7 +595,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Enumerate1_V1", _serializer.SerializeObjectToMemory(expected),
+                "Enumerate1_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<List<byte[]>>(response);
             Assert.NotNull(returned);
@@ -611,7 +611,7 @@ namespace Furly.Tunnel.Router.Tests
             var expected = new byte[size];
             FillRandom(expected);
             var response = await router.InvokeAsync(
-                "Enumerate2_V1", _serializer.SerializeObjectToMemory(expected),
+                "Enumerate2_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, default);
             var returned = _serializer.Deserialize<List<byte[]>>(response);
             Assert.NotNull(returned);
@@ -626,7 +626,7 @@ namespace Furly.Tunnel.Router.Tests
             using var cts = new CancellationTokenSource();
             await cts.CancelAsync();
             var response = await router.InvokeAsync(
-                "Enumerate2_V1", _serializer.SerializeObjectToMemory(expected),
+                "Enumerate2_V1", _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, cts.Token);
             var returned = _serializer.Deserialize<List<byte[]>>(response);
             Assert.NotNull(returned);
@@ -643,7 +643,7 @@ namespace Furly.Tunnel.Router.Tests
             await cts.CancelAsync();
             var ex = await Assert.ThrowsAsync<MethodCallStatusException>(async () =>
                 await router.InvokeAsync("Enumerate2_V1",
-                    _serializer.SerializeObjectToMemory(expected),
+                    _serializer.SerializeToReadOnlySequence(expected),
                     ContentMimeType.Json, cts.Token));
             Assert.Equal(400, ex.Status);
             Assert.Equal("A task was canceled.", ex.Details.Detail);

@@ -7,6 +7,7 @@ namespace Furly.Extensions.Rpc
 {
     using Furly.Exceptions;
     using System;
+    using System.Buffers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -41,8 +42,8 @@ namespace Furly.Extensions.Rpc
         /// target was found that could be called.</exception>
         /// <returns>The response encoded in the same encoding
         /// as the payload.</returns>
-        ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method,
-            ReadOnlyMemory<byte> payload, string contentType,
+        ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+            ReadOnlySequence<byte> payload, string contentType,
             CancellationToken ct = default);
     }
 }

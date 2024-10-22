@@ -13,6 +13,7 @@ namespace Furly.Tunnel.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Net;
     using System.Net.Http;
@@ -84,14 +85,16 @@ namespace Furly.Tunnel.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method,
-            ReadOnlyMemory<byte> payload, string contentType, CancellationToken ct)
+        public async ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+            ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
         {
             if (method == _chunks.MethodName)
             {
                 // Pass to chunk server
-                return await _chunks.InvokeAsync(payload, contentType, this,
-                    ct).ConfigureAwait(false);
+                var buffer = await _chunks.InvokeAsync(
+                    payload.IsSingleSegment ? payload.First : payload.ToArray(),
+                    contentType, this, ct).ConfigureAwait(false);
+                return new ReadOnlySequence<byte>(buffer);
             }
 
             var isSimpleCall = contentType != HttpTunnelRequestModel.SchemaName;
@@ -136,7 +139,8 @@ namespace Furly.Tunnel.Services
                     MethodCallStatusException.Throw(outbound.Payload, _serializer,
                         outbound.Status);
                 }
-                return outbound.Payload ?? Array.Empty<byte>();
+                return outbound.Payload != null ?
+                    new ReadOnlySequence<byte>(outbound.Payload) : default;
             }
             else
             {
@@ -147,7 +151,7 @@ namespace Furly.Tunnel.Services
                     throw new ArgumentException("Bad payload");
                 }
                 var outbound = await _processor.ProcessAsync(inbound, ct).ConfigureAwait(false);
-                return _serializer.SerializeToMemory(outbound).ToArray();
+                return _serializer.SerializeToReadOnlySequence(outbound);
             }
         }
 

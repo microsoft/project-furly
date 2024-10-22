@@ -7,6 +7,7 @@ namespace Furly.Azure.IoT.Services
 {
     using Furly.Extensions.Rpc;
     using System;
+    using System.Buffers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -24,11 +25,11 @@ namespace Furly.Azure.IoT.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method,
-            ReadOnlyMemory<byte> payload, string contentType, CancellationToken ct)
+        public ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+            ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
         {
-            return ValueTask.FromResult<ReadOnlyMemory<byte>>(
-                _handler.Invoke(method, payload.ToArray(), contentType, ct));
+            return ValueTask.FromResult<ReadOnlySequence<byte>>(new ReadOnlySequence<byte>(
+                _handler.Invoke(method, payload.ToArray(), contentType, ct)));
         }
 
         private readonly Func<string, byte[], string, CancellationToken, byte[]> _handler;

@@ -6,10 +6,7 @@
 namespace Furly.Azure.IoT.Services
 {
     using Furly.Azure.IoT;
-    using Furly.Exceptions;
-    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Utils;
     using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;

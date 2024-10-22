@@ -5,8 +5,8 @@
 
 namespace Furly.Extensions.Rpc
 {
-    using Furly.Extensions.Rpc.Servers;
     using Furly.Extensions.Rpc.Runtime;
+    using Furly.Extensions.Rpc.Servers;
     using Furly.Extensions.Configuration;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
@@ -14,10 +14,8 @@ namespace Furly.Extensions.Rpc
     using Microsoft.Extensions.Primitives;
     using Moq;
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.Serialization;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;

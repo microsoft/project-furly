@@ -24,8 +24,10 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services
                 .AddLogging()
-                .AddScoped<IEventClient, MqttClient>()
-                .AddScoped<IEventSubscriber, MqttClient>()
+                .AddScoped<MqttClient>()
+                .AddScoped<IEventClient>(services => services.GetRequiredService<MqttClient>())
+                .AddScoped<IEventSubscriber>(services => services.GetRequiredService<MqttClient>())
+                .AddScoped<IManagedClient>(services => services.GetRequiredService<MqttClient>())
                 .AddOptions()
                 .AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>()
                 ;
@@ -39,8 +41,9 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services
                 .AddLogging()
-                .AddScoped<IEventClient, MqttServer>()
-                .AddScoped<IEventSubscriber, MqttServer>()
+                .AddScoped<MqttServer>()
+                .AddScoped<IEventClient>(services => services.GetRequiredService<MqttServer>())
+                .AddScoped<IEventSubscriber>(services => services.GetRequiredService<MqttServer>())
                 .AddOptions()
                 .AddSingleton<IPostConfigureOptions<MqttOptions>, MqttConfig>()
                 ;

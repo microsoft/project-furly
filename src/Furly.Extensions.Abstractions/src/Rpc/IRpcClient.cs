@@ -6,6 +6,7 @@
 namespace Furly.Extensions.Rpc
 {
     using System;
+    using System.Buffers;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace Furly.Extensions.Rpc
         int MaxMethodPayloadSizeInBytes { get; }
 
         /// <summary>
-        /// Call a remote produce on a target with the
+        /// Call a remote server on a target with the
         /// provided payload.
         /// </summary>
         /// <param name="target"></param>
@@ -41,9 +42,10 @@ namespace Furly.Extensions.Rpc
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        ValueTask<ReadOnlyMemory<byte>> CallAsync(string target,
-            string method, ReadOnlyMemory<byte> payload, string contentType,
-            TimeSpan? timeout = null, CancellationToken ct = default);
+        ValueTask<ReadOnlySequence<byte>> CallAsync(string target,
+            string method, ReadOnlySequence<byte> payload,
+            string contentType, TimeSpan? timeout = null,
+            CancellationToken ct = default);
     }
 
     /// <summary>
@@ -52,7 +54,8 @@ namespace Furly.Extensions.Rpc
     public static class RpcClientExtension
     {
         /// <summary>
-        /// Call a remote procedure on a target with the provided payload.
+        /// Call a remote procedure on a target with the provided
+        /// payload.
         /// </summary>
         /// <param name="client"></param>
         /// <param name="target"></param>
@@ -61,14 +64,38 @@ namespace Furly.Extensions.Rpc
         /// <param name="timeout"></param>
         /// <param name="ct"></param>
         /// <returns>response payload</returns>
-        public static async ValueTask<string> CallMethodAsync(this IRpcClient client,
-            string target, string method, string payload, TimeSpan? timeout = null,
+        public static async ValueTask<string> CallMethodAsync(
+            this IRpcClient client, string target, string method,
+            string payload, TimeSpan? timeout = null,
             CancellationToken ct = default)
         {
             var result = await client.CallAsync(target, method,
-                Encoding.UTF8.GetBytes(payload), ContentMimeType.Json, timeout,
-                ct).ConfigureAwait(false);
+                Encoding.UTF8.GetBytes(payload), ContentMimeType.Json,
+                timeout, ct).ConfigureAwait(false);
             return Encoding.UTF8.GetString(result.Span);
+        }
+
+        /// <summary>
+        /// Call a remote server on a target with the provided payload.
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="target"></param>
+        /// <param name="method"></param>
+        /// <param name="payload"></param>
+        /// <param name="contentType"></param>
+        /// <param name="timeout"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        public static async ValueTask<ReadOnlyMemory<byte>> CallAsync(
+            this IRpcClient client, string target, string method,
+            ReadOnlyMemory<byte> payload, string contentType,
+            TimeSpan? timeout = null, CancellationToken ct = default)
+        {
+            var result = await client.CallAsync(target, method,
+                new ReadOnlySequence<byte>(payload), contentType,
+                timeout, ct).ConfigureAwait(false);
+            return result.IsSingleSegment ?
+                result.First : (ReadOnlyMemory<byte>)result.ToArray();
         }
     }
 }

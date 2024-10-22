@@ -10,6 +10,7 @@ namespace Furly.Tunnel
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -51,8 +52,8 @@ namespace Furly.Tunnel
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
-            ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
+        public async ValueTask<ReadOnlySequence<byte>> CallAsync(string target, string method,
+            ReadOnlySequence<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
         {
             if (method != "$call")
             {

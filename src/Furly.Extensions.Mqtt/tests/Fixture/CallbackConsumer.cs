@@ -28,11 +28,12 @@ namespace Furly.Extensions.Mqtt
 
         public string MountPoint { get; }
 
-        public ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method, ReadOnlyMemory<byte> payload,
+        public ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method, ReadOnlySequence<byte> payload,
             string contentType, CancellationToken ct = default)
         {
-            return ValueTask.FromResult<ReadOnlyMemory<byte>>(_handler(new EventConsumerArg(method, payload.ToArray(),
-                contentType, new Dictionary<string, string?>(), null)));
+            return ValueTask.FromResult<ReadOnlySequence<byte>>(new ReadOnlySequence<byte>(
+                _handler(new EventConsumerArg(method, payload.ToArray(),
+                contentType, new Dictionary<string, string?>(), null))));
         }
     }
 

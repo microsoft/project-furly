@@ -140,11 +140,10 @@ namespace Furly.Tunnel.Services
             // Get content
             if (request.Content != null)
             {
-                var payload = await request.Content.ReadAsByteArrayAsync(
-                    cancellationToken).ConfigureAwait(false);
                 //payload = payload.Zip();
 
-                tunnelRequest.Body = payload;
+                tunnelRequest.Body = await request.Content.ReadAsByteArrayAsync(
+                    cancellationToken).ConfigureAwait(false);
                 tunnelRequest.ContentHeaders = request.Content.Headers?
                     .ToDictionary(h => h.Key, h => h.Value.ToList());
             }

@@ -10,6 +10,7 @@ namespace Furly.Extensions.Rpc
     using Microsoft.Extensions.FileProviders;
     using Moq;
     using System;
+    using System.Buffers;
     using System.IO;
     using System.Text;
     using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Furly.Extensions.Rpc
                 Assert.Equal("method", method.String);
                 Assert.Empty(h);
                 Assert.Equal(0, r.Length);
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(res, result);
         }
@@ -48,7 +49,7 @@ namespace Furly.Extensions.Rpc
                 Assert.Equal("HTTP/1.1", method.ProtocolVersion);
                 Assert.Empty(h);
                 Assert.Equal(0, r.Length);
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(res, result);
         }
@@ -82,8 +83,8 @@ Content-Type: application/json
                 Assert.Equal("method", method.String);
                 Assert.Equal("application/json", h["Content-Type"]);
                 Assert.Equal(15, r.Length);
-                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty), null, provider.Object, default);
             Assert.Equal(res, result);
         }
@@ -108,8 +109,8 @@ Content-Type: application/json
                 Assert.Equal("method", method.String);
                 Assert.Equal("application/json", h["Content-Type"]);
                 Assert.Equal(15, r.Length);
-                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(res, result);
         }
@@ -131,8 +132,8 @@ Content-Type: application/json
                 Assert.Equal("method", method.String);
                 Assert.Equal("application/json", h["Content-Type"]);
                 Assert.Equal(15, r.Length);
-                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(string.Empty, result);
         }
@@ -173,7 +174,7 @@ GET second
             {
                 Assert.Equal(methods[counter], method.String);
                 counter++;
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(3, counter);
             Assert.Equal(res, result);
@@ -203,7 +204,7 @@ GET second
             {
                 Assert.Equal("add", method.String);
                 counter++;
-                return Task.FromResult((401, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((401, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(1, counter);
             Assert.Equal("GET second" + Environment.NewLine, result);
@@ -241,7 +242,7 @@ second
             {
                 Assert.Equal(methods[counter], method.String);
                 counter++;
-                return Task.FromResult((401, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((401, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(2, counter);
             Assert.Equal(res, result);
@@ -274,7 +275,7 @@ GET second
             {
                 Assert.Equal(methods[counter], method.String);
                 counter++;
-                return Task.FromResult((401, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((401, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(3, counter);
             Assert.Equal("GET second" + Environment.NewLine, result);
@@ -295,7 +296,7 @@ Authorization: Bearer token
                 Assert.Equal("method", method.String);
                 Assert.Equal("application/json", h["Content-Type"]);
                 Assert.Equal("Bearer token", h["Authorization"]);
-                return Task.FromResult((200, ReadOnlyMemory<byte>.Empty));
+                return Task.FromResult((200, ReadOnlySequence<byte>.Empty));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(res, result);
         }
@@ -320,8 +321,8 @@ Authorization: Bearer token
                 Assert.Equal("application/json", h["Content-Type"]);
                 Assert.Equal("Bearer token", h["Authorization"]);
                 Assert.Equal(15, r.Length);
-                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
-                return Task.FromResult((200, (ReadOnlyMemory<byte>)Encoding.UTF8.GetBytes("###")));
+                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r));
+                return Task.FromResult((200, new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes("###"))));
             }, Logging.Log.Console(string.Empty));
             Assert.Equal(res, result);
         }
@@ -339,7 +340,7 @@ Authorization
 """;
             var ex = await Assert.ThrowsAsync<FormatException>(
                 () => DotHttpFileParser.ParseAsync(req, (method, r, h, ct)
-                => Task.FromResult((200, ReadOnlyMemory<byte>.Empty)), Logging.Log.Console(string.Empty)));
+                => Task.FromResult((200, ReadOnlySequence<byte>.Empty)), Logging.Log.Console(string.Empty)));
 
             Assert.Equal("Invalid header (line #4: 'Authorization')", ex.Message);
         }
@@ -356,7 +357,7 @@ Authorization
 """;
             var ex = await Assert.ThrowsAsync<FormatException>(
                 () => DotHttpFileParser.ParseAsync(req, (method, r, h, ct)
-                => Task.FromResult((200, ReadOnlyMemory<byte>.Empty)), Logging.Log.Console(string.Empty)));
+                => Task.FromResult((200, ReadOnlySequence<byte>.Empty)), Logging.Log.Console(string.Empty)));
 
             Assert.Equal("Invalid method format (line #2: 'FOO method')", ex.Message);
         }
@@ -398,8 +399,8 @@ Authorization:Bearer token
                 Assert.Equal("application/json", h["Content-Type"]);
                 Assert.Equal("Bearer token", h["Authorization"]);
                 Assert.Equal(15, r.Length);
-                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r.Span));
-                return Task.FromResult((200, (ReadOnlyMemory<byte>)Encoding.UTF8.GetBytes("{\"a\":\"b\"}")));
+                Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(r));
+                return Task.FromResult((200, new ReadOnlySequence<byte>(Encoding.UTF8.GetBytes("{\"a\":\"b\"}"))));
             }, Logging.Log.Console(string.Empty), null, provider.Object, default);
 
             Assert.Equal(res, result);
@@ -444,7 +445,7 @@ Authorization: Bearer token
                 Assert.Equal("application/binary", h["Content-Type"]);
                 Assert.Equal("Bearer token", h["Authorization"]);
                 Assert.Equal(0, r.Length);
-                return Task.FromResult((200, (ReadOnlyMemory<byte>)guid.ToByteArray()));
+                return Task.FromResult((200, new ReadOnlySequence<byte>(guid.ToByteArray())));
             }, Logging.Log.Console(string.Empty), null, provider.Object, default);
 
             Assert.Equal(res, result);
@@ -464,7 +465,7 @@ Content-Type: application/binary
 """;
             var ex = await Assert.ThrowsAsync<FormatException>(
                 () => DotHttpFileParser.ParseAsync(req, (method, r, h, ct)
-                => Task.FromResult((200, ReadOnlyMemory<byte>.Empty)), Logging.Log.Console(string.Empty)));
+                => Task.FromResult((200, ReadOnlySequence<byte>.Empty)), Logging.Log.Console(string.Empty)));
 
             Assert.Equal("Only json content type supported inline", ex.Message);
         }

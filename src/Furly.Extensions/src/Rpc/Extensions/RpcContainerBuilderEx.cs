@@ -5,10 +5,7 @@
 
 namespace Autofac
 {
-    using Furly.Extensions.Rpc;
-    using Furly.Extensions.Rpc.Runtime;
     using Furly.Extensions.Rpc.Servers;
-    using System;
 
     /// <summary>
     /// Container builder extensions

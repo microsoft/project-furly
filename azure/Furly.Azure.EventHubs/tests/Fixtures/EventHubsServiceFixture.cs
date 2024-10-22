@@ -5,7 +5,6 @@
 
 namespace Furly.Azure.EventHubs.Tests.Fixtures
 {
-    using Furly.Azure.EventHubs.Runtime;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Runtime;
     using Furly.Extensions.Messaging;
@@ -13,7 +12,6 @@ namespace Furly.Azure.EventHubs.Tests.Fixtures
     using Autofac;
     using Microsoft.Extensions.Configuration;
     using System;
-    using System.Threading;
     using Xunit;
 
     [CollectionDefinition(Name)]

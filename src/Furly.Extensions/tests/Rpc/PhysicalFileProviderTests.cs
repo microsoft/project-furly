@@ -6,9 +6,7 @@
 namespace Furly.Extensions.Rpc
 {
     using Microsoft.Extensions.FileProviders;
-    using System;
     using System.IO;
-    using System.Reflection.Metadata;
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Categories;

@@ -10,6 +10,7 @@ namespace Furly.Tunnel.Protocol
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -55,14 +56,24 @@ namespace Furly.Tunnel.Protocol
         }
 
         /// <inheritdoc/>
-        public ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method,
-            ReadOnlyMemory<byte> payload, string contentType, CancellationToken ct)
+        public ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+            ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
         {
             if (_calltable.TryGetValue(method.ToUpperInvariant(), out var invoker))
             {
-                return invoker.InvokeAsync(payload, contentType, this, ct);
+                return InvokeAsyncCore(payload, this, invoker, contentType, ct);
             }
             return Delegate.InvokeAsync(method, payload, contentType, ct);
+
+            static async ValueTask<ReadOnlySequence<byte>> InvokeAsyncCore(
+                ReadOnlySequence<byte> payload, ChunkMethodServer server,
+                IMethodInvoker invoker, string contentType, CancellationToken ct)
+            {
+                var result = await invoker.InvokeAsync(payload.IsSingleSegment ?
+                    payload.First : payload.ToArray(), contentType, server,
+                    ct).ConfigureAwait(false);
+                return new ReadOnlySequence<byte>(result);
+            }
         }
 
         /// <inheritdoc/>
@@ -139,8 +150,8 @@ namespace Furly.Tunnel.Protocol
             }
 
             /// <inheritdoc/>
-            public ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method,
-                ReadOnlyMemory<byte> payload, string contentType, CancellationToken ct)
+            public ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+                ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
             {
                 throw new NotSupportedException($"{method} invoker not registered");
             }

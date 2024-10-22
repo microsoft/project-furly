@@ -25,7 +25,7 @@ namespace Furly.Azure.EventHubs.Clients
         /// <param name="options"></param>
         /// <param name="logger"></param>
         public SchemaGroup(IOptions<SchemaRegistryOptions> options,
-            ILogger<SchemaGroup> logger) : this (options.Value, logger)
+            ILogger<SchemaGroup> logger) : this(options.Value, logger)
         {
         }
 

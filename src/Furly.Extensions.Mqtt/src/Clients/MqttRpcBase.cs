@@ -17,6 +17,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using MQTTnet.Protocol;
     using Nito.Disposables;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Globalization;
@@ -92,8 +93,8 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
-            ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout = null,
+        public async ValueTask<ReadOnlySequence<byte>> CallAsync(string target, string method,
+            ReadOnlySequence<byte> payload, string contentType, TimeSpan? timeout = null,
             CancellationToken ct = default)
         {
             var callTimeout = timeout ??
@@ -207,8 +208,8 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <returns></returns>
         /// <exception cref="MethodCallException"></exception>
         /// <exception cref="MethodCallStatusException"></exception>
-        private async ValueTask<ReadOnlyMemory<byte>> CallInternalAsync(string target, string method,
-            ReadOnlyMemory<byte> buffer, string contentType, CancellationToken ct = default)
+        private async ValueTask<ReadOnlySequence<byte>> CallInternalAsync(string target, string method,
+            ReadOnlySequence<byte> buffer, string contentType, CancellationToken ct = default)
         {
             var tcs = new TaskCompletionSource<(string, MqttApplicationMessage)>();
             ct.Register(() => tcs.TrySetCanceled());
@@ -261,9 +262,10 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 if (status != 200)
                 {
-                    MethodCallStatusException.Throw(message.PayloadSegment, _serializer, status);
+                    MethodCallStatusException.Throw(message.Payload.ToArray(),
+                        _serializer, status);
                 }
-                return message.PayloadSegment;
+                return message.Payload;
             }
             finally
             {
@@ -287,7 +289,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="ct"></param>
         /// <returns></returns>
         private async Task PublishAsync(string topic, string? responseTopic,
-            ReadOnlyMemory<byte> payload = default, string? contentType = null,
+            ReadOnlySequence<byte> payload = default, string? contentType = null,
             IReadOnlyList<MqttUserProperty>? properties = null, byte[]? correlationData = null,
             CancellationToken ct = default)
         {
@@ -295,7 +297,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 Topic = topic,
                 ResponseTopic = responseTopic,
-                PayloadSegment = payload.ToArray(),
+                Payload = payload,
                 UserProperties = _options.Value.Protocol == MqttVersion.v311
                     ? null : properties?.ToList(),
                 ContentType = _options.Value.Protocol == MqttVersion.v311
@@ -390,10 +392,10 @@ namespace Furly.Extensions.Mqtt.Clients
         private async Task InvokeAsync(MqttApplicationMessage message, bool processingFailed,
             int reasonCode, Guid requestId, string method, string? topicRoot, CancellationToken ct)
         {
-            var payload = ReadOnlyMemory<byte>.Empty;
+            var payload = ReadOnlySequence<byte>.Empty;
             if (!processingFailed)
             {
-                (payload, reasonCode) = await InvokeAsync(method, message.PayloadSegment,
+                (payload, reasonCode) = await InvokeAsync(method, message.Payload,
                     message.ContentType ?? ContentMimeType.Json,
                     ct).ConfigureAwait(false);
             }
@@ -427,15 +429,15 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="contentType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<(ReadOnlyMemory<byte>, int)> InvokeAsync(string method,
-            ReadOnlyMemory<byte> payload, string contentType, CancellationToken ct)
+        private async Task<(ReadOnlySequence<byte>, int)> InvokeAsync(string method,
+            ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
         {
             foreach (var (server, _) in _handlers.Values)
             {
                 try
                 {
                     var result = await server.InvokeAsync(method,
-                        payload.ToArray(), contentType, ct).ConfigureAwait(false);
+                        payload, contentType, ct).ConfigureAwait(false);
                     if (result.Length > MaxMethodPayloadSizeInBytes)
                     {
                         _logger.LogError("Result (Payload too large => {Length}",
@@ -446,8 +448,8 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (MethodCallStatusException mex)
                 {
-                    payload = mex.Serialize(_serializer);
-                    return (payload.Length > MaxMethodPayloadSizeInBytes ? null :
+                    payload = new ReadOnlySequence<byte>(mex.Serialize(_serializer));
+                    return (payload.Length > MaxMethodPayloadSizeInBytes ? default :
                         payload, mex.Details.Status ?? 500);
                 }
                 catch (NotSupportedException)
@@ -547,7 +549,7 @@ namespace Furly.Extensions.Mqtt.Clients
             private readonly CancellationTokenSource _cts;
         }
 
-        private static readonly ReadOnlyMemory<byte> kEmptyPayload = new byte[] { 0 };
+        private static readonly ReadOnlySequence<byte> kEmptyPayload = new(new byte[] { 0 });
         private const string kResPath = "res";
         private const string kRequestIdKey = "?$rid=";
         private const string kStatusCodeKey = "StatusCode";

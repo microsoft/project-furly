@@ -15,6 +15,7 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Diagnostics;
     using System.Text;
     using System.Threading;
@@ -52,8 +53,9 @@ namespace Furly.Azure.IoT.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
-            ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
+        public async ValueTask<ReadOnlySequence<byte>> CallAsync(string target, string method,
+            ReadOnlySequence<byte> payload, string contentType, TimeSpan? timeout,
+            CancellationToken ct)
         {
             if (!HubResource.Parse(target, out _, out var deviceId, out var moduleId, out var error))
             {
@@ -70,11 +72,15 @@ namespace Furly.Azure.IoT.Services
                 {
                     if (contentType == ContentMimeType.Json)
                     {
-                        methodInfo.SetPayloadJson(Encoding.UTF8.GetString(payload.Span));
+                        methodInfo.SetPayloadJson(Encoding.UTF8.GetString(payload));
+                    }
+                    else if (payload.IsSingleSegment)
+                    {
+                        methodInfo.SetPayloadJson(Convert.ToBase64String(payload.FirstSpan));
                     }
                     else
                     {
-                        methodInfo.SetPayloadJson(Convert.ToBase64String(payload.Span));
+                        methodInfo.SetPayloadJson(Convert.ToBase64String(payload.ToArray()));
                     }
                 }
                 var client = await _client.ConfigureAwait(false);
@@ -94,7 +100,7 @@ namespace Furly.Azure.IoT.Services
                 }
                 _logger.LogDebug("Call {Method} on {Device} ({Module}) took {Elapsed}... ",
                    method, deviceId, moduleId, sw.Elapsed);
-                return GetPayload(contentType, resultPayload);
+                return new ReadOnlySequence<byte>(GetPayload(contentType, resultPayload));
             }
             catch (Exception e) when (e is not MethodCallStatusException)
             {

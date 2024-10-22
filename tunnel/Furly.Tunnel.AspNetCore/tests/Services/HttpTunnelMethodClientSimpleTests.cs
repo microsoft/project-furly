@@ -36,7 +36,7 @@ namespace Furly.Tunnel.AspNetCore.Tests.Services
                 Input = "this is a test"
             };
             var result = await server.InvokeAsync("v2/path/test/1245",
-                serializer.SerializeToMemory(expected).ToArray(),
+                serializer.SerializeToReadOnlySequence(expected),
                 null!);
 
             var response = serializer.Deserialize<TestResponseModel>(result);
@@ -57,7 +57,7 @@ namespace Furly.Tunnel.AspNetCore.Tests.Services
                 Input = null
             };
             var result = await server.InvokeAsync("v2/path/test/hahahaha",
-                serializer.SerializeToMemory(expected).ToArray(),
+                serializer.SerializeToReadOnlySequence(expected),
                 null!);
 
             var response = serializer.Deserialize<TestResponseModel>(result);
@@ -79,11 +79,11 @@ namespace Furly.Tunnel.AspNetCore.Tests.Services
 
             await Assert.ThrowsAsync<MethodCallStatusException>(
                 () => server.InvokeAsync("v2/path/test",
-                serializer.SerializeToMemory(expected).ToArray(),
+                serializer.SerializeToReadOnlySequence(expected),
                     null!).AsTask());
 
             await Assert.ThrowsAsync<MethodCallStatusException>(
-                () => server.InvokeAsync("v2/path/test", null!,
+                () => server.InvokeAsync("v2/path/test", default,
                     null!).AsTask());
         }
     }

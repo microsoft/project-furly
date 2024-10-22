@@ -6,16 +6,10 @@
 namespace Furly.Tunnel.Exceptions.Tests
 {
     using Furly.Exceptions;
-    using Furly.Extensions.Serializers;
-    using Furly.Extensions.Serializers.Json;
-    using Autofac;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using System;
-    using System.Linq;
-    using System.Threading.Tasks;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class ExceptionSummarizationTests
     {

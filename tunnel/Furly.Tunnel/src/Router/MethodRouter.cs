@@ -5,14 +5,15 @@
 
 namespace Furly.Tunnel.Router.Services
 {
-    using Furly.Extensions.Rpc;
-    using Furly.Extensions.Serializers;
     using Furly.Tunnel.Exceptions;
     using Furly.Tunnel.Protocol;
+    using Furly.Extensions.Rpc;
+    using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Diagnostics.ExceptionSummarization;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
@@ -89,8 +90,8 @@ namespace Furly.Tunnel.Router.Services
         }
 
         /// <inheritdoc/>
-        public ValueTask<ReadOnlyMemory<byte>> InvokeAsync(string method,
-            ReadOnlyMemory<byte> payload, string contentType, CancellationToken ct)
+        public ValueTask<ReadOnlySequence<byte>> InvokeAsync(string method,
+            ReadOnlySequence<byte> payload, string contentType, CancellationToken ct)
         {
             return _chunks.InvokeAsync(method, payload, contentType, ct);
         }

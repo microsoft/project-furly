@@ -13,6 +13,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
@@ -193,7 +194,8 @@ namespace Furly.Azure.IoT.Edge.Services
                 try
                 {
                     var result = await Server.InvokeAsync(request.Name,
-                        request.Data, ContentMimeType.Json, ct).ConfigureAwait(false);
+                        new ReadOnlySequence<byte>(request.Data), ContentMimeType.Json,
+                        ct).ConfigureAwait(false);
                     if (result.Length > kMaxMessageSize)
                     {
                         _outer._logger.LogError("Result (Payload too large => {Length}",
@@ -215,8 +217,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
                 catch (Exception)
                 {
-                    return new MethodResponse(
-                        (int)HttpStatusCode.MethodNotAllowed);
+                    return new MethodResponse((int)HttpStatusCode.MethodNotAllowed);
                 }
             }
 

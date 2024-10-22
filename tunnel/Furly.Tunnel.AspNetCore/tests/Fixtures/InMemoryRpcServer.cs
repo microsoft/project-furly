@@ -8,6 +8,7 @@ namespace Furly.Tunnel.AspNetCore.Tests
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -47,8 +48,8 @@ namespace Furly.Tunnel.AspNetCore.Tests
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
-            ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
+        public async ValueTask<ReadOnlySequence<byte>> CallAsync(string target, string method,
+            ReadOnlySequence<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
         {
             if (_server == null)
             {

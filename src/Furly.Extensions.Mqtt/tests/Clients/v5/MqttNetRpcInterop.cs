@@ -8,7 +8,6 @@ namespace Furly.Extensions.Mqtt.Clients.v5
     using AutoFixture;
     using FluentAssertions;
     using MQTTnet;
-    using MQTTnet.Client;
     using MQTTnet.Extensions.Rpc;
     using System;
     using System.Linq;
@@ -133,14 +132,14 @@ namespace Furly.Extensions.Mqtt.Clients.v5
 
         private static IMqttRpcClient CreateRpcClient(IMqttClient mqttClient)
         {
-            var mqttFactory = new MqttFactory();
+            var mqttFactory = new MqttClientFactory();
             return mqttFactory.CreateMqttRpcClient(mqttClient,
                 new MqttRpcClientOptionsBuilder().WithTopicGenerationStrategy(new PublisherTopicGenerationStrategy()).Build());
         }
 
         private static async Task<IMqttClient> CreateMqttClientAsync()
         {
-            var mqttFactory = new MqttFactory();
+            var mqttFactory = new MqttClientFactory();
             var mqttClient = mqttFactory.CreateMqttClient();
             var mqttClientOptions = new MqttClientOptionsBuilder()
                 .WithTcpServer("localhost", 1883)

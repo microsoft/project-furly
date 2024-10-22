@@ -9,13 +9,13 @@ namespace Furly.Extensions.Rpc.Servers
     using Microsoft.Extensions.FileProviders;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Furly.Extensions.Rpc.Servers.DotHttpFileParser;
 
     /// <summary>
     /// Callback
@@ -25,8 +25,8 @@ namespace Furly.Extensions.Rpc.Servers
     /// <param name="headers"></param>
     /// <param name="ct"></param>
     /// <returns></returns>
-    internal delegate Task<(int status, ReadOnlyMemory<byte> response)> Execute(
-        Method method, ReadOnlyMemory<byte> request, Dictionary<string, string> headers,
+    internal delegate Task<(int status, ReadOnlySequence<byte> response)> Execute(
+        Method method, ReadOnlySequence<byte> request, Dictionary<string, string> headers,
         CancellationToken ct);
 
     /// <summary>
@@ -458,7 +458,8 @@ namespace Furly.Extensions.Rpc.Servers
                     cts.CancelAfter(timeout);
                 }
 
-                var (status, result) = await _execute(_method, payload, _headers,
+                var (status, result) = await _execute(_method,
+                    new ReadOnlySequence<byte>(payload), _headers,
                     cts.Token).ConfigureAwait(false);
 
                 if (retries != 0)
@@ -472,11 +473,11 @@ namespace Furly.Extensions.Rpc.Servers
 
                 if (!string.IsNullOrEmpty(_output))
                 {
-                    await WriteFileAsync(_output, _append, result, ct).ConfigureAwait(false);
+                    await WriteFileAsync(_output, _append, result.ToArray(), ct).ConfigureAwait(false);
                 }
                 else if (jsonPayload && result.Length > 0)
                 {
-                    WriteLine(Encoding.UTF8.GetString(result.Span));
+                    WriteLine(Encoding.UTF8.GetString(result.ToArray()));
                     WriteLine();
                 }
 

@@ -11,6 +11,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Furly.Extensions.Serializers;
     using Microsoft.Azure.Devices.Client;
     using System;
+    using System.Buffers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -37,8 +38,8 @@ namespace Furly.Azure.IoT.Edge.Services
         }
 
         /// <inheritdoc/>
-        public async ValueTask<ReadOnlyMemory<byte>> CallAsync(string target, string method,
-            ReadOnlyMemory<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
+        public async ValueTask<ReadOnlySequence<byte>> CallAsync(string target, string method,
+            ReadOnlySequence<byte> payload, string contentType, TimeSpan? timeout, CancellationToken ct)
         {
             if (!HubResource.Parse(target, out _, out var deviceId,
                 out var moduleId, out var error))
@@ -62,7 +63,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 MethodCallStatusException.Throw(response.Result.AsMemory(),
                     _serializer, response.Status);
             }
-            return response.Result;
+            return new ReadOnlySequence<byte>(response.Result);
         }
 
         private readonly ISerializer _serializer;

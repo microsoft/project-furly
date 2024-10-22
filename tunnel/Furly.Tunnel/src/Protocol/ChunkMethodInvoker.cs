@@ -13,6 +13,7 @@ namespace Furly.Tunnel.Protocol
     using Furly.Extensions.Serializers;
     using Microsoft.Extensions.Logging;
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -202,7 +203,8 @@ namespace Furly.Tunnel.Protocol
                     try
                     {
                         // Process
-                        var result = await handler.InvokeAsync(_method, _payload.Unzip(),
+                        var result = await handler.InvokeAsync(_method,
+                            new ReadOnlySequence<byte>(_payload.Unzip()),
                             _contentType, ct).ConfigureAwait(false);
                         // Set response payload
                         _payload = result.ToArray().Zip();

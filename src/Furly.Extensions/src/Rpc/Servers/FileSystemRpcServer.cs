@@ -5,16 +5,17 @@
 
 namespace Furly.Extensions.Rpc.Servers
 {
-    using Furly.Exceptions;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Rpc.Runtime;
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage;
+    using Furly.Exceptions;
     using Microsoft.Extensions.FileProviders;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Microsoft.Extensions.Primitives;
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -62,7 +63,7 @@ namespace Furly.Extensions.Rpc.Servers
             var responsePath = options.Value.ResponseFilePath ??
                 Path.Combine(Environment.CurrentDirectory, "rpc.resp");
             _responseFile = Path.GetFileName(responsePath);
-            _responsePath= Path.GetDirectoryName(responsePath)
+            _responsePath = Path.GetDirectoryName(responsePath)
                 ?? Environment.CurrentDirectory;
             _responseProvider = fileprovider.Create(_responsePath);
         }
@@ -260,8 +261,8 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="headers"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task<(int, ReadOnlyMemory<byte>)> InvokeAsync(Method method,
-            ReadOnlyMemory<byte> request, Dictionary<string, string> headers,
+        private async Task<(int, ReadOnlySequence<byte>)> InvokeAsync(Method method,
+            ReadOnlySequence<byte> request, Dictionary<string, string> headers,
             CancellationToken ct)
         {
             if (method.Uri != null)
@@ -284,7 +285,8 @@ namespace Furly.Extensions.Rpc.Servers
                 }
                 catch (MethodCallStatusException mex)
                 {
-                    return (mex.Details.Status ?? 500, mex.Serialize(_serializer));
+                    return (mex.Details.Status ?? 500,
+                        new ReadOnlySequence<byte>(mex.Serialize(_serializer)));
                 }
                 catch (NotSupportedException)
                 {
