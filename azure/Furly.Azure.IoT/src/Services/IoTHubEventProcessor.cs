@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Services
     using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Utils;
+    using global::Azure.Identity;
     using global::Azure.Messaging.EventHubs;
     using global::Azure.Messaging.EventHubs.Consumer;
     using global::Azure.Messaging.EventHubs.Processor;
@@ -49,33 +50,61 @@ namespace Furly.Azure.IoT.Services
             _timeProvider = timeProvider ?? TimeProvider.System;
             _cts = new CancellationTokenSource();
 
-            var storageCs = ProcessOptions(options.Value, service.Value,
-                storage.Value, out var connectionString,
-                out var eventHub, out var consumerGroup, out var connectionOptions);
-            if (string.IsNullOrEmpty(storageCs))
+            var blobUri = ProcessOptions(options.Value, service.Value,
+                storage.Value, out var eventHubCs, out var ns,
+                out var eventHub, out var consumerGroup, out var storageCs,
+                out var connectionOptions);
+            if (blobUri == null)
             {
                 _logger.LogInformation("No storage configured. Using consumer " +
                     "client to read events from all partitions.");
+
                 // Consumer client
-                _client = new EventHubConsumerClient(consumerGroup, connectionString,
-                    eventHub, new EventHubConsumerClientOptions
-                    {
-                        ConnectionOptions = connectionOptions
-                    });
+                var consumerOptions = new EventHubConsumerClientOptions
+                {
+                    ConnectionOptions = connectionOptions
+                };
+                if (eventHubCs != null)
+                {
+                    _client = new EventHubConsumerClient(consumerGroup,
+                        eventHubCs, eventHub, consumerOptions);
+                }
+                else
+                {
+                    _client = new EventHubConsumerClient(consumerGroup,
+                        ns, eventHub,
+                        new DefaultAzureCredential(service.Value.AllowInteractiveLogin),
+                        consumerOptions);
+                }
             }
             else
             {
-                var containerName = "eh" + Encoding.UTF8.GetBytes(eventHub)
-                    .ToSha256Hash()[..32];
-                var storageClient = new BlobContainerClient(storageCs, containerName);
-                storageClient.CreateIfNotExists();
+                var blobClient = storageCs != null ?
+                    new BlobContainerClient(storageCs, blobUri.PathAndQuery) :
+                    new BlobContainerClient(blobUri,
+                        new DefaultAzureCredential(service.Value.AllowInteractiveLogin));
+
+                blobClient.CreateIfNotExists();
+
+                var processorOptions = new EventProcessorClientOptions
+                {
+                    LoadBalancingStrategy = LoadBalancingStrategy.Greedy,
+                    ConnectionOptions = connectionOptions
+                };
+
                 // Processor client
-                _processor = new EventProcessorClient(storageClient, consumerGroup,
-                    connectionString, eventHub, new EventProcessorClientOptions
-                    {
-                        LoadBalancingStrategy = LoadBalancingStrategy.Greedy,
-                        ConnectionOptions = connectionOptions
-                    });
+                if (eventHubCs != null)
+                {
+                    _processor = new EventProcessorClient(blobClient, consumerGroup,
+                        eventHubCs, eventHub, processorOptions);
+                }
+                else
+                {
+                    _processor = new EventProcessorClient(blobClient, consumerGroup,
+                        ns, eventHub,
+                        new DefaultAzureCredential(service.Value.AllowInteractiveLogin),
+                        processorOptions);
+                }
             }
             _task = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,
                 TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
@@ -362,14 +391,17 @@ namespace Furly.Azure.IoT.Services
         /// <param name="service"></param>
         /// <param name="storage"></param>
         /// <param name="cs"></param>
+        /// <param name="ns"></param>
         /// <param name="eventHub"></param>
         /// <param name="consumerGroup"></param>
+        /// <param name="storageCs"></param>
         /// <param name="connectionOptions"></param>
         /// <returns></returns>
         /// <exception cref="InvalidConfigurationException"></exception>
-        private string? ProcessOptions(IoTHubEventProcessorOptions options,
+        private Uri? ProcessOptions(IoTHubEventProcessorOptions options,
             IoTHubServiceOptions service, StorageOptions storage,
-            out string cs, out string eventHub, out string consumerGroup,
+            out string? cs, out string ns, out string eventHub,
+            out string consumerGroup, out string? storageCs,
             out EventHubConnectionOptions connectionOptions)
         {
             if (string.IsNullOrEmpty(service.ConnectionString))
@@ -379,9 +411,7 @@ namespace Furly.Azure.IoT.Services
             }
             if (!ConnectionString.TryParse(service.ConnectionString,
                 out var connectionString) ||
-                connectionString.HubName == null ||
-                connectionString.SharedAccessKeyName == null ||
-                connectionString.SharedAccessKey == null)
+                connectionString.HubName == null)
             {
                 throw new InvalidConfigurationException(
                    "Invalid IoT Hub connection string was configured.");
@@ -398,16 +428,23 @@ namespace Furly.Azure.IoT.Services
             }
             try
             {
-                cs = ConnectionString.CreateEventHubConnectionString(ep,
-                    connectionString.SharedAccessKeyName,
-                    connectionString.SharedAccessKey).ToString();
-
+                ns = ep;
                 eventHub = connectionString.HubName;
                 consumerGroup = string.IsNullOrEmpty(options.ConsumerGroup) ?
                     EventHubConsumerClient.DefaultConsumerGroupName :
                     options.ConsumerGroup;
                 _logger.LogInformation("Using Consumer Group {ConsumerGroup}",
                     consumerGroup);
+
+                // Create connection string otherwise use azure credentials
+                cs = default;
+                if (connectionString.SharedAccessKeyName != null &&
+                    connectionString.SharedAccessKey != null)
+                {
+                    cs = ConnectionString.CreateEventHubConnectionString(ep,
+                        connectionString.SharedAccessKeyName,
+                        connectionString.SharedAccessKey).ToString();
+                }
 
                 connectionOptions = new EventHubConnectionOptions();
                 if (options.UseWebsockets)
@@ -417,16 +454,27 @@ namespace Furly.Azure.IoT.Services
                         EventHubsTransportType.AmqpWebSockets;
                 }
 
+                storageCs = null;
                 var account = storage.AccountName;
-                var key = storage.AccountKey;
-                var suffix = storage.EndpointSuffix ?? string.Empty;
-                if (string.IsNullOrEmpty(account) ||
-                    string.IsNullOrEmpty(key))
+                if (string.IsNullOrEmpty(account))
                 {
                     return null;
                 }
-                return ConnectionString.CreateStorageConnectionString(
-                    account, suffix, key, "https").ToString();
+                var key = storage.AccountKey;
+                var suffix = storage.EndpointSuffix ?? "core.windows.net";
+                if (!string.IsNullOrEmpty(key))
+                {
+                    storageCs = ConnectionString.CreateStorageConnectionString(
+                        account, suffix, key, "https").ToString();
+                }
+                var containerName = "eh" + Encoding.UTF8.GetBytes(eventHub)
+                    .ToSha256Hash()[..32];
+                return new UriBuilder()
+                {
+                    Scheme = "https",
+                    Host = $"{account}.blob.{suffix}",
+                    Path = containerName
+                }.Uri;
             }
             catch (Exception ex)
             {

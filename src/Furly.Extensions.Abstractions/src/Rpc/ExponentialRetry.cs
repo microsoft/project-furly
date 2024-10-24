@@ -41,13 +41,13 @@ namespace Furly.Extensions.Rpc
             }
 
             // Avoid integer overlow and clamp max delay.
-            uint exponent = currentRetryCount + MinExponent;
+            var exponent = currentRetryCount + MinExponent;
             exponent = Math.Min(MaxExponent, exponent);
 
             // 2 to the power of the retry count gives us exponential back-off.
-            double exponentialIntervalMs = Math.Pow(2.0, exponent);
+            var exponentialIntervalMs = Math.Pow(2.0, exponent);
 
-            double clampedWaitMs = Math.Min(exponentialIntervalMs,
+            var clampedWaitMs = Math.Min(exponentialIntervalMs,
                 _maxDelay.TotalMilliseconds);
 
             retryDelay = _useJitter
