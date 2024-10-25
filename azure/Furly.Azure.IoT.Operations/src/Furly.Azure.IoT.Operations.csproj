@@ -5,9 +5,6 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Azure IoT operations support</Description>
-    <RestoreAdditionalProjectSources>
-      https://pkgs.dev.azure.com/azure-iot-sdks/iot-operations/_packaging/preview/nuget/v3/index.json
-    </RestoreAdditionalProjectSources>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Iot.Operations.Services" Version="0.5.0" />
