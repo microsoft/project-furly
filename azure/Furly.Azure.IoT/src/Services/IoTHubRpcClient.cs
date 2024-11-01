@@ -37,11 +37,13 @@ namespace Furly.Azure.IoT.Services
         /// </summary>
         /// <param name="options"></param>
         /// <param name="serializer"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
-        public IoTHubRpcClient(IOptions<IoTHubServiceOptions> options,
-            ISerializer serializer, ILogger<IoTHubRpcClient> logger)
+        public IoTHubRpcClient(IOptions<IoTHubServiceOptions> options, ISerializer serializer,
+            ICredentialProvider credential, ILogger<IoTHubRpcClient> logger)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _credential = credential;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
                 !ConnectionString.TryParse(options.Value.ConnectionString, out var cs) ||
@@ -132,31 +134,37 @@ namespace Furly.Azure.IoT.Services
         /// <param name="connectionString"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
+        private async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
             IoTHubServiceOptions options)
         {
             var client = CreateServiceClient(connectionString, options);
             await client.OpenAsync().ConfigureAwait(false);
             return client;
+        }
 
-            static ServiceClient CreateServiceClient(ConnectionString connectionString,
-               IoTHubServiceOptions options)
+        /// <summary>
+        /// Create service client
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private ServiceClient CreateServiceClient(ConnectionString connectionString,
+            IoTHubServiceOptions options)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
+            if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
+                string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
             {
-                Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
-                if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
-                    string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
-                {
-                    return ServiceClient.Create(connectionString.HostName,
-                        new DefaultAzureCredential(options.AllowInteractiveLogin));
-                }
-                else
-                {
-                    return ServiceClient.CreateFromConnectionString(connectionString.ToString());
-                }
+                return ServiceClient.Create(connectionString.HostName, _credential.Credential);
+            }
+            else
+            {
+                return ServiceClient.CreateFromConnectionString(connectionString.ToString());
             }
         }
 
         private readonly ISerializer _serializer;
+        private readonly ICredentialProvider _credential;
         private readonly Task<ServiceClient> _client;
         private readonly ILogger _logger;
         private const int kDefaultMethodTimeout = 300; // 5 minutes - default is 30 seconds

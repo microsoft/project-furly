@@ -38,10 +38,12 @@ namespace Furly.Azure.EventHubs.Clients
         /// Create client
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
         /// <param name="registry"></param>
         public EventHubsClient(IOptions<EventHubsClientOptions> options,
-            ILogger<EventHubsClient> logger, ISchemaRegistry? registry = null)
+            ICredentialProvider credential, ILogger<EventHubsClient> logger,
+            ISchemaRegistry? registry = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -64,7 +66,8 @@ namespace Furly.Azure.EventHubs.Clients
                 options.Value.SchemaRegistry.FullyQualifiedNamespace =
                     cs.Endpoint.Replace("sb://", string.Empty, StringComparison.Ordinal);
 
-                _schemaRegistry = new SchemaGroup(options.Value.SchemaRegistry, _logger);
+                _schemaRegistry = new SchemaGroup(options.Value.SchemaRegistry,
+                    credential, _logger);
             }
         }
 

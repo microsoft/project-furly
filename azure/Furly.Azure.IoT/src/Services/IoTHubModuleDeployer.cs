@@ -28,13 +28,15 @@ namespace Furly.Azure.IoT.Services
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="deployments"></param>
+        /// <param name="credentials"></param>
         public IoTHubModuleDeployer(IOptions<IoTHubServiceOptions> options,
             IJsonSerializer serializer, ILogger<IoTHubModuleDeployer> logger,
-            IEnumerable<IIoTEdgeDeployment> deployments)
+            IEnumerable<IIoTEdgeDeployment> deployments, ICredentialProvider credentials)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _layers = deployments ?? throw new ArgumentNullException(nameof(deployments));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _credentials = credentials;
 
             if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
                 !ConnectionString.TryParse(options.Value.ConnectionString, out var cs) ||
@@ -118,15 +120,14 @@ namespace Furly.Azure.IoT.Services
         /// <param name="connectionString"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        private static RegistryManager CreateRegistryManager(ConnectionString connectionString,
+        private RegistryManager CreateRegistryManager(ConnectionString connectionString,
             IoTHubServiceOptions options)
         {
             Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
             if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
                 string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
             {
-                return RegistryManager.Create(connectionString.HostName,
-                    new DefaultAzureCredential(options.AllowInteractiveLogin));
+                return RegistryManager.Create(connectionString.HostName, _credentials.Credential);
             }
             else
             {
@@ -298,6 +299,7 @@ namespace Furly.Azure.IoT.Services
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IEnumerable<IIoTEdgeDeployment> _layers;
+        private readonly ICredentialProvider _credentials;
         private readonly Task _deployment;
     }
 }

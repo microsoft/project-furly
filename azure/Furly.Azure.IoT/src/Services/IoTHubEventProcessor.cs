@@ -39,11 +39,13 @@ namespace Furly.Azure.IoT.Services
         /// <param name="options"></param>
         /// <param name="service"></param>
         /// <param name="storage"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
         /// <param name="timeProvider"></param>
         public IoTHubEventProcessor(IOptions<IoTHubEventProcessorOptions> options,
             IOptions<IoTHubServiceOptions> service, IOptions<StorageOptions> storage,
-            ILogger<IoTHubEventProcessor> logger, TimeProvider? timeProvider = null)
+            ICredentialProvider credential, ILogger<IoTHubEventProcessor> logger,
+            TimeProvider? timeProvider = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _options = options ?? throw new ArgumentNullException(nameof(options));
@@ -72,17 +74,14 @@ namespace Furly.Azure.IoT.Services
                 else
                 {
                     _client = new EventHubConsumerClient(consumerGroup,
-                        ns, eventHub,
-                        new DefaultAzureCredential(service.Value.AllowInteractiveLogin),
-                        consumerOptions);
+                        ns, eventHub, credential.Credential, consumerOptions);
                 }
             }
             else
             {
                 var blobClient = storageCs != null ?
                     new BlobContainerClient(storageCs, blobUri.PathAndQuery) :
-                    new BlobContainerClient(blobUri,
-                        new DefaultAzureCredential(service.Value.AllowInteractiveLogin));
+                    new BlobContainerClient(blobUri, credential.Credential);
 
                 blobClient.CreateIfNotExists();
 
@@ -101,9 +100,7 @@ namespace Furly.Azure.IoT.Services
                 else
                 {
                     _processor = new EventProcessorClient(blobClient, consumerGroup,
-                        ns, eventHub,
-                        new DefaultAzureCredential(service.Value.AllowInteractiveLogin),
-                        processorOptions);
+                        ns, eventHub, credential.Credential, processorOptions);
                 }
             }
             _task = Task.Factory.StartNew(() => RunAsync(_cts.Token), _cts.Token,

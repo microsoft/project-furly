@@ -41,9 +41,11 @@ namespace Furly.Azure.IoT.Services
         /// </summary>
         /// <param name="options"></param>
         /// <param name="device"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
         public IoTHubEventClient(IOptions<IoTHubServiceOptions> options,
-            IOptions<IoTHubDeviceOptions> device, ILogger<IoTHubEventClient> logger)
+            IOptions<IoTHubDeviceOptions> device, ICredentialProvider credential,
+            ILogger<IoTHubEventClient> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
@@ -57,7 +59,7 @@ namespace Furly.Azure.IoT.Services
                     "IoT Hub Device id string not configured.");
             _moduleId = device.Value.ModuleId;
             Identity = HubResource.Format(cs.HostName, _deviceId, _moduleId);
-            _client = OpenAsync(cs, options.Value);
+            _client = OpenAsync(cs, options.Value, credential);
         }
 
         /// <inheritdoc/>
@@ -77,23 +79,23 @@ namespace Furly.Azure.IoT.Services
         /// </summary>
         /// <param name="connectionString"></param>
         /// <param name="options"></param>
+        /// <param name="credential"></param>
         /// <returns></returns>
         internal static async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
-            IoTHubServiceOptions options)
+            IoTHubServiceOptions options, ICredentialProvider credential)
         {
             var client = CreateServiceClient(connectionString, options);
             await client.OpenAsync().ConfigureAwait(false);
             return client;
 
-            static ServiceClient CreateServiceClient(ConnectionString connectionString,
-               IoTHubServiceOptions options)
+            ServiceClient CreateServiceClient(ConnectionString connectionString,
+                IoTHubServiceOptions options)
             {
                 Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
                 if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
                     string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
                 {
-                    return ServiceClient.Create(connectionString.HostName,
-                        new DefaultAzureCredential(options.AllowInteractiveLogin));
+                    return ServiceClient.Create(connectionString.HostName, credential.Credential);
                 }
                 else
                 {
@@ -101,7 +103,6 @@ namespace Furly.Azure.IoT.Services
                 }
             }
         }
-
         internal sealed class IoTHubEvent : IEvent
         {
             /// <summary>

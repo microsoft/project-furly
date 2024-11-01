@@ -20,6 +20,8 @@ namespace Autofac
         public static ContainerBuilder AddHubEventClient(this ContainerBuilder builder)
         {
             // Client
+            builder.AddOptions();
+            builder.AddDefaultAzureCredentials();
             builder.RegisterType<EventHubsClient>()
                 .AsImplementedInterfaces();
 

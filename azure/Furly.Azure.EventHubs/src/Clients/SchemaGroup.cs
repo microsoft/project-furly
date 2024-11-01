@@ -23,9 +23,11 @@ namespace Furly.Azure.EventHubs.Clients
         /// Create client
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
         public SchemaGroup(IOptions<SchemaRegistryOptions> options,
-            ILogger<SchemaGroup> logger) : this(options.Value, logger)
+            ICredentialProvider credential, ILogger<SchemaGroup> logger)
+            : this(options.Value, credential, logger)
         {
         }
 
@@ -33,14 +35,17 @@ namespace Furly.Azure.EventHubs.Clients
         /// Create client
         /// </summary>
         /// <param name="options"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
-        internal SchemaGroup(SchemaRegistryOptions options, ILogger logger)
+        internal SchemaGroup(SchemaRegistryOptions options, ICredentialProvider credential,
+            ILogger logger)
         {
+            _credential = credential;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _schemaGroupName = options.SchemaGroupName;
 
             _schemaRegistry = new SchemaRegistryClient(options.FullyQualifiedNamespace,
-                new DefaultAzureCredential(options.AllowInteractiveLogin));
+                credential.Credential);
         }
 
         /// <inheritdoc/>
@@ -56,6 +61,7 @@ namespace Furly.Azure.EventHubs.Clients
         }
 
         private readonly SchemaRegistryClient _schemaRegistry;
+        private readonly ICredentialProvider _credential;
         private readonly ILogger _logger;
         private readonly string _schemaGroupName;
     }

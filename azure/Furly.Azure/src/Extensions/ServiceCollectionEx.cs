@@ -6,10 +6,8 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     using Microsoft.Extensions.Options;
-    using Furly.Azure.EventHubs;
-    using Furly.Azure.EventHubs.Clients;
-    using Furly.Azure.EventHubs.Runtime;
     using Furly.Extensions.Messaging;
+    using Furly.Azure;
 
     /// <summary>
     /// DI extension
@@ -20,13 +18,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Add event client
         /// </summary>
         /// <param name="services"></param>
-        public static IServiceCollection AddEventClient(this IServiceCollection services)
+        public static IServiceCollection AddDefaultAzureCredentials(this IServiceCollection services)
         {
             return services
-                .AddDefaultAzureCredentials()
-                .AddScoped<IEventClient, EventHubsClient>()
+                .AddScoped<ICredentialProvider, DefaultAzureCredentials>()
                 .AddOptions()
-                .AddSingleton<IPostConfigureOptions<EventHubsClientOptions>, EventHubsClientConfig>()
                 ;
         }
     }

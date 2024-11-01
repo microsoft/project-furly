@@ -34,6 +34,8 @@ namespace Autofac
         public static ContainerBuilder AddIoTHubServiceClient(this ContainerBuilder builder)
         {
             // Clients
+            builder.AddOptions();
+            builder.AddDefaultAzureCredentials();
             builder.RegisterType<IoTHubServiceClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceConfig>()
@@ -47,6 +49,8 @@ namespace Autofac
         /// <param name="builder"></param>
         public static ContainerBuilder AddIoTHubModuleDeployer(this ContainerBuilder builder)
         {
+            builder.AddOptions();
+            builder.AddDefaultAzureCredentials();
             builder.RegisterType<IoTHubModuleDeployer>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder;
@@ -59,6 +63,8 @@ namespace Autofac
         public static ContainerBuilder AddIoTHubRpcClient(this ContainerBuilder builder)
         {
             // Clients
+            builder.AddOptions();
+            builder.AddDefaultAzureCredentials();
             builder.RegisterType<IoTHubRpcClient>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceConfig>()
@@ -73,6 +79,8 @@ namespace Autofac
         public static ContainerBuilder AddIoTHubEventSubscriber(this ContainerBuilder builder)
         {
             // Clients
+            builder.AddOptions();
+            builder.AddDefaultAzureCredentials();
             builder.RegisterType<IoTHubEventSubscriber>()
                 .AsImplementedInterfaces();
             // Requires processor
@@ -96,6 +104,9 @@ namespace Autofac
         public static ContainerBuilder AddIoTHubEventClient(this ContainerBuilder builder)
         {
             // Client
+            builder.AddOptions();
+            builder.AddDefaultAzureCredentials();
+
             builder.RegisterType<IoTHubEventClient>()
                 .AsImplementedInterfaces();
 

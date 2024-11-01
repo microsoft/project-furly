@@ -10,6 +10,7 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -30,9 +31,11 @@ namespace Furly.Azure.IoT.Services
         /// </summary>
         /// <param name="options"></param>
         /// <param name="events"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
         public IoTHubEventSubscriber(IOptions<IoTHubServiceOptions> options,
-            IIoTHubEventProcessor events, ILogger<IoTHubEventSubscriber> logger)
+            IIoTHubEventProcessor events, ICredentialProvider credential,
+            ILogger<IoTHubEventSubscriber> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _processor = new Lazy<TelemetryProcessor>(
@@ -42,7 +45,7 @@ namespace Furly.Azure.IoT.Services
                 ConnectionString.TryParse(options.Value.ConnectionString, out var cs) &&
                 !string.IsNullOrEmpty(cs.HostName))
             {
-                _client = IoTHubEventClient.OpenAsync(cs, options.Value);
+                _client = IoTHubEventClient.OpenAsync(cs, options.Value, credential);
             }
             else
             {

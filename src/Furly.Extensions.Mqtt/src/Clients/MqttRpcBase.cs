@@ -26,6 +26,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
+    using Furly.Extensions.Mqtt.Exceptions;
 
     /// <summary>
     /// Mqtt rpc client base
@@ -266,6 +267,10 @@ namespace Furly.Extensions.Mqtt.Clients
                         _serializer, status);
                 }
                 return message.Payload;
+            }
+            catch (ExternalDependencyException ex)
+            {
+                throw new MethodCallStatusException("Method Call failed.", ex);
             }
             finally
             {

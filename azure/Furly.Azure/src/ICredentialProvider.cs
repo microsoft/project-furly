@@ -3,16 +3,19 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Furly.Azure.IoT
+namespace Furly.Azure
 {
+    using global::Azure.Core;
+
     /// <summary>
-    /// Configuration for service
+    /// Provides credentials to use to autenticate to
+    /// Azure services
     /// </summary>
-    public class IoTHubServiceOptions
+    public interface ICredentialProvider
     {
         /// <summary>
-        /// Connection string
+        /// Credential provider
         /// </summary>
-        public string? ConnectionString { get; set; }
+        TokenCredential Credential { get; }
     }
 }

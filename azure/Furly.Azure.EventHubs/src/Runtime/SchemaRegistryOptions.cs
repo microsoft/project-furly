@@ -20,10 +20,5 @@ namespace Furly.Azure.EventHubs
         /// Set to null to disable publishing schemas
         /// </summary>
         public required string SchemaGroupName { get; set; }
-
-        /// <summary>
-        /// Allow interactive login
-        /// </summary>
-        public bool AllowInteractiveLogin { get; set; }
     }
 }

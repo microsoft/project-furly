@@ -39,6 +39,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddIoTHubServiceClient(this IServiceCollection services)
         {
             return services
+                .AddDefaultAzureCredentials()
                 .AddScoped<IIoTHubTwinServices, IoTHubServiceClient>()
                 .AddOptions()
                 .AddSingleton<IPostConfigureOptions<IoTHubServiceOptions>, IoTHubServiceConfig>()
@@ -53,6 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddIoTHubRpcClient(this IServiceCollection services)
         {
             return services
+                .AddDefaultAzureCredentials()
                 .AddScoped<IRpcClient, IoTHubRpcClient>()
                 .AddOptions()
                 .AddSingleton<IPostConfigureOptions<IoTHubServiceOptions>, IoTHubServiceConfig>()
@@ -66,6 +68,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddIoTHubEventClient(this IServiceCollection services)
         {
             return services
+                .AddDefaultAzureCredentials()
                 .AddScoped<IEventClient, IoTHubEventClient>()
                 .AddScoped<IProcessIdentity, IoTHubEventClient>()
                 .AddOptions()
@@ -82,6 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddIoTHubEventSubscriber(this IServiceCollection services)
         {
             return services
+                .AddDefaultAzureCredentials()
                 .AddScoped<IEventSubscriber, IoTHubEventSubscriber>()
                 .AddSingleton<IIoTHubEventProcessor, IoTHubEventProcessor>()
                 .AddOptions()

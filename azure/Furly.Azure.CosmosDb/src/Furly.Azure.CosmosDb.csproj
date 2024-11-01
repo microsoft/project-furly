@@ -7,12 +7,10 @@
     <Description>Azure CosmosDB support</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.44.1" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.45.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
-    <ProjectReference Include="..\..\..\src\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
     <ProjectReference Include="..\..\..\src\Furly.Extensions.Newtonsoft\src\Furly.Extensions.Newtonsoft.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -23,6 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddCosmosDbClient(this IServiceCollection services)
         {
             return services
+                .AddDefaultAzureCredentials()
                 .AddLogging()
                 .AddScoped<IDatabaseServer, CosmosDbServiceClient>()
                 //     .AddSingleton<IHealthCheck, CosmosDbServiceClient>()

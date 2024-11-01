@@ -39,7 +39,7 @@
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
-    <PackageReference Include="Roslynator.Analyzers" Version="4.12.8" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.8" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.12.9" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.9" PrivateAssets="All"/>
   </ItemGroup>
 </Project>

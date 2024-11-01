@@ -12,7 +12,4 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Furly.Azure\src\Furly.Azure.csproj" />
-  </ItemGroup>
 </Project>

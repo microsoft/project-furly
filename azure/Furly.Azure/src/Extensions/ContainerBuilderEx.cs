@@ -5,28 +5,23 @@
 
 namespace Autofac
 {
-    using Furly.Azure.CosmosDb.Clients;
-    using Furly.Azure.CosmosDb.Runtime;
+    using Furly.Azure;
 
     /// <summary>
-    /// Injected CouchDb client
+    /// Container builder extensions
     /// </summary>
     public static class ContainerBuilderEx
     {
         /// <summary>
-        /// Add couchdb client
+        /// Add default azure credentials
         /// </summary>
         /// <param name="builder"></param>
-        /// <returns></returns>
-        public static ContainerBuilder AddCosmosDbClient(this ContainerBuilder builder)
+        public static ContainerBuilder AddDefaultAzureCredentials(this ContainerBuilder builder)
         {
-            builder.AddDefaultAzureCredentials();
-            builder.RegisterType<CosmosDbServiceClient>()
-                .AsImplementedInterfaces();
             builder.AddOptions();
-            builder.RegisterType<CosmosDbConfig>()
-                .AsImplementedInterfaces();
-
+            builder.RegisterType<DefaultAzureCredentials>()
+                .AsImplementedInterfaces().InstancePerLifetimeScope()
+                .IfNotRegistered(typeof(ICredentialProvider));
             return builder;
         }
     }

@@ -19,6 +19,7 @@ namespace Furly.Tunnel.Azure.Tests
     using Microsoft.Extensions.Options;
     using System;
     using System.Threading.Tasks;
+    using HubResource = Furly.Azure.IoT.Edge.HubResource;
 
     public sealed class IoTEdgeEventClientFixture
     {

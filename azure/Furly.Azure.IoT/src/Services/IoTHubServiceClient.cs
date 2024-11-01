@@ -39,14 +39,17 @@ namespace Furly.Azure.IoT.Services
         /// </summary>
         /// <param name="options"></param>
         /// <param name="serializer"></param>
+        /// <param name="credential"></param>
         /// <param name="logger"></param>
         public IoTHubServiceClient(IOptions<IoTHubServiceOptions> options,
-            IJsonSerializer serializer, ILogger<IoTHubServiceClient> logger)
+            IJsonSerializer serializer, ICredentialProvider credential,
+            ILogger<IoTHubServiceClient> logger)
         {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
             _serializer = serializer ??
                 throw new ArgumentNullException(nameof(serializer));
+            _credential = credential;
 
             if (string.IsNullOrEmpty(options.Value.ConnectionString) ||
                 !ConnectionString.TryParse(options.Value.ConnectionString, out var cs) ||
@@ -431,21 +434,26 @@ namespace Furly.Azure.IoT.Services
                 _logger.LogError(e, "Creating registry manager failed ");
                 throw e.Translate();
             }
+        }
 
-            static RegistryManager CreateRegistryManager(ConnectionString connectionString,
-               IoTHubServiceOptions options)
+        /// <summary>
+        /// Create registry manager
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private RegistryManager CreateRegistryManager(ConnectionString connectionString,
+            IoTHubServiceOptions options)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
+            if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
+                string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
             {
-                Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
-                if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
-                    string.IsNullOrEmpty(connectionString.SharedAccessKeyName))
-                {
-                    return RegistryManager.Create(connectionString.HostName,
-                        new DefaultAzureCredential(options.AllowInteractiveLogin));
-                }
-                else
-                {
-                    return RegistryManager.CreateFromConnectionString(connectionString.ToString());
-                }
+                return RegistryManager.Create(connectionString.HostName, _credential.Credential);
+            }
+            else
+            {
+                return RegistryManager.CreateFromConnectionString(connectionString.ToString());
             }
         }
 
@@ -594,6 +602,7 @@ namespace Furly.Azure.IoT.Services
 
         private readonly Task<RegistryManager> _registry;
         private readonly IJsonSerializer _serializer;
+        private readonly ICredentialProvider _credential;
         private readonly ILogger _logger;
     }
 }

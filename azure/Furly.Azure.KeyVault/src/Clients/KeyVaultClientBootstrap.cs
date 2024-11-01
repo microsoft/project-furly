@@ -38,17 +38,19 @@ namespace Furly.Azure.KeyVault
             }
 
             var builder = new ContainerBuilder();
+            builder.AddDefaultAzureCredentials();
             builder.AddOptions();
+            builder.Configure<CredentialOptions>(
+                options => options.AllowInteractiveLogin = allowInteractiveLogon);
             builder.Configure<KeyVaultOptions>(
                 options => options.KeyVaultBaseUrl = keyVaultUri);
             builder.RegisterType<KeyVaultConfig>()
                 .AsImplementedInterfaces();
-            builder.Register(_ =>
+            builder.Register(c =>
             {
-                var credential = new DefaultAzureCredential(
-                    includeInteractiveCredentials: allowInteractiveLogon);
+                var provider = c.Resolve<ICredentialProvider>();
                 return new SecretClient(new Uri(keyVaultUri),
-                    credential);
+                    provider.Credential);
             }).AsSelf().AsImplementedInterfaces();
             _container = builder.Build();
 
