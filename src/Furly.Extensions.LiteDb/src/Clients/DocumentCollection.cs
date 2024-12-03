@@ -379,7 +379,7 @@ namespace Furly.Extensions.LiteDb.Clients
             private readonly DocumentCollection _collection;
             private readonly string _continuationToken;
             private readonly Queue<IDocumentInfo<T>> _items;
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
         }
 
         /// <summary>
@@ -733,6 +733,6 @@ namespace Furly.Extensions.LiteDb.Clients
         }
 
         private readonly ILiteDatabase _db;
-        private readonly Dictionary<string, object> _queryStore = new();
+        private readonly Dictionary<string, object> _queryStore = [];
     }
 }

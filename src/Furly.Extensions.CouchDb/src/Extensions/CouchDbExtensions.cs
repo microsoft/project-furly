@@ -87,7 +87,7 @@ namespace System
                 catch (FlurlHttpException ex)
                 {
                     if (ex.InnerException is HttpRequestException hr &&
-                        hr.InnerException is IOException io &&
+                        hr.InnerException is IOException &&
                         attempt < 5)
                     {
                         // Try again

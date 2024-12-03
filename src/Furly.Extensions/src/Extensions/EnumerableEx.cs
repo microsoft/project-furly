@@ -33,7 +33,7 @@ namespace System.Collections.Generic
         public static IEnumerable<(T1, T2)> Zip<T1, T2>(this IEnumerable<T1>? t1,
             IEnumerable<T2> t2, T2 v1)
         {
-            return (t1 ?? Enumerable.Empty<T1>()).Zip(t2.ContinueWith(v1));
+            return (t1 ?? []).Zip(t2.ContinueWith(v1));
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace System.Collections.Generic
         public static IEnumerable<(T1, T2, T3)> Zip<T1, T2, T3>(this IEnumerable<T1>? t1,
             IEnumerable<T2> t2, T2 v2, IEnumerable<T3> t3, T3 v3)
         {
-            return (t1 ?? Enumerable.Empty<T1>()).Zip(t2.ContinueWith(v2), t3.ContinueWith(v3));
+            return (t1 ?? []).Zip(t2.ContinueWith(v2), t3.ContinueWith(v3));
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace System.Collections.Generic
                     }
                 }
             }
-            return result ?? new HashSet<T>();
+            return result ?? [];
         }
     }
 }

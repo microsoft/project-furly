@@ -355,7 +355,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 {
                     return o.Properties().Select(p => p.Name);
                 }
-                return Enumerable.Empty<string>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -365,7 +365,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 {
                     return array.Select(i => new JsonVariantValue(i, _serializer));
                 }
-                return Enumerable.Empty<VariantValue>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -403,7 +403,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             protected override StringBuilder AppendTo(StringBuilder builder)
             {
                 return builder.Append(Token.ToString(Formatting.None,
-                    _serializer.Settings.Converters.ToArray()));
+                    [.. _serializer.Settings.Converters]));
             }
 
             /// <inheritdoc/>
@@ -550,13 +550,13 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                     var props2 = o2.Properties().OrderBy(k => k.Name)
                         .Select(p => p.Value);
                     return props1.SequenceEqual(props2,
-                        Compare.Using<JToken>((x, y) => DeepEquals(x, y)));
+                        Compare.Using<JToken>(DeepEquals));
                 }
                 if (t1 is JContainer c1 && t2 is JContainer c2)
                 {
                     // For all other containers - order is important
                     return c1.Children().SequenceEqual(c2.Children(),
-                        Compare.Using<JToken>((x, y) => DeepEquals(x, y)));
+                        Compare.Using<JToken>(DeepEquals));
                 }
                 if (t1 is JValue v1 && t2 is JValue v2)
                 {
@@ -565,9 +565,9 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                         return true;
                     }
                     var s1 = t1.ToString(Formatting.None,
-                        _serializer.Settings.Converters.ToArray());
+                        [.. _serializer.Settings.Converters]);
                     var s2 = t2.ToString(Formatting.None,
-                        _serializer.Settings.Converters.ToArray());
+                        [.. _serializer.Settings.Converters]);
                     if (s1 == s2)
                     {
                         return true;
@@ -732,7 +732,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             {
                 if (value is IReadOnlyCollection<byte> b)
                 {
-                    writer.WriteValue(b.ToArray());
+                    writer.WriteValue([.. b]);
                     return;
                 }
                 writer.WriteValue(value);
@@ -869,7 +869,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                 switch (value)
                 {
                     case JsonVariantValue json:
-                        json.Token.WriteTo(writer, serializer.Converters.ToArray());
+                        json.Token.WriteTo(writer, [.. serializer.Converters]);
                         break;
                     case VariantValue variant:
                         if (variant.IsNull())

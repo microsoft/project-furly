@@ -122,7 +122,7 @@ namespace Furly.Azure.IoT.Mock.Services
         }
 
         /// <inheritdoc/>
-        internal Dictionary<string, string?> Properties { get; } = new();
+        internal Dictionary<string, string?> Properties { get; } = [];
 
         /// <inheritdoc/>
         public IEvent AddProperty(string name, string? value)
@@ -132,7 +132,7 @@ namespace Furly.Azure.IoT.Mock.Services
         }
 
         /// <inheritdoc/>
-        internal List<ReadOnlySequence<byte>> Buffers { get; } = new();
+        internal List<ReadOnlySequence<byte>> Buffers { get; } = [];
 
         /// <inheritdoc/>
         public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)

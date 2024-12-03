@@ -5,11 +5,7 @@
 
 namespace Furly.Extensions.Metrics
 {
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics.Metrics;
-    using System.Linq;
-    using System.Text;
 
     /// <summary>
     /// Default meter provider
@@ -22,6 +18,6 @@ namespace Furly.Extensions.Metrics
         public static IMeterProvider Default { get; } = new MeterProvider();
 
         /// <inheritdoc/>
-        public Meter Meter => new Meter("Furly", "1.0");
+        public Meter Meter => new("Furly", "1.0");
     }
 }

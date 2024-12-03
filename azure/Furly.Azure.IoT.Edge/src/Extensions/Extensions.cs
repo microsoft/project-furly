@@ -5,8 +5,6 @@
 
 namespace Furly.Azure.IoT.Edge
 {
-    using Furly.Azure;
-
     /// <summary>
     /// Edge extensions
     /// </summary>

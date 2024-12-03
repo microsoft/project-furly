@@ -34,7 +34,7 @@ namespace Furly.Extensions.Configuration
         /// <exception cref="InvalidOperationException"></exception>
         public IOptions<T> ToOptions()
         {
-            var t = Configuration.Get<T?>() ?? (T?)Activator.CreateInstance(typeof(T));
+            var t = Configuration.Get<T?>() ?? Activator.CreateInstance<T>();
             if (t is null)
             {
                 throw new InvalidOperationException(

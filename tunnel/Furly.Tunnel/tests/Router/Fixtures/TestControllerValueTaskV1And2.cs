@@ -16,7 +16,9 @@ namespace Furly.Tunnel.Router.Tests
         {
             return ValueTask.FromResult(request);
         }
+#pragma warning disable IDE0060 // Remove unused parameter
         public static ValueTask Value2Async(byte[] request)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             return ValueTask.CompletedTask;
         }

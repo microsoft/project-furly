@@ -40,55 +40,55 @@ namespace Furly.Extensions.Serializers.Newtonsoft
         {
             yield return (true, true);
             yield return (false, false);
-            yield return ((bool?)null, (bool?)null);
+            yield return ((bool?)null, null);
             yield return ((sbyte)1, (sbyte)1);
             yield return ((sbyte)-1, (sbyte)-1);
             yield return ((sbyte)0, (sbyte)0);
             yield return (sbyte.MaxValue, sbyte.MaxValue);
             yield return (sbyte.MinValue, sbyte.MinValue);
-            yield return ((sbyte?)null, (sbyte?)null);
+            yield return ((sbyte?)null, null);
             yield return ((short)1, (short)1);
             yield return ((short)-1, (short)-1);
             yield return ((short)0, (short)0);
             yield return (short.MaxValue, short.MaxValue);
             yield return (short.MinValue, short.MinValue);
-            yield return ((short?)null, (short?)null);
+            yield return ((short?)null, null);
             yield return (1, 1);
             yield return (-1, -1);
             yield return (0, 0);
             yield return (int.MaxValue, int.MaxValue);
             yield return (int.MinValue, int.MinValue);
-            yield return ((int?)null, (int?)null);
+            yield return ((int?)null, null);
             yield return (1L, 1L);
             yield return (-1L, -1L);
             yield return (0L, 0L);
             yield return (long.MaxValue, long.MaxValue);
             yield return (long.MinValue, long.MinValue);
-            yield return ((long?)null, (long?)null);
+            yield return ((long?)null, null);
             yield return (1UL, 1UL);
             yield return (0UL, 0UL);
             yield return (ulong.MaxValue, ulong.MaxValue);
-            yield return ((ulong?)null, (ulong?)null);
+            yield return ((ulong?)null, null);
             yield return (1u, 1u);
             yield return (0u, 0u);
             yield return (uint.MaxValue, uint.MaxValue);
-            yield return ((uint?)null, (uint?)null);
+            yield return ((uint?)null, null);
             yield return ((ushort)1, (ushort)1);
             yield return ((ushort)0, (ushort)0);
             yield return (ushort.MaxValue, ushort.MaxValue);
-            yield return ((ushort?)null, (ushort?)null);
+            yield return ((ushort?)null, null);
             yield return ((byte)1, (byte)1);
             yield return ((byte)0, (byte)0);
             yield return (1.0, 1.0);
             yield return (-1.0, -1.0);
             yield return (0.0, 0.0);
             yield return (byte.MaxValue, byte.MaxValue);
-            yield return ((byte?)null, (byte?)null);
+            yield return ((byte?)null, null);
             yield return (double.MaxValue, double.MaxValue);
             yield return (double.MinValue, double.MinValue);
             yield return (double.PositiveInfinity, double.PositiveInfinity);
             yield return (double.NegativeInfinity, double.NegativeInfinity);
-            yield return ((double?)null, (double?)null);
+            yield return ((double?)null, null);
             yield return (1.0f, 1.0f);
             yield return (-1.0f, -1.0f);
             yield return (0.0f, 0.0f);
@@ -96,12 +96,12 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             yield return (float.MinValue, float.MinValue);
             yield return (float.PositiveInfinity, float.PositiveInfinity);
             yield return (float.NegativeInfinity, float.NegativeInfinity);
-            yield return ((float?)null, (float?)null);
+            yield return ((float?)null, null);
             yield return ((decimal)1.0, (decimal)1.0);
             yield return ((decimal)-1.0, (decimal)-1.0);
             yield return ((decimal)0.0, (decimal)0.0);
             yield return ((decimal)1234567, (decimal)1234567);
-            yield return ((decimal?)null, (decimal?)null);
+            yield return ((decimal?)null, null);
             //  yield return (decimal.MaxValue, decimal.MaxValue);
             //  yield return (decimal.MinValue, decimal.MinValue);
             var guid = Guid.NewGuid();
@@ -111,23 +111,23 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             yield return (now1, now1);
             yield return (DateTime.MaxValue, DateTime.MaxValue);
             yield return (DateTime.MinValue, DateTime.MinValue);
-            yield return ((DateTime?)null, (DateTime?)null);
+            yield return ((DateTime?)null, null);
             var now2 = DateTimeOffset.UtcNow;
             yield return (now2, now2);
             // TODO FIX yield return (DateTimeOffset.MaxValue, DateTimeOffset.MaxValue);
             // TODO FIX yield return (DateTimeOffset.MinValue, DateTimeOffset.MinValue);
-            yield return ((DateTimeOffset?)null, (DateTimeOffset?)null);
+            yield return ((DateTimeOffset?)null, null);
             yield return (TimeSpan.Zero, TimeSpan.Zero);
             yield return (TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
             yield return (TimeSpan.FromDays(5555), TimeSpan.FromDays(5555));
             yield return (TimeSpan.MaxValue, TimeSpan.MaxValue);
             yield return (TimeSpan.MinValue, TimeSpan.MinValue);
-            yield return ((TimeSpan?)null, (TimeSpan?)null);
+            yield return ((TimeSpan?)null, null);
             yield return (BigInteger.Zero, BigInteger.Zero);
             yield return (BigInteger.One, BigInteger.One);
             yield return (BigInteger.MinusOne, BigInteger.MinusOne);
             yield return (new BigInteger(ulong.MaxValue) + 1, new BigInteger(ulong.MaxValue) + 1);
-            yield return ((BigInteger?)null, (BigInteger?)null);
+            yield return ((BigInteger?)null, null);
         }
 
         [Fact]
@@ -586,26 +586,26 @@ namespace Furly.Extensions.Serializers.Newtonsoft
                     ["test3"] = "4test",
                     ["test4"] = "6test",
                 },
-                Strings = new List<string> { "a", "b", "c", "dddd" },
-                RoStrings = new List<string> { "a", "b", "c", "dddd" },
+                Strings = ["a", "b", "c", "dddd"],
+                RoStrings = ["a", "b", "c", "dddd"],
                 Set = new HashSet<string> { "a", "b", "c", "dddd" },
                 RoSet = new HashSet<string> { "a", "b", "c", "dddd" },
                 Test1 = 444,
                 Test2 = "sfgasfkadflf",
-                RoStringsOfStrings = new List<IReadOnlyList<string>> {
-                    new List<string> { "aa", "bg", "ca", "ddddg" },
-                    new List<string> { "a3333", "b", "c", "dddd" },
-                    new List<string> { "a", "b3333", "c", "dddd" },
-                    new List<string> { "a", "b", "c3333", "dddd" },
-                    new List<string> { "a", "b", "c", "dddd3333" },
-                },
-                StringsOfStrings = new List<IList<string>> {
-                    new List<string> { "aa", "bg", "ca", "ddddg" },
-                    new List<string> { "a3333", "b", "c", "dddd" },
-                    new List<string> { "a", "b3333", "c", "dddd" },
-                    new List<string> { "a", "b", "c3333", "dddd" },
-                    new List<string> { "a", "b", "c", "dddd3333" },
-                }
+                RoStringsOfStrings = [
+                    ["aa", "bg", "ca", "ddddg"],
+                    ["a3333", "b", "c", "dddd"],
+                    ["a", "b3333", "c", "dddd"],
+                    ["a", "b", "c3333", "dddd"],
+                    ["a", "b", "c", "dddd3333"],
+                ],
+                StringsOfStrings = [
+                    ["aa", "bg", "ca", "ddddg"],
+                    ["a3333", "b", "c", "dddd"],
+                    ["a", "b3333", "c", "dddd"],
+                    ["a", "b", "c3333", "dddd"],
+                    ["a", "b", "c", "dddd3333"],
+                ]
             };
         }
 
@@ -1018,6 +1018,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             variant["Id"].AssignValue("idField");
             Assert.Equal("idField", variant["Id"]);
             var updated = variant.ToJson();
+            Assert.NotNull(updated);
             Assert.Equal("{\"a\":1,\"b\":\"b\",\"c\":{\"test\":\"test\"},\"Id\":\"idField\"}", variant.ToJson());
         }
 

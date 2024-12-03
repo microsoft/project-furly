@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged
         /// <inheritdoc/>
         public int Value { get; }
 
-        ApiVersion(int value, string name)
+        private ApiVersion(int value, string name)
         {
             Name = name;
             Value = value;
@@ -86,36 +86,26 @@ namespace Microsoft.Azure.Devices.Edge.Util.Edged
 
         /// <inheritdoc/>
         public static bool operator !=(ApiVersion left, ApiVersion right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         /// <inheritdoc/>
         public static bool operator <(ApiVersion left, ApiVersion right)
-        {
-            return left is null ? right is not null : left.CompareTo(right) < 0;
-        }
+            => left is null ? right is not null : left.CompareTo(right) < 0;
 
         /// <inheritdoc/>
         public static bool operator <=(ApiVersion left, ApiVersion right)
-        {
-            return left is null || left.CompareTo(right) <= 0;
-        }
+            => left is null || left.CompareTo(right) <= 0;
 
         /// <inheritdoc/>
         public static bool operator >(ApiVersion left, ApiVersion right)
-        {
-            return left?.CompareTo(right) > 0;
-        }
+            => left?.CompareTo(right) > 0;
 
         /// <inheritdoc/>
         public static bool operator >=(ApiVersion left, ApiVersion right)
-        {
-            return left is null ? right is null : left.CompareTo(right) >= 0;
-        }
+            => left is null ? right is null : left.CompareTo(right) >= 0;
 
         /// <inheritdoc/>
-        static readonly Dictionary<string, ApiVersion> kInstance = new()
+        private static readonly Dictionary<string, ApiVersion> kInstance = new()
         {
             { Version20180628.Name, Version20180628 },
             { Version20190130.Name, Version20190130 },

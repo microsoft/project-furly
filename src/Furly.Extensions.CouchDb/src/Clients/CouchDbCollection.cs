@@ -618,7 +618,7 @@ namespace Furly.Extensions.CouchDb.Clients
                 }
             }
 
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
             private readonly ServerResultFeed<TServer> _server;
             private readonly CouchDbCollection _collection;
             private readonly string _continuationToken;
@@ -741,7 +741,7 @@ namespace Furly.Extensions.CouchDb.Clients
                 }
             }
 
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
             private readonly CouchDbCollection _collection;
             private readonly string _originalType;
             private readonly string _mango;
@@ -987,6 +987,6 @@ namespace Furly.Extensions.CouchDb.Clients
         private readonly ConcurrentDictionary<string, Task<IndexResult>> _cache =
             new();
         private readonly Dictionary<string, object> _queryStore =
-            new();
+            [];
     }
 }

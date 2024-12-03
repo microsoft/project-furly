@@ -117,10 +117,10 @@ namespace Furly.Extensions.Zookeeper.Server
                     {
                         [zooKeeperPort.ToString(CultureInfo.InvariantCulture)] = default
                     },
-                    Env = new List<string> {
+                    Env = [
                         "ZOO_ENABLE_AUTH=no",
                         "ALLOW_ANONYMOUS_LOGIN=yes"
-                    }
+                    ]
                 })
             {
                 HostConfig = new HostConfig
@@ -128,11 +128,11 @@ namespace Furly.Extensions.Zookeeper.Server
                     NetworkMode = NetworkName,
                     PortBindings = new Dictionary<string, IList<PortBinding>>
                     {
-                        [zooKeeperPort.ToString(CultureInfo.InvariantCulture)] = new List<PortBinding> {
-                            new PortBinding {
+                        [zooKeeperPort.ToString(CultureInfo.InvariantCulture)] = [
+                            new() {
                                 HostPort = port.ToString(CultureInfo.InvariantCulture)
                             }
-                        }
+                        ]
                     }
                 }
             };

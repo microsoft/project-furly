@@ -8,6 +8,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Mqtt.Exceptions;
     using Furly.Extensions.Mqtt.Runtime;
+    using Furly.Extensions.Metrics;
     using Furly.Extensions.Rpc;
     using Furly.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -20,15 +21,13 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.Metrics;
     using System.IdentityModel.Tokens.Jwt;
     using System.IO;
     using System.Net.Sockets;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.Metrics;
-    using MQTTnet.Server.Internal;
-    using Furly.Extensions.Metrics;
 
     /// <summary>
     /// Managed client wrapper around IMqttClient in mqtt net
@@ -98,7 +97,7 @@ namespace Furly.Extensions.Mqtt.Clients
             UnderlyingMqttClient = factory?.Invoke(this) ??
                 new MqttClientFactory().CreateMqttClient(this);
 
-            UnderlyingMqttClient.ApplicationMessageReceivedAsync += OnMessageReceived;
+            UnderlyingMqttClient.ApplicationMessageReceivedAsync += OnMessageReceivedAsync;
             UnderlyingMqttClient.DisconnectedAsync += OnDisconnectedAsync;
             UnderlyingMqttClient.ConnectedAsync += OnConnectedAsync;
 
@@ -332,7 +331,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 _disconnectedEventLock.Dispose();
                 _pendingReqs.Dispose();
 
-                UnderlyingMqttClient.ApplicationMessageReceivedAsync -= OnMessageReceived;
+                UnderlyingMqttClient.ApplicationMessageReceivedAsync -= OnMessageReceivedAsync;
                 UnderlyingMqttClient.DisconnectedAsync -= OnDisconnectedAsync;
                 UnderlyingMqttClient.ConnectedAsync -= OnConnectedAsync;
 
@@ -514,7 +513,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 // these message states.
                 // If you reset the message states first, then pubs/subs/unsubs may be
                 // dequeued into about-to-be-cancelled threads.
-                await ResetMessagesStates(default).ConfigureAwait(false);
+                await ResetMessagesStatesAsync(default).ConfigureAwait(false);
 
                 if (IsFatal(args.Reason))
                 {
@@ -599,8 +598,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     throw lastException;
                 }
 
-                if (IsFatal(lastException!, isReconnection,
-                    _reconnectCts?.Token.IsCancellationRequested
+                if (IsFatal(lastException!, _reconnectCts?.Token.IsCancellationRequested
                         ?? ct.IsCancellationRequested))
                 {
                     _logger.LogError(lastException,
@@ -800,7 +798,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         private void StartPublishingSubscribingAndUnsubscribing()
         {
-            lock (ctsLockObj)
+            lock (_ctsLockObj)
             {
                 if (!_disposed)
                 {
@@ -817,7 +815,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         private void StopPublishingSubscribingAndUnsubscribing()
         {
-            lock (ctsLockObj)
+            lock (_ctsLockObj)
             {
                 try
                 {
@@ -838,10 +836,10 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task ResetMessagesStates(CancellationToken ct)
+        private async Task ResetMessagesStatesAsync(CancellationToken ct)
         {
             _logger.LogInformation("Resetting the state of all queued messages");
-            await _pendingReqs.MarkMessagesAsUnsent(ct).ConfigureAwait(false);
+            await _pendingReqs.MarkMessagesAsUnsentAsync(ct).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -949,7 +947,7 @@ namespace Furly.Extensions.Mqtt.Clients
             }
             catch (Exception e)
             {
-                if (IsFatal(e, false, queuedPublish.CancellationToken.IsCancellationRequested))
+                if (IsFatal(e, queuedPublish.CancellationToken.IsCancellationRequested))
                 {
                     await _pendingReqs.RemoveAsync(queuedPublish, default).ConfigureAwait(false);
                     if (!queuedPublish.ResultTaskCompletionSource.TrySetException(e))
@@ -997,7 +995,7 @@ namespace Furly.Extensions.Mqtt.Clients
             }
             catch (Exception e)
             {
-                if (IsFatal(e, false, queuedSubscribe.CancellationToken.IsCancellationRequested))
+                if (IsFatal(e, queuedSubscribe.CancellationToken.IsCancellationRequested))
                 {
                     await _pendingReqs.RemoveAsync(queuedSubscribe, default).ConfigureAwait(false);
                     if (!queuedSubscribe.ResultTaskCompletionSource.TrySetException(e))
@@ -1045,7 +1043,7 @@ namespace Furly.Extensions.Mqtt.Clients
             }
             catch (Exception e)
             {
-                if (IsFatal(e, false, queuedUnsubscribe.CancellationToken.IsCancellationRequested))
+                if (IsFatal(e, queuedUnsubscribe.CancellationToken.IsCancellationRequested))
                 {
                     await _pendingReqs.RemoveAsync(queuedUnsubscribe, default).ConfigureAwait(false);
                     if (!queuedUnsubscribe.ResultTaskCompletionSource.TrySetException(e))
@@ -1096,8 +1094,7 @@ namespace Furly.Extensions.Mqtt.Clients
             return false;
         }
 
-        private static bool IsFatal(Exception e, bool isReconnecting,
-            bool userCancellationRequested = false)
+        private static bool IsFatal(Exception e, bool userCancellationRequested = false)
         {
             switch (e)
             {
@@ -1172,7 +1169,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        private async Task OnMessageReceived(MqttApplicationMessageReceivedEventArgs args)
+        private async Task OnMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs args)
         {
             // Never let MQTTnet auto ack a message because it may do so out-of-order
             args.AutoAcknowledge = false;
@@ -1431,7 +1428,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     resultTaskCompletionSource, ct);
             }
 
-            abstract public void OnException(Exception reason);
+            public abstract void OnException(Exception reason);
         }
 
         /// <summary>
@@ -1546,7 +1543,7 @@ namespace Furly.Extensions.Mqtt.Clients
             /// so that any sent-but-unacknowledged items can be sent again once
             /// the connection is recovered.
             /// </remarks>
-            public async Task MarkMessagesAsUnsent(CancellationToken ct)
+            public async Task MarkMessagesAsUnsentAsync(CancellationToken ct)
             {
                 await _mutex.WaitAsync(ct).ConfigureAwait(false);
                 try
@@ -1671,11 +1668,11 @@ namespace Furly.Extensions.Mqtt.Clients
 
             // This semaphore is responsible for allowing only one thread
             // to interact with this list at a time.
-            private readonly SemaphoreSlim _mutex = new SemaphoreSlim(1);
+            private readonly SemaphoreSlim _mutex = new(1);
             // This semaphore is responsible for tracking how many items are
             // in the list for the purpose of blocking consumer threads
             // until there is at least one item to consume.
-            private SemaphoreSlim _gate = new SemaphoreSlim(0);
+            private SemaphoreSlim _gate = new(0);
             private readonly LinkedList<Request> _requests = new();
             private readonly OverflowStrategy _overflowStrategy;
             private readonly uint _maxSize;
@@ -1824,7 +1821,7 @@ namespace Furly.Extensions.Mqtt.Clients
             /// Timer callback
             /// </summary>
             /// <param name="state"></param>
-            void RefreshToken(object? state)
+            private void RefreshToken(object? state)
             {
                 var outer = (MqttSession)state!;
                 outer._logger.LogInformation("Refresh token Timer");
@@ -1969,9 +1966,8 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly IRetryPolicy _retryPolicy;
         private readonly OrderedAckQueue _pendingAcks = new();
         private readonly MqttOptions _options;
-        private readonly object _ctsLockObj = new object();
+        private readonly Lock _ctsLockObj = new();
         private readonly ILogger _logger;
-        private readonly object ctsLockObj = new();
         private bool _disposed;
         private bool _isDesiredConnected;
         private bool _isClosing;

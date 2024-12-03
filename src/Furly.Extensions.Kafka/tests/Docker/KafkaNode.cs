@@ -121,12 +121,12 @@ namespace Furly.Extensions.Kafka.Server
                     {
                         [kafkaPort.ToString(CultureInfo.InvariantCulture)] = default
                     },
-                    Env = new List<string> {
+                    Env = [
                         $"KAFKA_CFG_ZOOKEEPER_CONNECT={_zookeeper}",
                         "ALLOW_PLAINTEXT_LISTENER=yes",
                         "KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:"+ kafkaPort,
                         "KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://" + HostIp.Value + ":" + port,
-                    }
+                    ]
                 })
             {
                 HostConfig = new HostConfig
@@ -134,11 +134,11 @@ namespace Furly.Extensions.Kafka.Server
                     NetworkMode = NetworkName,
                     PortBindings = new Dictionary<string, IList<PortBinding>>
                     {
-                        [kafkaPort.ToString(CultureInfo.InvariantCulture)] = new List<PortBinding> {
-                            new PortBinding {
+                        [kafkaPort.ToString(CultureInfo.InvariantCulture)] = [
+                            new() {
                                 HostPort = port.ToString(CultureInfo.InvariantCulture)
                             }
-                        }
+                        ]
                     }
                 }
             };

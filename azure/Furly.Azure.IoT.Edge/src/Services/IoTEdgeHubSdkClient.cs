@@ -189,7 +189,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 catch { }
                 finally
                 {
-                    (client as IDisposable)?.Dispose();
+                    client.Dispose();
                 }
             }
         }
@@ -300,12 +300,24 @@ namespace Furly.Azure.IoT.Edge.Services
             public bool IsClosed { get; internal set; }
 
             /// <summary>
+            /// Whether the client is recovering
+            /// </summary>
+            public bool IsRecovering { get; internal set; }
+
+            /// <summary>
             /// Create client
             /// </summary>
             /// <param name="client"></param>
             private ModuleClientAdapter(ModuleClient client)
             {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                _cts.Dispose();
+                _client.Dispose();
             }
 
             /// <summary>
@@ -345,7 +357,7 @@ namespace Furly.Azure.IoT.Edge.Services
                         adapter.OnConnectionStatusChange(callback, deviceId, moduleId, s, r));
                     client.ProductInfo = product;
                     await client.OpenAsync().ConfigureAwait(false);
-                    callback.OnOpened(deviceId, moduleId);
+                    callback.OnOpened(0, deviceId, moduleId);
                     return adapter;
                 }
                 catch (Exception ex)
@@ -542,26 +554,64 @@ namespace Furly.Azure.IoT.Edge.Services
             private void OnConnectionStatusChange(IIoTEdgeClientState callback, string deviceId,
                 string moduleId, ConnectionStatus status, ConnectionStatusChangeReason reason)
             {
-                if (status == ConnectionStatus.Connected)
-                {
-                    callback.OnConnected(_reconnectCounter, deviceId, moduleId, reason.ToString());
-                    _reconnectCounter++;
-                    return;
-                }
-                if (IsClosed)
+                if (IsClosed || IsRecovering)
                 {
                     // Already closed - nothing to do
                     return;
                 }
-                if (status == ConnectionStatus.Disconnected ||
-                    status == ConnectionStatus.Disabled)
+                switch (status)
                 {
-                    // Force
-                    callback.OnClosed(_reconnectCounter, deviceId, moduleId, reason.ToString());
-                    IsClosed = true;
-                    return;
+                    case ConnectionStatus.Disconnected:
+                    case ConnectionStatus.Disabled:
+                        callback.OnClosed(_reconnectCounter, deviceId, moduleId, reason.ToString());
+                        _ = TryRecoverAsync(callback, deviceId, moduleId);
+                        break;
+                    case ConnectionStatus.Connected:
+                        callback.OnConnected(_reconnectCounter, deviceId, moduleId, reason.ToString());
+                        _reconnectCounter++;
+                        break;
+                    case ConnectionStatus.Disconnected_Retrying:
+                        callback.OnDisconnected(_reconnectCounter, deviceId, moduleId, reason.ToString());
+                        break;
                 }
-                callback.OnDisconnected(_reconnectCounter, deviceId, moduleId, reason.ToString());
+            }
+
+            /// <summary>
+            /// Try to recover the current client
+            /// </summary>
+            /// <param name="callback"></param>
+            /// <param name="deviceId"></param>
+            /// <param name="moduleId"></param>
+            /// <returns></returns>
+            private async Task TryRecoverAsync(IIoTEdgeClientState callback, string deviceId, string moduleId)
+            {
+                IsRecovering = true;
+                try
+                {
+                    while (!IsClosed)
+                    {
+                        try
+                        {
+                            await _client.CloseAsync(_cts.Token).ConfigureAwait(false);
+                            await _client.OpenAsync(_cts.Token).ConfigureAwait(false);
+
+                            callback.OnOpened(++_reconnectCounter, deviceId, moduleId);
+                            IsRecovering = false;
+                            return;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Closed
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            callback.OnError(_reconnectCounter, deviceId, moduleId, ex.ToString());
+                        }
+                        await Task.Delay(5000, _cts.Token).ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException) { }
             }
 
             /// <summary>
@@ -625,16 +675,24 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
 
                 /// <inheritdoc/>
-                public void OnOpened(string deviceId, string? moduleId)
+                public void OnOpened(int counter, string deviceId, string? moduleId)
                 {
-                    _logger.LogInformation("0: Module {DeviceId}_{ModuleId} opened.",
-                        deviceId, moduleId);
+                    _logger.LogInformation("{Counter}:Module {DeviceId}_{ModuleId} opened.",
+                        counter, deviceId, moduleId);
+                }
+
+                /// <inheritdoc/>
+                public void OnError(int counter, string deviceId, string? moduleId, string reason)
+                {
+                    _logger.LogError("{Counter}: MModule {DeviceId}_{ModuleId} error {Reason}...",
+                        counter, deviceId, moduleId, reason);
                 }
 
                 private readonly ILogger _logger;
             }
 
             private readonly ModuleClient _client;
+            private readonly CancellationTokenSource _cts = new();
             private int _reconnectCounter;
         }
 
@@ -646,7 +704,12 @@ namespace Furly.Azure.IoT.Edge.Services
             /// <summary>
             /// Whether the client is closed
             /// </summary>
-            public bool IsClosed { get; internal set; }
+            public bool IsClosed => _cts.IsCancellationRequested;
+
+            /// <summary>
+            /// Whether the client is recovering
+            /// </summary>
+            public bool IsRecovering { get; internal set; }
 
             /// <summary>
             /// Create client
@@ -655,6 +718,13 @@ namespace Furly.Azure.IoT.Edge.Services
             internal DeviceClientAdapter(DeviceClient client)
             {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                _cts.Dispose();
+                _client.Dispose();
             }
 
             /// <summary>
@@ -685,7 +755,7 @@ namespace Furly.Azure.IoT.Edge.Services
                     client.ProductInfo = product;
 
                     await client.OpenAsync().ConfigureAwait(false);
-                    callback.OnOpened(deviceId, null);
+                    callback.OnOpened(0, deviceId, null);
                     return adapter;
                 }
                 catch (Exception ex)
@@ -703,7 +773,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
                 _client.OperationTimeoutInMilliseconds = 3000;
                 _client.SetRetryPolicy(new NoRetry());
-                IsClosed = true;
+                await _cts.CancelAsync().ConfigureAwait(false);
                 await _client.CloseAsync().ConfigureAwait(false);
             }
 
@@ -873,26 +943,63 @@ namespace Furly.Azure.IoT.Edge.Services
             private void OnConnectionStatusChange(IIoTEdgeClientState callback, string deviceId,
                 ConnectionStatus status, ConnectionStatusChangeReason reason)
             {
-                if (status == ConnectionStatus.Connected)
-                {
-                    callback.OnConnected(_reconnectCounter, deviceId, null, reason.ToString());
-                    _reconnectCounter++;
-                    return;
-                }
-                if (IsClosed)
+                if (IsClosed || IsRecovering)
                 {
                     // Already closed - nothing to do
                     return;
                 }
-                if (status == ConnectionStatus.Disconnected ||
-                    status == ConnectionStatus.Disabled)
+                switch (status)
                 {
-                    // Force
-                    IsClosed = true;
-                    callback.OnClosed(_reconnectCounter, deviceId, null, reason.ToString());
-                    return;
+                    case ConnectionStatus.Disconnected:
+                    case ConnectionStatus.Disabled:
+                        callback.OnClosed(_reconnectCounter, deviceId, null, reason.ToString());
+                        _ = TryRecoverAsync(callback, deviceId);
+                        break;
+                    case ConnectionStatus.Connected:
+                        callback.OnConnected(_reconnectCounter, deviceId, null, reason.ToString());
+                        _reconnectCounter++;
+                        break;
+                    case ConnectionStatus.Disconnected_Retrying:
+                        callback.OnDisconnected(_reconnectCounter, deviceId, null, reason.ToString());
+                        break;
                 }
-                callback.OnDisconnected(_reconnectCounter, deviceId, null, reason.ToString());
+            }
+
+            /// <summary>
+            /// Try to recover the current client
+            /// </summary>
+            /// <param name="callback"></param>
+            /// <param name="deviceId"></param>
+            /// <returns></returns>
+            private async Task TryRecoverAsync(IIoTEdgeClientState callback, string deviceId)
+            {
+                IsRecovering = true;
+                try
+                {
+                    while (!IsClosed)
+                    {
+                        try
+                        {
+                            await _client.CloseAsync(_cts.Token).ConfigureAwait(false);
+                            await _client.OpenAsync(_cts.Token).ConfigureAwait(false);
+
+                            callback.OnOpened(++_reconnectCounter, deviceId, null);
+                            IsRecovering = false;
+                            return;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Closed
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            callback.OnError(_reconnectCounter, deviceId, null, ex.ToString());
+                        }
+                        await Task.Delay(5000, _cts.Token).ConfigureAwait(false);
+                    }
+                }
+                catch (OperationCanceledException) { }
             }
 
             /// <summary>
@@ -947,14 +1054,22 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
 
                 /// <inheritdoc/>
-                public void OnOpened(string deviceId, string? moduleId)
+                public void OnOpened(int counter, string deviceId, string? moduleId)
                 {
-                    _logger.LogInformation("0: Module {DeviceId} opened.", deviceId);
+                    _logger.LogInformation("{Counter}: Module {DeviceId} opened.", counter, deviceId);
+                }
+
+                /// <inheritdoc/>
+                public void OnError(int counter, string deviceId, string? moduleId, string reason)
+                {
+                    _logger.LogError("{Counter}: Device {DeviceId} error {Reason}...",
+                        counter, deviceId, reason);
                 }
 
                 private readonly ILogger _logger;
             }
 
+            private readonly CancellationTokenSource _cts = new();
             private readonly DeviceClient _client;
             private int _reconnectCounter;
         }

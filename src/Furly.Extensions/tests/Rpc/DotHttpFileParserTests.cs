@@ -21,7 +21,7 @@ namespace Furly.Extensions.Rpc
     public class DotHttpFileParserTests
     {
         [Fact]
-        public async Task ParseGetMethodTestWithoutPayload()
+        public async Task ParseGetMethodTestWithoutPayloadTestAsync()
         {
             const string req = "GET method HTTP/1.1";
 
@@ -37,7 +37,7 @@ namespace Furly.Extensions.Rpc
         }
 
         [Fact]
-        public async Task ParseGetMethodWithUriTestWithoutPayload()
+        public async Task ParseGetMethodWithUriTestWithoutPayloadTestAsync()
         {
             const string req = "GET http://localhost:8080/test HTTP/1.1";
 
@@ -55,7 +55,7 @@ namespace Furly.Extensions.Rpc
         }
 
         [Fact]
-        public async Task ParsePostWithInputFileTest()
+        public async Task ParsePostWithInputFileTestAsync()
         {
             const string req = """
 // @no-redirect
@@ -90,7 +90,7 @@ Content-Type: application/json
         }
 
         [Fact]
-        public async Task ParsePostMethodWithJsonPayloadTest()
+        public async Task ParsePostMethodWithJsonPayloadTestAsync()
         {
             const string req = """
 POST method HTTP/1.1
@@ -116,7 +116,7 @@ Content-Type: application/json
         }
 
         [Fact]
-        public async Task ParsePostMethodWithJsonPayloadNoLogTest()
+        public async Task ParsePostMethodWithJsonPayloadNoLogTestAsync()
         {
             const string req = """
 // @no-log
@@ -139,7 +139,7 @@ Content-Type: application/json
         }
 
         [Fact]
-        public async Task ParseMultiMethodWithJsonPayloadTest()
+        public async Task ParseMultiMethodWithJsonPayloadTestAsync()
         {
             const string req = """
 POST add
@@ -181,7 +181,7 @@ GET second
         }
 
         [Fact]
-        public async Task ParseMultiMethodWithJsonPayloadStopsOnErrorTest()
+        public async Task ParseMultiMethodWithJsonPayloadStopsOnErrorTestAsync()
         {
             const string req = """
 # @no-log
@@ -211,7 +211,7 @@ GET second
         }
 
         [Fact]
-        public async Task ParseMultiMethodWithJsonPayloadRunOnErrorTest()
+        public async Task ParseMultiMethodWithJsonPayloadRunOnErrorTestAsync()
         {
             const string req = """
 # @no-log
@@ -249,7 +249,7 @@ second
         }
 
         [Fact]
-        public async Task ParseMultiMethodWithJsonPayloadContinueOnErrorTest()
+        public async Task ParseMultiMethodWithJsonPayloadContinueOnErrorTestAsync()
         {
             const string req = """
 # @no-log
@@ -282,7 +282,7 @@ GET second
         }
 
         [Fact]
-        public async Task ParsePostMethodWithJsonPayloadAndHeadersTest()
+        public async Task ParsePostMethodWithJsonPayloadAndHeadersTestAsync()
         {
             const string req = """
 POST method HTTP/1.1
@@ -302,7 +302,7 @@ Authorization: Bearer token
         }
 
         [Fact]
-        public async Task ParsePostMethodWithJsonPayloadAndHeadersAndResponseTest()
+        public async Task ParsePostMethodWithJsonPayloadAndHeadersAndResponseTestAsync()
         {
             const string req = """
 POST method HTTP/1.1
@@ -328,7 +328,7 @@ Authorization: Bearer token
         }
 
         [Fact]
-        public async Task ParsePostWithBadHeaderThrowsTest()
+        public async Task ParsePostWithBadHeaderThrowsTestAsync()
         {
             const string req = """
 # comment1
@@ -346,7 +346,7 @@ Authorization
         }
 
         [Fact]
-        public async Task ParseBadMethodThrowsTest()
+        public async Task ParseBadMethodThrowsTestAsync()
         {
             const string req = """
 // Bad
@@ -363,7 +363,7 @@ Authorization
         }
 
         [Fact]
-        public async Task ParsePostMethodWithJsonPayloadAndHeadersAndResponseFileTest()
+        public async Task ParsePostMethodWithJsonPayloadAndHeadersAndResponseFileTestAsync()
         {
             const string req = """
 method
@@ -408,7 +408,7 @@ Authorization:Bearer token
         }
 
         [Fact]
-        public async Task ParsePostMethodWithBinaryPayloadAndHeadersAndResponseFileTest()
+        public async Task ParsePostMethodWithBinaryPayloadAndHeadersAndResponseFileTestAsync()
         {
             const string req = """
 method
@@ -453,7 +453,7 @@ Authorization: Bearer token
         }
 
         [Fact]
-        public async Task ParseBadContentTypeTest()
+        public async Task ParseBadContentTypeTestAsync()
         {
             const string req = """
 PUT method

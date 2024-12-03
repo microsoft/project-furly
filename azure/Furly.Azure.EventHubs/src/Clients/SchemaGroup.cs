@@ -7,7 +7,6 @@ namespace Furly.Azure.EventHubs.Clients
 {
     using Furly.Extensions.Messaging;
     using global::Azure.Data.SchemaRegistry;
-    using global::Azure.Identity;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -40,7 +39,6 @@ namespace Furly.Azure.EventHubs.Clients
         internal SchemaGroup(SchemaRegistryOptions options, ICredentialProvider credential,
             ILogger logger)
         {
-            _credential = credential;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _schemaGroupName = options.SchemaGroupName;
 
@@ -61,7 +59,6 @@ namespace Furly.Azure.EventHubs.Clients
         }
 
         private readonly SchemaRegistryClient _schemaRegistry;
-        private readonly ICredentialProvider _credential;
         private readonly ILogger _logger;
         private readonly string _schemaGroupName;
     }

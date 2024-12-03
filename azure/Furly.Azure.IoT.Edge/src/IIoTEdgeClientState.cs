@@ -13,9 +13,11 @@ namespace Furly.Azure.IoT.Edge
         /// <summary>
         /// Opened
         /// </summary>
+        /// <param name="counter"></param>
         /// <param name="deviceId"></param>
         /// <param name="moduleId"></param>
-        void OnOpened(string deviceId, string? moduleId);
+        void OnOpened(int counter, string deviceId,
+            string? moduleId);
 
         /// <summary>
         /// Device or module connected with the specified reason
@@ -45,6 +47,16 @@ namespace Furly.Azure.IoT.Edge
         /// <param name="moduleId"></param>
         /// <param name="reason"></param>
         void OnClosed(int counter, string deviceId,
+            string? moduleId, string reason);
+
+        /// <summary>
+        /// On recovering error
+        /// </summary>
+        /// <param name="counter"></param>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="reason"></param>
+        void OnError(int counter, string deviceId,
             string? moduleId, string reason);
     }
 }

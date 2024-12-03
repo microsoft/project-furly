@@ -183,8 +183,10 @@ namespace Furly.Azure.IoT.Operations.Services
         public static MQTTnet.MqttClientUnsubscribeOptions FromSdkType(
             this MqttClientUnsubscribeOptions options)
         {
-            var mqttNetOptions = new MQTTnet.MqttClientUnsubscribeOptions();
-            mqttNetOptions.UserProperties = options.UserProperties.FromSdkType();
+            var mqttNetOptions = new MQTTnet.MqttClientUnsubscribeOptions
+            {
+                UserProperties = options.UserProperties.FromSdkType()
+            };
             mqttNetOptions.TopicFilters.AddRange(options.TopicFilters);
             return mqttNetOptions;
         }
@@ -197,10 +199,12 @@ namespace Furly.Azure.IoT.Operations.Services
         public static MQTTnet.MqttClientSubscribeOptions FromSdkType(
             this MqttClientSubscribeOptions options)
         {
-            var mqttNetOptions = new MQTTnet.MqttClientSubscribeOptions();
-            mqttNetOptions.UserProperties = options.UserProperties.FromSdkType();
-            mqttNetOptions.SubscriptionIdentifier = options.SubscriptionIdentifier;
-            foreach (MqttTopicFilter topicFilter in options.TopicFilters)
+            var mqttNetOptions = new MQTTnet.MqttClientSubscribeOptions
+            {
+                UserProperties = options.UserProperties.FromSdkType(),
+                SubscriptionIdentifier = options.SubscriptionIdentifier
+            };
+            foreach (var topicFilter in options.TopicFilters)
             {
                 mqttNetOptions.TopicFilters.Add(new()
                 {
@@ -208,9 +212,9 @@ namespace Furly.Azure.IoT.Operations.Services
                     NoLocal = topicFilter.NoLocal,
                     QualityOfServiceLevel =
                         (MQTTnet.Protocol.MqttQualityOfServiceLevel)
-                            ((int)topicFilter.QualityOfServiceLevel),
+                            (int)topicFilter.QualityOfServiceLevel,
                     RetainHandling = (MQTTnet.Protocol.MqttRetainHandling)
-                        ((int)topicFilter.RetainHandling),
+                        (int)topicFilter.RetainHandling,
                     Topic = topicFilter.Topic,
                 });
             }
@@ -224,12 +228,12 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <returns></returns>
         public static MqttClientSubscribeResult ToSdkType(this MQTTnet.MqttClientSubscribeResult result)
         {
-            List<MqttClientSubscribeResultItem> genericItems = new();
-            foreach (MQTTnet.MqttClientSubscribeResultItem mqttNetItem in result.Items)
+            List<MqttClientSubscribeResultItem> genericItems = [];
+            foreach (var mqttNetItem in result.Items)
             {
                 genericItems.Add(new MqttClientSubscribeResultItem(
                     ToSdkType(mqttNetItem.TopicFilter),
-                    (MqttClientSubscribeReasonCode)((int)mqttNetItem.ResultCode)));
+                    (MqttClientSubscribeReasonCode)(int)mqttNetItem.ResultCode));
             }
             return new MqttClientSubscribeResult(result.PacketIdentifier, genericItems,
                 result.ReasonString, ToSdkType(result.UserProperties));
@@ -242,12 +246,12 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <returns></returns>
         public static MqttClientUnsubscribeResult ToSdkType(this MQTTnet.MqttClientUnsubscribeResult result)
         {
-            List<MqttClientUnsubscribeResultItem> genericItems = new();
-            foreach (MQTTnet.MqttClientUnsubscribeResultItem mqttNetItem in result.Items)
+            List<MqttClientUnsubscribeResultItem> genericItems = [];
+            foreach (var mqttNetItem in result.Items)
             {
                 genericItems.Add(new MqttClientUnsubscribeResultItem(
                     mqttNetItem.TopicFilter,
-                    (MqttClientUnsubscribeReasonCode)((int)mqttNetItem.ResultCode)));
+                    (MqttClientUnsubscribeReasonCode)(int)mqttNetItem.ResultCode));
             }
 
             return new MqttClientUnsubscribeResult(result.PacketIdentifier,

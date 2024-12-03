@@ -5,8 +5,8 @@
 
 namespace Furly.Azure
 {
-    using global::Azure.Identity;
     using global::Azure.Core;
+    using global::Azure.Identity;
     using Microsoft.Extensions.Options;
 
     /// <summary>

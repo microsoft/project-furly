@@ -121,9 +121,9 @@ namespace Furly.Azure.IoT.Edge.Services
                     ExposedPorts = containerPorts
                         .ToDictionary<int, string, EmptyStruct>(
                             p => p.ToString(CultureInfo.InvariantCulture), _ => default),
-                    Env = new List<string> {
+                    Env = [
                         "connectionString=" + _cs
-                    }
+                    ]
                 })
             {
                 Name = _cs.DeviceId,
@@ -131,12 +131,12 @@ namespace Furly.Azure.IoT.Edge.Services
                 {
                     Privileged = true,
                     PortBindings = containerPorts.ToDictionary(k => k.ToString(CultureInfo.InvariantCulture),
-                    v => (IList<PortBinding>)new List<PortBinding> {
+                    v => (IList<PortBinding>)[
                         new () {
                             HostPort = hostPorts[Array.IndexOf(containerPorts, v) %
                                 hostPorts.Length].ToString(CultureInfo.InvariantCulture)
                         }
-                    })
+                    ])
                 }
             };
         }

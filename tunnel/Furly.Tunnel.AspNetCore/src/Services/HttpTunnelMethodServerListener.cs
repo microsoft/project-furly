@@ -76,6 +76,6 @@ namespace Furly.Tunnel.AspNetCore.Services
         }
 
         private readonly IReadOnlyList<IRpcServer> _servers;
-        private readonly List<HttpTunnelMethodServer> _tunnels = new();
+        private readonly List<HttpTunnelMethodServer> _tunnels = [];
     }
 }

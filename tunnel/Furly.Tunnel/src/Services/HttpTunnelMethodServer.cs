@@ -101,7 +101,7 @@ namespace Furly.Tunnel.Services
             using var request = new HttpRequestMessage();
             if (isSimpleCall)
             {
-                if (contentType != null && contentType != ContentMimeType.Json)
+                if (contentType is not null and not ContentMimeType.Json)
                 {
                     throw new ArgumentException(
                         $"{contentType} must be null or {ContentMimeType.Json}",
@@ -127,7 +127,7 @@ namespace Furly.Tunnel.Services
                     RequestId = string.Empty,
                     ContentHeaders = new Dictionary<string, List<string>>()
                     {
-                        ["Content-Type"] = new List<string> { mediaType.ToString() }
+                        ["Content-Type"] = [mediaType.ToString()]
                     },
                     Method = "POST",
                     Uri = method,

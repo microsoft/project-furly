@@ -215,8 +215,7 @@ namespace Furly.Extensions.Rpc.Servers
 
             async Task DeleteResponseAsync(CancellationToken ct)
             {
-                var fi = _responseProvider.GetFileInfo(_responseFile) as IFileInfoEx;
-                if (fi == null)
+                if (_responseProvider.GetFileInfo(_responseFile) is not IFileInfoEx fi)
                 {
                     var p = Path.Combine(_responsePath, _responseFile);
                     if (File.Exists(p))
@@ -334,7 +333,7 @@ namespace Furly.Extensions.Rpc.Servers
 
         private readonly ISerializer _serializer;
         private readonly ILogger<FileSystemRpcServer> _logger;
-        private readonly HashSet<Handler> _handlers = new();
+        private readonly HashSet<Handler> _handlers = [];
         private readonly string _requestFile;
         private readonly string _requestPath;
         private readonly IFileProvider _requestProvider;

@@ -185,7 +185,7 @@ namespace Furly.Azure.IoT.Mock.Services
                 if (!HubResource.Parse(target, out _, out var deviceId, out var moduleId,
                     out var error))
                 {
-                    throw new ArgumentException("Target is malformed.", nameof(target));
+                    throw new ArgumentException($"Target is malformed: {error}.", nameof(target));
                 }
                 var model = GetModel(deviceId, moduleId) ??
                     throw new ResourceNotFoundException("No such device");
@@ -335,7 +335,7 @@ namespace Furly.Azure.IoT.Mock.Services
         /// </summary>
         private async Task ProcessEventsAsync()
         {
-            await foreach (var evt in _eventHub.Reader.ReadAllAsync())
+            await foreach (var evt in _eventHub.Reader.ReadAllAsync().ConfigureAwait(false))
             {
                 foreach (var listener in _listeners)
                 {
@@ -371,10 +371,7 @@ namespace Furly.Azure.IoT.Mock.Services
             public string Identity { get; }
 
             /// <inheritdoc/>
-            string IProcessIdentity.Identity
-            {
-                get => Device.Id;
-            }
+            string IProcessIdentity.Identity => Device.Id;
 
             /// <inheritdoc/>
             public IRpcServer RpcServer => this;
@@ -766,14 +763,14 @@ namespace Furly.Azure.IoT.Mock.Services
                 throw new NotSupportedException("Copy to not supported");
             }
 
-            private readonly object _lock = new();
+            private readonly Lock _lock = new();
             private readonly IoTHubMock _outer;
             private readonly ConcurrentDictionary<string, IRpcHandler> _handlers = new();
         }
 
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
         private readonly SqlQuery _query;
-        private readonly List<IoTHubDeviceState> _devices = new();
+        private readonly List<IoTHubDeviceState> _devices = [];
         private readonly IJsonSerializer _serializer;
         private readonly Channel<IoTHubEvent> _eventHub;
         private readonly Task _processor;

@@ -10,7 +10,6 @@ namespace Furly.Azure.IoT.Services
     using Microsoft.Azure.Devices;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
@@ -45,7 +44,7 @@ namespace Furly.Azure.IoT.Services
                 ConnectionString.TryParse(options.Value.ConnectionString, out var cs) &&
                 !string.IsNullOrEmpty(cs.HostName))
             {
-                _client = IoTHubEventClient.OpenAsync(cs, options.Value, credential);
+                _client = IoTHubEventClient.OpenAsync(cs, credential);
             }
             else
             {
@@ -228,7 +227,7 @@ namespace Furly.Azure.IoT.Services
             }
 
             private readonly IDisposable _registration;
-            private readonly List<Subscription> _subscriptions = new();
+            private readonly List<Subscription> _subscriptions = [];
             private readonly IoTHubEventSubscriber _outer;
         }
 

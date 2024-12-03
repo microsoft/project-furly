@@ -56,7 +56,7 @@ namespace Furly.Azure.IoT.Mock.SqlParser
                     PrimaryKey = null,
                     SecondaryKey = null
                 }), context)
-                    .Select(o => _serializer.FromObject(o)), context);
+                    .Select(_serializer.FromObject), context);
             }
             if (context.collection()?.DEVICES() != null)
             {
@@ -65,7 +65,7 @@ namespace Furly.Azure.IoT.Mock.SqlParser
                     PrimaryKey = null,
                     SecondaryKey = null
                 }), context)
-                    .Select(o => _serializer.FromObject(o)), context);
+                    .Select(_serializer.FromObject), context);
             }
             throw new FormatException("Bad format");
         }

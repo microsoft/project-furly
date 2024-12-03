@@ -26,7 +26,7 @@ namespace Furly.Tunnel.Exceptions
         ];
 
         /// <inheritdoc/>
-        public IReadOnlyList<string> Descriptions => _descriptions;
+        public IReadOnlyList<string> Descriptions => kDescriptions;
 
         /// <inheritdoc/>
         public int Describe(Exception exception, out string? additionalDetails)
@@ -39,13 +39,13 @@ namespace Furly.Tunnel.Exceptions
                     return ex.CancellationToken.IsCancellationRequested ? 0 : 1;
 
                 case WebException ex:
-                    if (_webExceptionStatusMap.TryGetValue(ex.Status, out var webidx))
+                    if (kWebExceptionStatusMap.TryGetValue(ex.Status, out var webidx))
                     {
                         return webidx;
                     }
                     break;
                 case SocketException ex:
-                    if (_socketErrorMap.TryGetValue(ex.SocketErrorCode, out var sidx))
+                    if (kSocketErrorMap.TryGetValue(ex.SocketErrorCode, out var sidx))
                     {
                         return sidx;
                     }
@@ -76,13 +76,13 @@ namespace Furly.Tunnel.Exceptions
                 descriptions.Add(name);
             }
 
-            _descriptions = descriptions.ToImmutableArray();
-            _socketErrorMap = socketErrors.ToFrozenDictionary();
-            _webExceptionStatusMap = webStatuses.ToFrozenDictionary();
+            kDescriptions = [.. descriptions];
+            kSocketErrorMap = socketErrors.ToFrozenDictionary();
+            kWebExceptionStatusMap = webStatuses.ToFrozenDictionary();
         }
 
-        private static readonly FrozenDictionary<WebExceptionStatus, int> _webExceptionStatusMap;
-        private static readonly FrozenDictionary<SocketError, int> _socketErrorMap;
-        private static readonly ImmutableArray<string> _descriptions;
+        private static readonly FrozenDictionary<WebExceptionStatus, int> kWebExceptionStatusMap;
+        private static readonly FrozenDictionary<SocketError, int> kSocketErrorMap;
+        private static readonly ImmutableArray<string> kDescriptions;
     }
 }

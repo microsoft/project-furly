@@ -29,7 +29,7 @@ namespace System.Collections.Generic
         [Fact]
         public void ZipSingleWithEmptyEnumerationTest1()
         {
-            var result = 1.YieldReturn().Zip(Enumerable.Empty<uint>(), 2u);
+            var result = 1.YieldReturn().Zip([], 2u);
             var element = Assert.Single(result);
             Assert.Equal(2u, element.Item2);
         }
@@ -37,7 +37,7 @@ namespace System.Collections.Generic
         [Fact]
         public void ZipArrayWithEmptyEnumerationTest1()
         {
-            var result = new[] { 1, 2, 3, 4 }.Zip(Enumerable.Empty<uint>(), 2u);
+            var result = new[] { 1, 2, 3, 4 }.Zip([], 2u);
             Assert.All(result, element => Assert.Equal(2u, element.Item2));
             Assert.Equal(4, result.Count());
         }
@@ -156,7 +156,7 @@ namespace System.Collections.Generic
         public void SequenceEqualsReturnsFalseWhenEnumerableSubjectNull()
         {
             IEnumerable<string>? test1 = null;
-            IEnumerable<string> test2 = new List<string> { "serf", "sated" };
+            IEnumerable<string> test2 = ["serf", "sated"];
 
             var result = test1.SequenceEqualsSafe(test2);
             Assert.False(result);
@@ -165,7 +165,7 @@ namespace System.Collections.Generic
         [Fact]
         public void SequenceEqualsReturnsFalseWhenEnumerableObjectNull()
         {
-            IEnumerable<string> test1 = new List<string> { "serf", "sated" };
+            IEnumerable<string> test1 = ["serf", "sated"];
             IEnumerable<string>? test2 = null;
 
             var result = test1.SequenceEqualsSafe(test2);

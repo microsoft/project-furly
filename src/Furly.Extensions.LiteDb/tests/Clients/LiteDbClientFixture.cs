@@ -29,10 +29,10 @@ namespace Furly.Extensions.LiteDb.Clients
             {
                 Id = "AndersenFamily",
                 LastName = "Andersen",
-                Parents = new List<Parent> {
-                    new Parent { FirstName = "Thomas" },
-                    new Parent { FirstName = "Mary Kay" }
-                },
+                Parents = [
+                    new() { FirstName = "Thomas" },
+                    new() { FirstName = "Mary Kay" }
+                ],
                 Children = [
                     new Child {
                         FirstName = "Henriette Thaulow",
@@ -70,10 +70,10 @@ namespace Furly.Extensions.LiteDb.Clients
             {
                 Id = "WakefieldFamily",
                 LastName = "Wakefield",
-                Parents = new List<Parent> {
-                    new Parent { FamilyName= "Wakefield", FirstName= "Robin" },
-                    new Parent { FamilyName= "Miller", FirstName= "Ben" }
-                },
+                Parents = [
+                    new() { FamilyName= "Wakefield", FirstName= "Robin" },
+                    new() { FamilyName= "Miller", FirstName= "Ben" }
+                ],
                 Children = [
                     new Child
                     {
@@ -145,7 +145,7 @@ namespace Furly.Extensions.LiteDb.Clients
         /// <param name="name"></param>
         public async Task<ContainerWrapper?> GetContainerAsync(string? name = null)
         {
-            var database = await Try.Async(() => GetDatabaseAsync()).ConfigureAwait(false);
+            var database = await Try.Async(GetDatabaseAsync).ConfigureAwait(false);
             if (database == null)
             {
                 return null;

@@ -172,7 +172,7 @@ namespace Furly.Tunnel.Protocol
                 MethodChunkModel request, CancellationToken ct)
             {
                 var status = 200;
-                var payload = request.Payload ?? Array.Empty<byte>();
+                var payload = request.Payload ?? [];
                 if (_sent == -1)
                 {
                     // Receiving

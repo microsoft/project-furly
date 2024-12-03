@@ -186,7 +186,7 @@ namespace Furly.Tunnel.Azure.Tests
                 var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
                 Assert.Equal(target, result.Target);
                 Assert.Equal(contentType, result.ContentType);
-                Assert.True(data.SequenceEqualsSafe(result.Data.ToArray()));
+                Assert.True(data.SequenceEqualsSafe([.. result.Data]));
             }
         }
 
@@ -231,7 +231,7 @@ namespace Furly.Tunnel.Azure.Tests
                 var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
                 Assert.Equal(target, result.Target);
                 Assert.Equal(contentType, result.ContentType);
-                Assert.True(data.SequenceEqualsSafe(result.Data.ToArray()));
+                Assert.True(data.SequenceEqualsSafe([.. result.Data]));
             }
         }
 
@@ -275,7 +275,7 @@ namespace Furly.Tunnel.Azure.Tests
                 var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
                 Assert.Equal(target, result.Target);
                 Assert.Equal(contentType, result.ContentType);
-                Assert.True(data.SequenceEqualsSafe(result.Data.ToArray()));
+                Assert.True(data.SequenceEqualsSafe([.. result.Data]));
             }
         }
 
@@ -320,7 +320,7 @@ namespace Furly.Tunnel.Azure.Tests
                 var result = await tcs.Task.With2MinuteTimeout().ConfigureAwait(false);
                 Assert.Equal(target, result.Target);
                 Assert.Equal(contentType, result.ContentType);
-                Assert.True(data.SequenceEqualsSafe(result.Data.ToArray()));
+                Assert.True(data.SequenceEqualsSafe([.. result.Data]));
             }
         }
 

@@ -22,7 +22,7 @@ namespace Furly.Extensions.Utils
         /// <param name="offset">Offset into the array</param>
         public CliOptions(string[] args, int offset = 1)
         {
-            _options = new Dictionary<string, string>();
+            _options = [];
             for (var i = offset; i < args.Length;)
             {
                 var key = args[i];
@@ -58,7 +58,7 @@ namespace Furly.Extensions.Utils
             var isEscaping = false;
             if (commandLine == null)
             {
-                return Array.Empty<string>();
+                return [];
             }
             return Split(commandLine, c =>
             {

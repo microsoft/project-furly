@@ -20,7 +20,7 @@ namespace Furly.Tunnel
     {
         /// <inheritdoc/>
         public IEnumerable<IRpcHandler> Connected =>
-            _handler?.YieldReturn() ?? Enumerable.Empty<IRpcHandler>();
+            _handler?.YieldReturn() ?? [];
 
         /// <inheritdoc/>
         public int MaxMethodPayloadSizeInBytes { get; }

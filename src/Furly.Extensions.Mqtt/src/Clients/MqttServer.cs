@@ -93,7 +93,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 if (!_subscriptions.TryGetValue(topic, out var consumers))
                 {
-                    consumers = new List<IEventConsumer> { consumer };
+                    consumers = [consumer];
                     var server = await GetServerAsync(ct).ConfigureAwait(false);
                     _subscriptions.Add(topic, consumers);
                 }
@@ -352,7 +352,7 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly ILogger _logger;
         private readonly Task<MqttNetServer> _server;
         private readonly SemaphoreSlim _lock = new(1, 1);
-        private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = new();
+        private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = [];
         private bool _isDisposed;
     }
 }

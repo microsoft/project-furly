@@ -705,7 +705,7 @@ namespace Furly.Tunnel.Router.Tests
 
         internal static List<IMethodController> GetControllers()
         {
-            return new List<IMethodController> {
+            return [
                 new TestControllerValueTaskV1And2(),
                 new TestControllerV1(),
                 new TestControllerV1WithCancellationToken(),
@@ -713,7 +713,7 @@ namespace Furly.Tunnel.Router.Tests
                 new TestControllerV1And2(),
                 new TestControllerV2WithExceptionFilter(),
                 new TestControllerAsyncEnumerable()
-            };
+            ];
         }
     }
 }

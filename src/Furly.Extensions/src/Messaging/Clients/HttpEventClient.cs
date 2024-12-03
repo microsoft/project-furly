@@ -163,7 +163,7 @@ namespace Furly.Extensions.Messaging.Clients
                     _outer._options.Value.UseMultipartForSingleBuffer == true)
                 {
                     var multipart = new MultipartContent();
-                    _content.ForEach(c => multipart.Add(c));
+                    _content.ForEach(multipart.Add);
                     _request.Content = multipart;
                 }
                 else
@@ -228,7 +228,7 @@ namespace Furly.Extensions.Messaging.Clients
             private string? _contentType;
             private string? _contentEncoding;
             private readonly HttpEventClient _outer;
-            private readonly List<ByteArrayContent> _content = new();
+            private readonly List<ByteArrayContent> _content = [];
             private readonly HttpRequestMessage _request = new();
         }
 

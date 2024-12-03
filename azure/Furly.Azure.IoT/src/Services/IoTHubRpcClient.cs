@@ -9,7 +9,6 @@ namespace Furly.Azure.IoT.Services
     using Furly.Exceptions;
     using Furly.Extensions.Rpc;
     using Furly.Extensions.Serializers;
-    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -51,7 +50,7 @@ namespace Furly.Azure.IoT.Services
             {
                 throw new ArgumentException("Missing or bad connection string", nameof(options));
             }
-            _client = OpenAsync(cs, options.Value);
+            _client = OpenAsync(cs);
         }
 
         /// <inheritdoc/>
@@ -132,12 +131,10 @@ namespace Furly.Azure.IoT.Services
         /// Open service client
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <returns></returns>
-        private async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
-            IoTHubServiceOptions options)
+        private async Task<ServiceClient> OpenAsync(ConnectionString connectionString)
         {
-            var client = CreateServiceClient(connectionString, options);
+            var client = CreateServiceClient(connectionString);
             await client.OpenAsync().ConfigureAwait(false);
             return client;
         }
@@ -146,10 +143,8 @@ namespace Furly.Azure.IoT.Services
         /// Create service client
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <returns></returns>
-        private ServiceClient CreateServiceClient(ConnectionString connectionString,
-            IoTHubServiceOptions options)
+        private ServiceClient CreateServiceClient(ConnectionString connectionString)
         {
             Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
             if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||

@@ -47,44 +47,44 @@ namespace Furly.Tunnel.AspNetCore.Tests.Server.Filters
             }
             switch (context.Exception)
             {
-                case ResourceNotFoundException _:
+                case ResourceNotFoundException:
                     context.Result = GetResponse(HttpStatusCode.NotFound,
                         context.Exception);
                     break;
-                case ResourceInvalidStateException _:
+                case ResourceInvalidStateException:
                     context.Result = GetResponse(HttpStatusCode.Forbidden,
                         context.Exception);
                     break;
-                case ResourceConflictException _:
+                case ResourceConflictException:
                     context.Result = GetResponse(HttpStatusCode.Conflict,
                         context.Exception);
                     break;
-                case UnauthorizedAccessException _:
-                case SecurityException _:
+                case UnauthorizedAccessException:
+                case SecurityException:
                     context.Result = GetResponse(HttpStatusCode.Unauthorized,
                         context.Exception);
                     break;
                 case MethodCallStatusException mcs:
                     context.Result = new ObjectResult(mcs.Details);
                     break;
-                case SerializerException _:
-                case MethodCallException _:
-                case BadRequestException _:
-                case ArgumentException _:
+                case SerializerException:
+                case MethodCallException:
+                case BadRequestException:
+                case ArgumentException:
                     context.Result = GetResponse(HttpStatusCode.BadRequest,
                         context.Exception);
                     break;
-                case NotImplementedException _:
-                case NotSupportedException _:
+                case NotImplementedException:
+                case NotSupportedException:
                     context.Result = GetResponse(HttpStatusCode.NotImplemented,
                         context.Exception);
                     break;
-                case TimeoutException _:
+                case TimeoutException:
                     context.Result = GetResponse(HttpStatusCode.RequestTimeout,
                         context.Exception);
                     break;
-                case SocketException _:
-                case CommunicationException _:
+                case SocketException:
+                case CommunicationException:
                     context.Result = GetResponse(HttpStatusCode.BadGateway,
                         context.Exception);
                     break;
@@ -107,11 +107,11 @@ namespace Furly.Tunnel.AspNetCore.Tests.Server.Filters
                 // one of the above.
                 //
 
-                case ResourceOutOfDateException _:
+                case ResourceOutOfDateException:
                     context.Result = GetResponse(HttpStatusCode.PreconditionFailed,
                         context.Exception);
                     break;
-                case ExternalDependencyException _:
+                case ExternalDependencyException:
                     context.Result = GetResponse(HttpStatusCode.ServiceUnavailable,
                         context.Exception);
                     break;

@@ -212,8 +212,8 @@ namespace Furly.Extensions.Dapr.Clients
 
             private string? _topic;
             private string? _contentType;
-            private readonly Dictionary<string, string> _metadata = new();
-            private readonly List<ReadOnlySequence<byte>> _buffers = new();
+            private readonly Dictionary<string, string> _metadata = [];
+            private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private readonly DaprPubSubClient _outer;
         }
 

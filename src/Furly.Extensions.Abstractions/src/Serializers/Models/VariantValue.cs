@@ -973,8 +973,8 @@ namespace Furly.Extensions.Serializers
         /// <param name="defaultValue"></param>
         public T ConvertTo<T>(T defaultValue)
         {
-            var typed = ConvertTo(typeof(T));
-            return typed == null ? defaultValue : (T)typed;
+            var typed = ConvertTo<T>();
+            return typed == null ? defaultValue : typed;
         }
 
         /// <summary>
@@ -2193,7 +2193,7 @@ namespace Furly.Extensions.Serializers
                     }
                     buffer.Add(b);
                 }
-                o = buffer.ToArray();
+                o = [.. buffer];
                 return true;
             }
             if (GetValueType() == VariantValueType.Complex)
@@ -2404,8 +2404,8 @@ namespace Furly.Extensions.Serializers
 
                 if (xt == VariantValueType.Complex)
                 {
-                    var px = x!.PropertyNames.OrderBy(k => k).Select(k => x[k]);
-                    var py = y!.PropertyNames.OrderBy(k => k).Select(k => y[k]);
+                    var px = x!.PropertyNames.Order().Select(k => x[k]);
+                    var py = y!.PropertyNames.Order().Select(k => y[k]);
                     if (px.SequenceEqual(py, Equality))
                     {
                         return true;
@@ -2801,7 +2801,7 @@ namespace Furly.Extensions.Serializers
             /// <inheritdoc/>
             protected override IEnumerable<string> GetObjectProperties()
             {
-                return Enumerable.Empty<string>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -2813,7 +2813,7 @@ namespace Furly.Extensions.Serializers
             /// <inheritdoc/>
             protected override IEnumerable<VariantValue> GetArrayElements()
             {
-                return Enumerable.Empty<VariantValue>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -3222,7 +3222,7 @@ namespace Furly.Extensions.Serializers
                 case VariantValueType.Complex:
                     var open = true;
                     builder = builder.Append('{');
-                    foreach (var k in PropertyNames.OrderBy(k => k))
+                    foreach (var k in PropertyNames.Order())
                     {
                         if (!open)
                         {
@@ -3338,7 +3338,7 @@ namespace Furly.Extensions.Serializers
                     }
                     break;
                 case VariantValueType.Complex:
-                    foreach (var k in PropertyNames.OrderBy(k => k))
+                    foreach (var k in PropertyNames.Order())
                     {
                         hc.Add(k);
                         this[k].GetDeepHashCode(ref hc);

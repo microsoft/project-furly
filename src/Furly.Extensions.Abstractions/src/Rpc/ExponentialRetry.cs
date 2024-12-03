@@ -6,6 +6,7 @@
 namespace Furly.Extensions.Rpc
 {
     using System;
+    using System.Threading;
 
     /// <summary>
     /// Expontential retry policy
@@ -41,8 +42,8 @@ namespace Furly.Extensions.Rpc
             }
 
             // Avoid integer overlow and clamp max delay.
-            var exponent = currentRetryCount + MinExponent;
-            exponent = Math.Min(MaxExponent, exponent);
+            var exponent = currentRetryCount + kMinExponent;
+            exponent = Math.Min(kMaxExponent, exponent);
 
             // 2 to the power of the retry count gives us exponential back-off.
             var exponentialIntervalMs = Math.Pow(2.0, exponent);
@@ -85,17 +86,17 @@ namespace Furly.Extensions.Rpc
         }
 
         private readonly Random _rng = new();
-        private readonly object _rngLock = new();
+        private readonly Lock _rngLock = new();
 
         // If we start with an exponent of 1 to calculate the number
         // of millisecond delay, it starts too low and takes too long
         // to get over 1 second.
         // So we always add 6 to the retry count to start at 2^7=128
         // milliseconds, and exceed 1 second delay on retry #4.
-        private const uint MinExponent = 6u;
+        private const uint kMinExponent = 6u;
 
         // Avoid integer overlow (max of 32) and clamp max delay.
-        private const uint MaxExponent = 32u;
+        private const uint kMaxExponent = 32u;
 
         /// <summary>
         /// The maximum number of retries

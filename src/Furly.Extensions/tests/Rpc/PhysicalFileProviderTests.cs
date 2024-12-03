@@ -15,7 +15,7 @@ namespace Furly.Extensions.Rpc
     public class PhysicalFileProviderTests
     {
         [Fact]
-        public async Task TestFileProviderWorksAsExpected()
+        public async Task TestFileProviderWorksAsExpectedAsync()
         {
             var f1full = Path.GetTempFileName();
             var f2full = Path.GetTempFileName();

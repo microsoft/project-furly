@@ -140,7 +140,7 @@ namespace Furly.Extensions.Kafka.Server
             throw new ExternalDependencyException("Cluster not available.");
         }
 
-        private readonly List<KafkaNode> _nodes = new();
+        private readonly List<KafkaNode> _nodes = [];
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ILogger _logger;
         private readonly ZookeeperNode _zookeeper;

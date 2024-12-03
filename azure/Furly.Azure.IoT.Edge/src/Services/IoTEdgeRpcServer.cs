@@ -45,7 +45,7 @@ namespace Furly.Azure.IoT.Edge.Services
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _client = client ?? throw new ArgumentNullException(nameof(client));
-            _listeners = ImmutableHashSet<Listener>.Empty;
+            _listeners = [];
         }
 
         /// <inheritdoc/>
@@ -64,7 +64,7 @@ namespace Furly.Azure.IoT.Edge.Services
         public async ValueTask DisposeAsync()
         {
             var listeners = _listeners;
-            _listeners = ImmutableHashSet<Listener>.Empty;
+            _listeners = [];
 
             foreach (var listener in listeners)
             {
@@ -230,6 +230,6 @@ namespace Furly.Azure.IoT.Edge.Services
         private readonly ISerializer _serializer;
         private bool _registered;
         private ImmutableHashSet<Listener> _listeners;
-        private readonly object _lock = new();
+        private readonly Lock _lock = new();
     }
 }

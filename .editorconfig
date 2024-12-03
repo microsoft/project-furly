@@ -118,7 +118,7 @@ csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:silent
-csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+csharp_style_unused_value_expression_statement_preference = unused_local_variable:none
 
 # 'using' directive preferences
 csharp_using_directive_placement = inside_namespace:suggestion
@@ -389,6 +389,10 @@ dotnet_diagnostic.CA1861.severity = silent
 
 # IDE0290: Use primary constructor
 dotnet_diagnostic.IDE0290.severity = silent
+csharp_prefer_system_threading_lock = true:suggestion
+
+# IDE0058: Expression value is never used
+dotnet_diagnostic.IDE0058.severity = none
 
 [*.{cs,vb}]
 dotnet_style_operator_placement_when_wrapping = beginning_of_line

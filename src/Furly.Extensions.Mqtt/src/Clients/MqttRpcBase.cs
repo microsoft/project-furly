@@ -26,7 +26,6 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
-    using Furly.Extensions.Mqtt.Exceptions;
 
     /// <summary>
     /// Mqtt rpc client base
@@ -554,7 +553,7 @@ namespace Furly.Extensions.Mqtt.Clients
             private readonly CancellationTokenSource _cts;
         }
 
-        private static readonly ReadOnlySequence<byte> kEmptyPayload = new(new byte[] { 0 });
+        private static readonly ReadOnlySequence<byte> kEmptyPayload = new([0]);
         private const string kResPath = "res";
         private const string kRequestIdKey = "?$rid=";
         private const string kStatusCodeKey = "StatusCode";

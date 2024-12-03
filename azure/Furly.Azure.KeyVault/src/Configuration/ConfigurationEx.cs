@@ -15,7 +15,6 @@ namespace Microsoft.Extensions.Configuration
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
@@ -151,7 +150,7 @@ namespace Microsoft.Extensions.Configuration
                 string? parentPath)
             {
                 // Not supported
-                return Enumerable.Empty<string>();
+                return [];
             }
 
             /// <summary>
@@ -285,7 +284,8 @@ namespace Microsoft.Extensions.Configuration
             /// <returns></returns>
             private async Task LoadAllSecretsAsync(CancellationToken ct = default)
             {
-                await foreach (var secretProperty in _keyVault.Client.GetPropertiesOfSecretsAsync(ct))
+                await foreach (var secretProperty in
+                    _keyVault.Client.GetPropertiesOfSecretsAsync(ct).ConfigureAwait(false))
                 {
                     if (secretProperty.Enabled != true)
                     {
@@ -327,7 +327,7 @@ namespace Microsoft.Extensions.Configuration
                 return secretId.Replace("-", "_", StringComparison.Ordinal).ToUpperInvariant();
             }
 
-            private static readonly object kLock = new();
+            private static readonly Lock kLock = new();
             private static Task<KeyVaultConfigurationProvider?>? _singleton;
             private readonly KeyVaultClientBootstrap _keyVault;
             private readonly ConcurrentDictionary<string, Task<Response<KeyVaultSecret>>> _cache;

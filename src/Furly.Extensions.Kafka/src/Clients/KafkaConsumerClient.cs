@@ -271,7 +271,7 @@ namespace Furly.Extensions.Kafka.Clients
             private readonly KafkaConsumerClient _outer;
         }
 
-        private readonly List<Subscription> _subscriptions = new();
+        private readonly List<Subscription> _subscriptions = [];
         private readonly ILogger _logger;
         private readonly IKafkaAdminClient _admin;
         private readonly IOptions<KafkaConsumerOptions> _config;

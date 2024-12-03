@@ -8,7 +8,6 @@ namespace Furly.Azure.IoT.Services
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Models;
     using Furly.Extensions.Serializers;
-    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Azure.Devices.Shared;
@@ -59,7 +58,7 @@ namespace Furly.Azure.IoT.Services
             }
 
             HostName = cs.HostName;
-            _registry = OpenAsync(cs, options.Value);
+            _registry = OpenAsync(cs);
         }
 
         /// <inheritdoc/>
@@ -313,7 +312,7 @@ namespace Furly.Azure.IoT.Services
                 {
                     ContinuationToken = SerializeContinuationToken(query,
                         result.ContinuationToken, pageSize),
-                    Result = result.Select(s => _serializer.Parse(s)).ToList()
+                    Result = result.Select(_serializer.Parse).ToList()
                 };
             }
             catch (Exception e)
@@ -418,14 +417,12 @@ namespace Furly.Azure.IoT.Services
         /// Open service client
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <returns></returns>
-        internal async Task<RegistryManager> OpenAsync(ConnectionString connectionString,
-            IoTHubServiceOptions options)
+        internal async Task<RegistryManager> OpenAsync(ConnectionString connectionString)
         {
             try
             {
-                var client = CreateRegistryManager(connectionString, options);
+                var client = CreateRegistryManager(connectionString);
                 await client.OpenAsync().ConfigureAwait(false);
                 return client;
             }
@@ -440,10 +437,8 @@ namespace Furly.Azure.IoT.Services
         /// Create registry manager
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <returns></returns>
-        private RegistryManager CreateRegistryManager(ConnectionString connectionString,
-            IoTHubServiceOptions options)
+        private RegistryManager CreateRegistryManager(ConnectionString connectionString)
         {
             Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
             if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||

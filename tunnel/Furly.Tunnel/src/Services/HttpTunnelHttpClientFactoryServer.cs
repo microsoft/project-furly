@@ -37,7 +37,7 @@ namespace Furly.Tunnel.Services
         public async Task<HttpTunnelResponseModel> ProcessAsync(HttpTunnelRequestModel request,
             CancellationToken ct)
         {
-            var content = new ByteArrayContent(request.Body ?? Array.Empty<byte>());
+            var content = new ByteArrayContent(request.Body ?? []);
             // Add content headers
             if (request.ContentHeaders != null)
             {

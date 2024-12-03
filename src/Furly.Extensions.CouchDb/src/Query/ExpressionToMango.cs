@@ -843,7 +843,7 @@ namespace CouchDB.Driver.Query
                     .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                     .Single(mi => mi.Name == nameof(Enumerable.Contains) && mi.GetParameters().Length == 2);
 
-                Supported = new List<MethodInfo> {
+                Supported = [
                     Where,
                     OrderBy,
                     ThenBy,
@@ -858,7 +858,7 @@ namespace CouchDB.Driver.Query
                     In,
                     IsMatch,
                     Contains
-                };
+                ];
             }
         }
 

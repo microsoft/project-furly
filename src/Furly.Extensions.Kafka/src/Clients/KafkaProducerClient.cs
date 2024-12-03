@@ -247,8 +247,8 @@ namespace Furly.Extensions.Kafka.Clients
             private string _topic = string.Empty;
             private QoS _qos = QoS.AtLeastOnce;
             private Timestamp _timestamp;
-            private readonly Headers _header = new();
-            private readonly List<ReadOnlySequence<byte>> _buffers = new();
+            private readonly Headers _header = [];
+            private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private readonly KafkaProducerClient _outer;
         }
 

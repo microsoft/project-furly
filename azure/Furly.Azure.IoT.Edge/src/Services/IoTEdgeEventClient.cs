@@ -32,10 +32,7 @@ namespace Furly.Azure.IoT.Edge.Services
         public int MaxEventPayloadSizeInBytes { get; } = (256 * 1024) - kPropertyReservation;
 
         /// <inheritdoc/>
-        string IProcessIdentity.Identity
-        {
-            get => _identity.Gateway ?? _identity.DeviceId;
-        }
+        string IProcessIdentity.Identity => _identity.Gateway ?? _identity.DeviceId;
 
         /// <summary>
         /// Create Event client
@@ -220,7 +217,7 @@ namespace Furly.Azure.IoT.Edge.Services
                     foreach (var message in messages)
                     {
                         var messageSize =
-                            (message.BodyStream.Length + kPropertyReservation);
+                            message.BodyStream.Length + kPropertyReservation;
                         if (size + messageSize >= _outer.MaxEventPayloadSizeInBytes
                             && batch.Count > 0)
                         {
@@ -263,7 +260,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 return _buffers.ConvertAll(m => _template.CloneWithBody(m.ToArray()));
             }
 
-            private readonly List<ReadOnlySequence<byte>> _buffers = new();
+            private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private readonly Message _template = new();
             private readonly IoTEdgeEventClient _outer;
             private string? _topic;
@@ -322,6 +319,6 @@ namespace Furly.Azure.IoT.Edge.Services
         private readonly Lazy<Task> _receiver;
         private readonly IIoTEdgeDeviceClient _client;
         private readonly IIoTEdgeDeviceIdentity _identity;
-        private readonly List<Subscription> _subscriptions = new();
+        private readonly List<Subscription> _subscriptions = [];
     }
 }

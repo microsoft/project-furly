@@ -6,8 +6,8 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     using Microsoft.Extensions.Options;
-    using Furly.Extensions.Messaging;
     using Furly.Azure;
+    using Furly.Azure.Runtime;
 
     /// <summary>
     /// DI extension
@@ -23,6 +23,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services
                 .AddScoped<ICredentialProvider, DefaultAzureCredentials>()
                 .AddOptions()
+                .AddSingleton<IPostConfigureOptions<CredentialOptions>, CredentialConfig>()
                 ;
         }
     }

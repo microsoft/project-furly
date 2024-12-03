@@ -164,7 +164,7 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         private IEventSchema? _schema;
-        private readonly List<ReadOnlySequence<byte>> _buffers = new();
+        private readonly List<ReadOnlySequence<byte>> _buffers = [];
         private readonly MqttApplicationMessageBuilder _builder = new();
         private readonly IMqttPublish _publish;
         private readonly MqttVersion _version;

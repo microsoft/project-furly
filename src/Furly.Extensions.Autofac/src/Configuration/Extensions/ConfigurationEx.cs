@@ -158,7 +158,7 @@ namespace Autofac
 
             /// <inheritdoc/>
             public IList<IConfigurationSource> Sources { get; }
-                = new List<IConfigurationSource>();
+                = [];
 
             /// <inheritdoc/>
             public IConfigurationBuilder Add(IConfigurationSource source)

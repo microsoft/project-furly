@@ -7,6 +7,7 @@ namespace Furly.Azure.IoT.Edge
 {
     using Microsoft.Azure.Devices.Client;
     using Microsoft.Azure.Devices.Shared;
+    using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Furly.Azure.IoT.Edge
     /// <summary>
     /// IoT Hub device client abstraction
     /// </summary>
-    public interface IIoTEdgeDeviceClient
+    public interface IIoTEdgeDeviceClient : IDisposable
     {
         /// <summary>
         /// Sends an event to device hub

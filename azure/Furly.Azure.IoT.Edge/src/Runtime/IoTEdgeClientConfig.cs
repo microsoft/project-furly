@@ -31,7 +31,7 @@ namespace Furly.Azure.IoT.Edge.Runtime
             }
             if (options.Transport == 0)
             {
-                options.Transport = (TransportOption)Enum.Parse(typeof(TransportOption),
+                options.Transport = Enum.Parse<TransportOption>(
                     GetStringOrDefault(nameof(options.Transport),
                         nameof(TransportOption.MqttOverTcp)), true);
             }

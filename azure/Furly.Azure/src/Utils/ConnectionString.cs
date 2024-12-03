@@ -136,7 +136,7 @@ namespace Furly.Azure
                     throw new InvalidDataContractException("Bad key value pair.");
                 }
                 // Throws argument if already exists or parse fails...
-                cs._items.Add((Id)Enum.Parse(typeof(Id), elem[..i], true),
+                cs._items.Add(Enum.Parse<Id>(elem[..i], true),
                     elem[(i + 1)..]);
             }
             return cs;
@@ -273,7 +273,7 @@ namespace Furly.Azure
         /// </summary>
         private ConnectionString()
         {
-            _items = new Dictionary<Id, string>();
+            _items = [];
         }
 
         /// <summary>

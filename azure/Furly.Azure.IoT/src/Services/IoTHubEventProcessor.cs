@@ -8,7 +8,6 @@ namespace Furly.Azure.IoT.Services
     using Furly;
     using Furly.Exceptions;
     using Furly.Extensions.Utils;
-    using global::Azure.Identity;
     using global::Azure.Messaging.EventHubs;
     using global::Azure.Messaging.EventHubs.Consumer;
     using global::Azure.Messaging.EventHubs.Processor;

@@ -15,7 +15,6 @@ namespace Furly.Extensions.Rpc
     using Moq;
     using System;
     using System.IO;
-    using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -25,7 +24,7 @@ namespace Furly.Extensions.Rpc
     public class FileSystemRpcServerTests
     {
         [Fact]
-        public async Task FileSystemRpcServerTest1()
+        public async Task FileSystemRpcServerTest1Async()
         {
             const string requestContent = """
 POST method HTTP/1.1
@@ -85,7 +84,7 @@ POST method HTTP/1.1
                 {
                     Assert.Equal("application/json", contentType);
                     Assert.Equal("method", method);
-                    Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString(payload.ToArray()));
+                    Assert.Equal("{\"key\":\"value\"}", Encoding.UTF8.GetString([.. payload]));
 
                     return Encoding.UTF8.GetBytes("{\"a\":\"b\"}");
                 });
@@ -100,7 +99,7 @@ POST method HTTP/1.1
         }
 
         [Fact]
-        public async Task FileSystemRpcServerTest2()
+        public async Task FileSystemRpcServerTest2Async()
         {
             // Configure input and output paths
             var input = Path.Combine(Path.GetTempPath(), "a");

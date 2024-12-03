@@ -18,7 +18,7 @@ namespace Furly.Extensions.Configuration
         /// <inheritdoc/>
         public OptionsMock(TOptions? options = null)
         {
-            options ??= (TOptions?)Activator.CreateInstance(typeof(TOptions));
+            options ??= Activator.CreateInstance<TOptions>();
             if (options is null)
             {
                 throw new InvalidOperationException(

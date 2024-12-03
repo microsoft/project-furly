@@ -178,7 +178,7 @@ namespace Furly.Extensions.RabbitMq.Clients
             }
 
             private readonly Task<IRabbitMqChannel> _queue;
-            private readonly List<Subscription> _subscriptions = new();
+            private readonly List<Subscription> _subscriptions = [];
         }
 
         private readonly IRabbitMqConnection _connection;

@@ -10,7 +10,6 @@ namespace Furly.Azure.IoT.Services
     using Furly.Exceptions;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
-    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -59,7 +58,7 @@ namespace Furly.Azure.IoT.Services
                     "IoT Hub Device id string not configured.");
             _moduleId = device.Value.ModuleId;
             Identity = HubResource.Format(cs.HostName, _deviceId, _moduleId);
-            _client = OpenAsync(cs, options.Value, credential);
+            _client = OpenAsync(cs, credential);
         }
 
         /// <inheritdoc/>
@@ -78,18 +77,16 @@ namespace Furly.Azure.IoT.Services
         /// Open service client
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <param name="credential"></param>
         /// <returns></returns>
         internal static async Task<ServiceClient> OpenAsync(ConnectionString connectionString,
-            IoTHubServiceOptions options, ICredentialProvider credential)
+            ICredentialProvider credential)
         {
-            var client = CreateServiceClient(connectionString, options);
+            var client = CreateServiceClient(connectionString);
             await client.OpenAsync().ConfigureAwait(false);
             return client;
 
-            ServiceClient CreateServiceClient(ConnectionString connectionString,
-                IoTHubServiceOptions options)
+            ServiceClient CreateServiceClient(ConnectionString connectionString)
             {
                 Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
                 if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||
@@ -246,8 +243,8 @@ namespace Furly.Azure.IoT.Services
                 return message;
             }
 
-            private readonly Dictionary<string, string?> _properties = new();
-            private readonly List<ReadOnlySequence<byte>> _buffers = new();
+            private readonly Dictionary<string, string?> _properties = [];
+            private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private readonly Task<ServiceClient> _client;
             private readonly string _deviceId;
             private readonly string? _moduleId;

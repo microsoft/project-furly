@@ -8,7 +8,6 @@ namespace Furly.Azure.KeyVault
     using Furly.Azure.KeyVault.Runtime;
     using Furly.Exceptions;
     using Autofac;
-    using global::Azure.Identity;
     using global::Azure.Security.KeyVault.Secrets;
     using System;
 

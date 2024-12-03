@@ -22,7 +22,7 @@ namespace Furly.Tunnel.AspNetCore.Tests
     {
         /// <inheritdoc/>
         public IEnumerable<IRpcHandler> Connected =>
-            _server?.YieldReturn() ?? Enumerable.Empty<IRpcHandler>();
+            _server?.YieldReturn() ?? [];
 
         /// <inheritdoc/>
         public int MaxMethodPayloadSizeInBytes => 120 * 1024;

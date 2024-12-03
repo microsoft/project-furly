@@ -116,7 +116,7 @@ namespace Furly.Tunnel.Protocol
                     throw new ArgumentException("Bad request.");
                 }
                 request = result;
-                return chunk0 ?? Array.Empty<byte>();
+                return chunk0 ?? [];
             }
         }
 
@@ -219,7 +219,7 @@ namespace Furly.Tunnel.Protocol
                     throw new ArgumentException("Bad request.");
                 }
                 response = result;
-                return chunk0 ?? Array.Empty<byte>();
+                return chunk0 ?? [];
             }
         }
 
@@ -260,7 +260,7 @@ namespace Furly.Tunnel.Protocol
             }
             else
             {
-                payload = Array.Empty<byte>();
+                payload = [];
             }
             return payload;
         }

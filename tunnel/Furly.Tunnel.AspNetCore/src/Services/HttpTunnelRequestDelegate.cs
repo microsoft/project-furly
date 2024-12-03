@@ -47,7 +47,7 @@ namespace Furly.Tunnel.AspNetCore.Services
             {
                 Protocol = "TUNNEL",
                 Method = request.Method ?? "GET",
-                Payload = request.Body ?? Array.Empty<byte>(),
+                Payload = request.Body ?? [],
                 RawTarget = request.Uri,
                 Scheme = uri.IsAbsoluteUri ? uri.Scheme : string.Empty,
                 Path = uri.IsAbsoluteUri ? uri.AbsolutePath : request.Uri,
@@ -60,7 +60,7 @@ namespace Furly.Tunnel.AspNetCore.Services
                 foreach (var item in request.ContentHeaders)
                 {
                     httpRequest.Headers.TryAdd(item.Key,
-                        new StringValues(item.Value.ToArray()));
+                        new StringValues([.. item.Value]));
                 }
             }
             if (request.RequestHeaders != null)
@@ -68,7 +68,7 @@ namespace Furly.Tunnel.AspNetCore.Services
                 foreach (var item in request.RequestHeaders)
                 {
                     httpRequest.Headers.TryAdd(item.Key,
-                        new StringValues(item.Value.ToArray()));
+                        new StringValues([.. item.Value]));
                 }
             }
 

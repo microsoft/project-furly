@@ -62,7 +62,7 @@ namespace Furly.Extensions.Mqtt
         /// the server in the ACK packet etc.
         /// </summary>
         public IList<MqttUserProperty> ResponseUserProperties { get; }
-            = new List<MqttUserProperty>();
+            = [];
 
         /// <summary>
         /// User acknowledge if not auto acknolodging

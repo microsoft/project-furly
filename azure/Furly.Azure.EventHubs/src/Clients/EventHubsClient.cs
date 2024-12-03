@@ -188,16 +188,16 @@ namespace Furly.Azure.EventHubs.Clients
                         }
                     }
 
-                    var eventBatch = await _client.CreateBatchAsync(ct).ConfigureAwait(false);
+                    var eventBatch = await Client.CreateBatchAsync(ct).ConfigureAwait(false);
                     foreach (var msg in _buffers)
                     {
                         eventBatch.TryAdd(CreateMessage(msg));
                     }
-                    await _client.SendAsync(eventBatch, ct).ConfigureAwait(false);
+                    await Client.SendAsync(eventBatch, ct).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
-                    _logger.LogTrace(e, "Sending message to to EventHub failed.");
+                    Logger.LogTrace(e, "Sending message to to EventHub failed.");
                     throw; // e.Translate();
                 }
             }
@@ -224,12 +224,12 @@ namespace Furly.Azure.EventHubs.Clients
                 return message;
             }
 
-            private ILogger _logger => _outer._logger;
-            private EventHubProducerClient _client => _outer._client;
+            private ILogger Logger => _outer._logger;
+            private EventHubProducerClient Client => _outer._client;
 
             private readonly EventHubsClient _outer;
-            private readonly Dictionary<string, string?> _properties = new();
-            private readonly List<ReadOnlySequence<byte>> _buffers = new();
+            private readonly Dictionary<string, string?> _properties = [];
+            private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private IEventSchema? _schema;
             private string? _contentEncoding;
         }

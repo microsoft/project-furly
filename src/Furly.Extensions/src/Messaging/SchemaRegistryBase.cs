@@ -42,7 +42,7 @@ namespace Furly.Extensions.Messaging
         protected abstract ValueTask<string> RegisterAsync(IEventSchema schema,
             string schemaString, CancellationToken ct);
 
-        private const int CacheCapacity = 128;
-        private readonly LruCache<string, string> _schemaToIdMap = new(CacheCapacity);
+        private const int kCacheCapacity = 128;
+        private readonly LruCache<string, string> _schemaToIdMap = new(kCacheCapacity);
     }
 }

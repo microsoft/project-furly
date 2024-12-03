@@ -239,8 +239,8 @@ namespace Furly.Extensions.Rpc.Servers
             var idx = directive.IndexOf(' ', StringComparison.Ordinal);
             if (idx >= 0)
             {
-                directive = comment.Substring(0, idx).Trim();
-                value = comment.Substring(idx).Trim();
+                directive = comment[..idx].Trim();
+                value = comment[idx..].Trim();
             }
             switch (directive)
             {
@@ -361,8 +361,8 @@ namespace Furly.Extensions.Rpc.Servers
                 ThrowFormatException("Invalid header", line);
             }
 
-            var k = line.Substring(0, idx).Trim();
-            var v = line.Substring(idx + 1).Trim();
+            var k = line[..idx].Trim();
+            var v = line[(idx + 1)..].Trim();
             _headers.Add(k, v);
         }
 
@@ -374,17 +374,17 @@ namespace Furly.Extensions.Rpc.Servers
         {
             if (line.StartsWith('<'))
             {
-                _input = line.Substring(1, line.Length - 1).Trim();
+                _input = line[1..].Trim();
             }
             else if (line.StartsWith(">>!", StringComparison.Ordinal))
             {
                 _append = true;
-                _output = line.Substring(3, line.Length - 3).Trim();
+                _output = line[3..].Trim();
             }
             else if (line.StartsWith(">>", StringComparison.Ordinal))
             {
                 _append = false;
-                _output = line.Substring(2, line.Length - 2).Trim();
+                _output = line[2..].Trim();
             }
             else
             {

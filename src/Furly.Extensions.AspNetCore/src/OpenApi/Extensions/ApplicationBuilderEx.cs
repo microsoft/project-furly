@@ -29,7 +29,7 @@ namespace Microsoft.OpenApi.Models
             {
                 options.PreSerializeFilters.Add((doc, request) =>
                 {
-                    doc.Servers = new List<OpenApiServer>();
+                    doc.Servers = [];
                     foreach (var scheme in new HashSet<string> { "https", request.Scheme })
                     {
                         var url = $"{scheme}://{request.Host.Value}";

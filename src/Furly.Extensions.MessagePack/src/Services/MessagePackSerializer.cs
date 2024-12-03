@@ -197,7 +197,9 @@ namespace Furly.Extensions.Serializers.MessagePack
         {
             try
             {
+#pragma warning disable CA2263 // Prefer generic overload when type is known
                 var o = MsgPack.Deserialize(typeof(object), buffer, Options);
+#pragma warning restore CA2263 // Prefer generic overload when type is known
                 if (o is VariantValue v)
                 {
                     return v;
@@ -345,7 +347,7 @@ namespace Furly.Extensions.Serializers.MessagePack
                 {
                     return o.Keys.Select(p => p.ToString() ?? string.Empty);
                 }
-                return Enumerable.Empty<string>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -356,7 +358,7 @@ namespace Furly.Extensions.Serializers.MessagePack
                     return array.Select(i =>
                         new MessagePackVariantValue(i, _options, false));
                 }
-                return Enumerable.Empty<VariantValue>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -417,8 +419,10 @@ namespace Furly.Extensions.Serializers.MessagePack
                     // Special case - convert byte array to buffer if not bin to begin.
                     if (type == typeof(byte[]) && valueType.IsArray)
                     {
+#pragma warning disable CA2263 // Prefer generic overload when type is known
                         return ((IList<byte>?)MsgPack.Deserialize(typeof(IList<byte>),
                             buffer, _options))?.ToArray();
+#pragma warning restore CA2263 // Prefer generic overload when type is known
                     }
                     return MsgPack.Deserialize(type, buffer, _options);
                 }
@@ -514,14 +518,14 @@ namespace Furly.Extensions.Serializers.MessagePack
                     var props1 = o1.OrderBy(k => k.Key).Select(k => k.Value);
                     var props2 = o2.OrderBy(k => k.Key).Select(k => k.Value);
                     return props1.SequenceEqual(props2,
-                        Compare.Using<object>((x, y) => DeepEquals(x, y)));
+                        Compare.Using<object>(DeepEquals));
                 }
 
                 // Test array
                 if (t1 is object[] c1 && t2 is object[] c2)
                 {
                     return c1.SequenceEqual(c2,
-                        Compare.Using<object>((x, y) => DeepEquals(x, y)));
+                        Compare.Using<object>(DeepEquals));
                 }
 
                 // Test array
@@ -554,7 +558,9 @@ namespace Furly.Extensions.Serializers.MessagePack
                     var mem = new ArrayBufferWriter<byte>();
                     MsgPack.Serialize(mem, value, _options);
                     var buffer = mem.WrittenMemory;
+#pragma warning disable CA2263 // Prefer generic overload when type is known
                     return MsgPack.Deserialize(typeof(object), buffer, _options);
+#pragma warning restore CA2263 // Prefer generic overload when type is known
                 }
                 catch (MessagePackSerializationException ex)
                 {

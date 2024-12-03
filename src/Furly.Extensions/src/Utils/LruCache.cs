@@ -8,6 +8,7 @@ namespace Furly.Extensions.Utils
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Threading;
 
     /// <summary>
     /// Borrowed from Azure.Core. A simple LRU cache implementation
@@ -38,9 +39,6 @@ namespace Furly.Extensions.Utils
         public LruCache(int capacity)
         {
             _capacity = capacity;
-            _linkedList = new LinkedList<KeyValuePair<TKey, TValue?>>();
-            _map = new Dictionary<TKey, (LinkedListNode<KeyValuePair<TKey, TValue?>>, int)>();
-            _syncLock = new object();
         }
 
         /// <summary>
@@ -124,8 +122,8 @@ namespace Furly.Extensions.Utils
         }
 
         private readonly int _capacity;
-        private readonly LinkedList<KeyValuePair<TKey, TValue?>> _linkedList;
-        private readonly Dictionary<TKey, (LinkedListNode<KeyValuePair<TKey, TValue?>> Node, int Length)> _map;
-        private readonly object _syncLock;
+        private readonly LinkedList<KeyValuePair<TKey, TValue?>> _linkedList = new();
+        private readonly Dictionary<TKey, (LinkedListNode<KeyValuePair<TKey, TValue?>> Node, int Length)> _map = [];
+        private readonly Lock _syncLock = new();
     }
 }

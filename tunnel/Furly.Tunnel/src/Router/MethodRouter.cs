@@ -242,7 +242,7 @@ namespace Furly.Tunnel.Router.Services
                 MethodName = methodName;
                 _logger = logger;
                 _summarizer = summarizer;
-                _invokers = new List<JsonMethodInvoker>();
+                _invokers = [];
             }
 
             /// <summary>
@@ -368,7 +368,7 @@ namespace Furly.Tunnel.Router.Services
                     {
                         if (_methodParams.Length == 0)
                         {
-                            return Array.Empty<object>();
+                            return [];
                         }
 
                         if (_methodParams.Length == 1)

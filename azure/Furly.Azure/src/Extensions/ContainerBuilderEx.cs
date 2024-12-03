@@ -6,6 +6,7 @@
 namespace Autofac
 {
     using Furly.Azure;
+    using Furly.Azure.Runtime;
 
     /// <summary>
     /// Container builder extensions
@@ -22,6 +23,8 @@ namespace Autofac
             builder.RegisterType<DefaultAzureCredentials>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope()
                 .IfNotRegistered(typeof(ICredentialProvider));
+            builder.RegisterType<CredentialConfig>()
+                .AsImplementedInterfaces();
             return builder;
         }
     }

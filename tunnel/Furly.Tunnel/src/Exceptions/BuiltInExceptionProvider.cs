@@ -19,10 +19,10 @@ namespace Furly.Tunnel.Exceptions
     public class BuiltInExceptionProvider : IExceptionSummaryProvider
     {
         /// <inheritdoc/>
-        public IEnumerable<Type> SupportedExceptionTypes => _supported.Keys;
+        public IEnumerable<Type> SupportedExceptionTypes => kSupported.Keys;
 
         /// <inheritdoc/>
-        public IReadOnlyList<string> Descriptions => _descriptions;
+        public IReadOnlyList<string> Descriptions => kDescriptions;
 
         /// <inheritdoc/>
         public int Describe(Exception exception, out string? additionalDetails)
@@ -37,11 +37,11 @@ namespace Furly.Tunnel.Exceptions
             {
                 additionalDetails = exception.Message;
             }
-            if (_supported.TryGetValue(exception.GetType(), out var index))
+            if (kSupported.TryGetValue(exception.GetType(), out var index))
             {
                 return index;
             }
-            foreach (var supportedType in _supported)
+            foreach (var supportedType in kSupported)
             {
                 if (exception.GetType().IsAssignableFrom(supportedType.Key))
                 {
@@ -120,13 +120,13 @@ namespace Furly.Tunnel.Exceptions
                     "A parameter of an operation was outside of the allowed range."
             };
 
-            _descriptions = descriptions.Values.ToImmutableArray();
-            _supported = descriptions.Keys
+            kDescriptions = [.. descriptions.Values];
+            kSupported = descriptions.Keys
                 .Select((v, i) => KeyValuePair.Create(v, i))
                 .Skip(1)
                 .ToImmutableDictionary();
         }
-        private static readonly ImmutableArray<string> _descriptions;
-        private static readonly ImmutableDictionary<Type, int> _supported;
+        private static readonly ImmutableArray<string> kDescriptions;
+        private static readonly ImmutableDictionary<Type, int> kSupported;
     }
 }

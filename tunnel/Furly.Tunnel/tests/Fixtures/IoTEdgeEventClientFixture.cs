@@ -8,6 +8,7 @@ namespace Furly.Tunnel.Azure.Tests
     using Furly.Azure;
     using Furly.Azure.IoT;
     using Furly.Azure.IoT.Edge;
+    using HubResource = Furly.Azure.IoT.Edge.HubResource;
     using Furly.Exceptions;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Rpc;
@@ -19,7 +20,6 @@ namespace Furly.Tunnel.Azure.Tests
     using Microsoft.Extensions.Options;
     using System;
     using System.Threading.Tasks;
-    using HubResource = Furly.Azure.IoT.Edge.HubResource;
 
     public sealed class IoTEdgeEventClientFixture
     {

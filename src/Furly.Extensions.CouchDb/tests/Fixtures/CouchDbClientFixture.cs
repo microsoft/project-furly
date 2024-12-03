@@ -21,7 +21,7 @@ namespace Furly.Extensions.CouchDb.Clients
         {
             _sink = sink;
             _server = server;
-            _query = new Lazy<Task<ContainerWrapper?>>(() => CreateQueryContainerAsync());
+            _query = new Lazy<Task<ContainerWrapper?>>(CreateQueryContainerAsync);
         }
 
         /// <summary>
@@ -92,10 +92,10 @@ namespace Furly.Extensions.CouchDb.Clients
             {
                 Id = "AndersenFamily",
                 LastName = "Andersen",
-                Parents = new List<Parent> {
-                    new Parent { FirstName = "Thomas" },
-                    new Parent { FirstName = "Mary Kay" }
-                },
+                Parents = [
+                    new() { FirstName = "Thomas" },
+                    new() { FirstName = "Mary Kay" }
+                ],
                 Children = [
                     new Child {
                         FirstName = "Henriette Thaulow",
@@ -115,7 +115,7 @@ namespace Furly.Extensions.CouchDb.Clients
                     Size = 15.82,
                     City = "Seattle"
                 },
-                Colors = new List<string> { "yellow", "blue", "orange" },
+                Colors = ["yellow", "blue", "orange"],
                 IsRegistered = true,
                 ExistsFor = TimeSpan.FromMinutes(1),
                 RegistrationDate = DateTime.UtcNow.AddDays(-1)
@@ -127,10 +127,10 @@ namespace Furly.Extensions.CouchDb.Clients
             {
                 Id = "WakefieldFamily",
                 LastName = "Wakefield",
-                Parents = new List<Parent> {
-                    new Parent { FamilyName= "Wakefield", FirstName= "Robin" },
-                    new Parent { FamilyName= "Miller", FirstName= "Ben" }
-                },
+                Parents = [
+                    new() { FamilyName= "Wakefield", FirstName= "Robin" },
+                    new() { FamilyName= "Miller", FirstName= "Ben" }
+                ],
                 Children = [
                     new Child
                     {
@@ -158,7 +158,7 @@ namespace Furly.Extensions.CouchDb.Clients
                     Size = 5.82,
                     City = "NY"
                 },
-                Colors = new List<string> { "blue", "red" },
+                Colors = ["blue", "red"],
                 IsRegistered = false,
                 ExistsFor = TimeSpan.FromMinutes(2),
                 RegistrationDate = DateTime.UtcNow.AddDays(-30)

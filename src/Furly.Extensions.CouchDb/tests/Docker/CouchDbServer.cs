@@ -124,11 +124,11 @@ namespace Furly.Extensions.CouchDb.Server
                     {
                         [couchPort.ToString(CultureInfo.InvariantCulture)] = default
                     },
-                    Env = new List<string> {
+                    Env = [
                         "COUCHDB_CREATE_DATABASES=yes",
                         "COUCHDB_USER=" + _user ?? "admin",
                         "COUCHDB_PASSWORD=" + _key ?? "couchdb",
-                    }
+                    ]
                 })
             {
                 HostConfig = new HostConfig
@@ -136,11 +136,11 @@ namespace Furly.Extensions.CouchDb.Server
                     NetworkMode = NetworkName,
                     PortBindings = new Dictionary<string, IList<PortBinding>>
                     {
-                        [couchPort.ToString(CultureInfo.InvariantCulture)] = new List<PortBinding> {
-                            new PortBinding {
+                        [couchPort.ToString(CultureInfo.InvariantCulture)] = [
+                            new() {
                                 HostPort = port.ToString(CultureInfo.InvariantCulture)
                             }
-                        }
+                        ]
                     }
                 }
             };

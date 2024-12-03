@@ -6,7 +6,6 @@
 namespace Furly.Azure.IoT.Services
 {
     using Furly.Extensions.Serializers;
-    using global::Azure.Identity;
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Common.Exceptions;
     using Microsoft.Extensions.Logging;
@@ -45,7 +44,7 @@ namespace Furly.Azure.IoT.Services
                 throw new ArgumentException("Missing or bad connection string", nameof(options));
             }
 
-            _deployment = DeployAsync(cs, options.Value);
+            _deployment = DeployAsync(cs);
         }
 
         /// <inheritdoc/>
@@ -58,11 +57,10 @@ namespace Furly.Azure.IoT.Services
         /// Run the deployment
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <returns></returns>
-        private async Task DeployAsync(ConnectionString connectionString, IoTHubServiceOptions options)
+        private async Task DeployAsync(ConnectionString connectionString)
         {
-            using var registry = CreateRegistryManager(connectionString, options);
+            using var registry = CreateRegistryManager(connectionString);
             await registry.OpenAsync().ConfigureAwait(false);
 
             // Apply layered configuration
@@ -118,10 +116,8 @@ namespace Furly.Azure.IoT.Services
         /// Create registry manager
         /// </summary>
         /// <param name="connectionString"></param>
-        /// <param name="options"></param>
         /// <returns></returns>
-        private RegistryManager CreateRegistryManager(ConnectionString connectionString,
-            IoTHubServiceOptions options)
+        private RegistryManager CreateRegistryManager(ConnectionString connectionString)
         {
             Debug.Assert(!string.IsNullOrEmpty(connectionString.HostName));
             if (string.IsNullOrEmpty(connectionString.SharedAccessKey) ||

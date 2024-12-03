@@ -209,7 +209,7 @@ namespace Furly.Extensions.Messaging
             do
             {
                 // ASCII escape character
-                sb.Append(span[..index]).Append(span[index] switch
+                sb = sb.Append(span[..index]).Append(span[index] switch
                 {
                     kSingleLevelWildcard => "\\x2b",
                     kMultiLevelWildcard => "\\x23",
@@ -224,13 +224,12 @@ namespace Furly.Extensions.Messaging
                 index = span.IndexOfAny(kReservedTopicChars);
             }
             while (index != -1);
-            sb.Append(span);
-            return sb.ToString();
+            return sb.Append(span).ToString();
         }
 
         private static readonly SearchValues<char> kReservedTopicChars = SearchValues.Create("\\/#+");
-        const char kLevelSeparator = '/';
-        const char kMultiLevelWildcard = '#';
-        const char kSingleLevelWildcard = '+';
+        private const char kLevelSeparator = '/';
+        private const char kMultiLevelWildcard = '#';
+        private const char kSingleLevelWildcard = '+';
     }
 }

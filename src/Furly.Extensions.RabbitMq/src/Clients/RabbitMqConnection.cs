@@ -554,7 +554,7 @@ namespace Furly.Extensions.RabbitMq.Clients
                 }
 
                 private string? _routingKey;
-                private readonly List<ReadOnlySequence<byte>> _buffers = new();
+                private readonly List<ReadOnlySequence<byte>> _buffers = [];
                 private readonly RabbitMqChannel _outer;
                 private readonly bool _mandatory;
                 private readonly IBasicProperties _properties;

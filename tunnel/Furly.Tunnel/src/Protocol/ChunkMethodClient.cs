@@ -64,7 +64,7 @@ namespace Furly.Tunnel.Protocol
             }
             if (payload.Length == 0)
             {
-                payload = new byte[] { (byte)' ' };
+                payload = " "u8.ToArray();
             }
             contentType ??= ContentMimeType.Json;
 

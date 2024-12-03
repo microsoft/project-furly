@@ -169,7 +169,7 @@ namespace Furly.Tunnel.Services
             /// <returns></returns>
             internal bool AddChunk(int id, byte[] payload)
             {
-                if (id < 0 || id >= kMaxNumberOfChunks)
+                if (id is < 0 or >= kMaxNumberOfChunks)
                 {
                     return false;
                 }

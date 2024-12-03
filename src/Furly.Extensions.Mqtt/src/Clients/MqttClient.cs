@@ -7,6 +7,7 @@ namespace Furly.Extensions.Mqtt.Clients
 {
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Metrics;
     using Furly.Extensions.Serializers;
     using Furly.Exceptions;
     using Autofac;
@@ -23,6 +24,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Diagnostics.Metrics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -32,8 +34,6 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Diagnostics.Metrics;
-    using Furly.Extensions.Metrics;
 
     /// <summary>
     /// Mqtt event client
@@ -216,7 +216,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     {
                         SubscriptionIdentifier = options.SubscriptionIdentifier,
                         UserProperties = options.UserProperties,
-                        TopicFilters = group.ToList()
+                        TopicFilters = [.. group]
                     }, ct));
             var results = await Task.WhenAll(subscriptions).ConfigureAwait(false);
             return new MqttClientSubscribeResult(ushort.MaxValue,
@@ -252,12 +252,12 @@ namespace Furly.Extensions.Mqtt.Clients
                     .UnsubscribeAsync(options, ct).ConfigureAwait(false);
             }
             var subscriptions = options.TopicFilters
-                .GroupBy(topic => GetClientIndex(topic))
+                .GroupBy(GetClientIndex)
                 .Select(group => _clients[group.Key].UnsubscribeAsync(
                     new MqttClientUnsubscribeOptions
                     {
                         UserProperties = options.UserProperties,
-                        TopicFilters = group.ToList()
+                        TopicFilters = [.. group]
                     }, ct));
             var results = await Task.WhenAll(subscriptions).ConfigureAwait(false);
             return new MqttClientUnsubscribeResult(ushort.MaxValue,
@@ -284,7 +284,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 if (!_subscriptions.TryGetValue(topic, out var consumers))
                 {
-                    consumers = new List<IEventConsumer> { consumer };
+                    consumers = [consumer];
                     subscribe = true;
                     _subscriptions.Add(topic, consumers);
                 }
@@ -499,7 +499,7 @@ namespace Furly.Extensions.Mqtt.Clients
                             // Add as managed subscription
                             await client.SubscribeAsync(new MqttClientSubscribeOptions
                             {
-                                TopicFilters = new List<MqttTopicFilter> { topic.Item2 }
+                                TopicFilters = [topic.Item2]
                             }, ct).ConfigureAwait(false);
                         }
                         topic.Item1.TrySetResult();
@@ -545,7 +545,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     await GetClientForTopic(topic).UnsubscribeAsync(
                         new MqttClientUnsubscribeOptions
                         {
-                            TopicFilters = new List<string> { topic }
+                            TopicFilters = [topic]
                         }, default).ConfigureAwait(false);
                     _subscriptions.Remove(topic);
                 }
@@ -677,7 +677,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     $"Cert '{cert.Subject}' expired '{cert.GetExpirationDateString()}'");
                         }
                         // https://github.com/dotnet/runtime/issues/45680#issuecomment-739912495
-                        return new X509Certificate2(cert.Export(X509ContentType.Pkcs12));
+                        return X509CertificateLoader.LoadCertificate(cert.Export(X509ContentType.Pkcs12));
                     }
                 }
 
@@ -812,6 +812,6 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly SemaphoreSlim _subscriptionsLock = new(1, 1);
         private readonly AsyncManualResetEvent _triggerSubscriber = new();
         private readonly ConcurrentQueue<(TaskCompletionSource, MqttTopicFilter)> _topics = new();
-        private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = new();
+        private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = [];
     }
 }

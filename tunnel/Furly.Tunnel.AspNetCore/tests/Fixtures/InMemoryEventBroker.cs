@@ -160,7 +160,7 @@ namespace Furly.Tunnel.AspNetCore.Tests
             }
 
             /// <inheritdoc/>
-            public List<ReadOnlySequence<byte>> Buffers { get; } = new();
+            public List<ReadOnlySequence<byte>> Buffers { get; } = [];
 
             /// <inheritdoc/>
             public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
@@ -170,7 +170,7 @@ namespace Furly.Tunnel.AspNetCore.Tests
             }
 
             /// <inheritdoc/>
-            public Dictionary<string, string?> Properties { get; } = new();
+            public Dictionary<string, string?> Properties { get; } = [];
 
             /// <inheritdoc/>
             public IEvent AddProperty(string name, string? value)
@@ -221,6 +221,6 @@ namespace Furly.Tunnel.AspNetCore.Tests
             private readonly Action _action;
         }
 
-        private readonly Dictionary<string, IEventConsumer> _consumers = new();
+        private readonly Dictionary<string, IEventConsumer> _consumers = [];
     }
 }

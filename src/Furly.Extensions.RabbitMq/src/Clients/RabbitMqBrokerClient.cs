@@ -12,7 +12,6 @@ namespace Furly.Extensions.RabbitMq.Clients
     using System;
     using System.Buffers;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -202,7 +201,7 @@ namespace Furly.Extensions.RabbitMq.Clients
                 List<IEventConsumer> consumers;
                 try
                 {
-                    consumers = _consumers.Values.ToList();
+                    consumers = [.. _consumers.Values];
                 }
                 finally
                 {
@@ -235,7 +234,7 @@ namespace Furly.Extensions.RabbitMq.Clients
             private readonly RabbitMqBrokerClient _outer;
             private readonly Task<IRabbitMqChannel> _channel;
             private readonly SemaphoreSlim _lock = new(1, 1);
-            private readonly Dictionary<string, IEventConsumer> _consumers = new();
+            private readonly Dictionary<string, IEventConsumer> _consumers = [];
         }
 
         /// <summary>
@@ -258,7 +257,7 @@ namespace Furly.Extensions.RabbitMq.Clients
             return topic.Replace('/', '.');
         }
 
-        private readonly Dictionary<string, Subscription> _subscriptions = new();
+        private readonly Dictionary<string, Subscription> _subscriptions = [];
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly ILogger _logger;
         private readonly IRabbitMqConnection _connection;

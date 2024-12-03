@@ -70,6 +70,6 @@ namespace Furly.Tunnel.AspNetCore.Services
         }
 
         private readonly IReadOnlyList<IEventSubscriber> _servers;
-        private readonly List<HttpTunnelEventServer> _tunnels = new();
+        private readonly List<HttpTunnelEventServer> _tunnels = [];
     }
 }

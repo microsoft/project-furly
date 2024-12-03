@@ -35,7 +35,7 @@ namespace Furly.Extensions.Storage.Services
             {
                 lock (_state)
                 {
-                    return _state.Keys.ToList();
+                    return [.. _state.Keys];
                 }
             }
         }
@@ -47,7 +47,7 @@ namespace Furly.Extensions.Storage.Services
             {
                 lock (_state)
                 {
-                    return _state.Values.ToList();
+                    return [.. _state.Values];
                 }
             }
         }
@@ -354,7 +354,7 @@ namespace Furly.Extensions.Storage.Services
 
         private readonly ILogger<KVStoreCollection> _logger;
         private readonly CancellationTokenSource _cts;
-        private readonly Dictionary<string, VariantValue> _state = new();
+        private readonly Dictionary<string, VariantValue> _state = [];
         private readonly Channel<(string, VariantValue)> _write;
         private Task _loaded = Task.CompletedTask;
         private Task? _processor;

@@ -173,7 +173,7 @@ namespace Furly.Extensions.Dapr.Clients
             private readonly DaprSidecarConnector _outer;
         }
 
-        private readonly List<Subscription> _subscriptions = new();
+        private readonly List<Subscription> _subscriptions = [];
         private readonly CancellationTokenSource _cts;
         private readonly Task _running;
     }

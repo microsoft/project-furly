@@ -43,7 +43,7 @@ namespace Furly.Extensions.Messaging.Clients
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _rootFolder = Path.GetFullPath(_options.Value.OutputFolder ?? string.Empty);
-            _writers = writers?.ToArray() ?? Array.Empty<IFileWriter>();
+            _writers = writers?.ToArray() ?? [];
         }
 
         /// <inheritdoc/>
@@ -215,8 +215,8 @@ namespace Furly.Extensions.Messaging.Clients
             private DateTimeOffset _timestamp;
             private IEventSchema? _schema;
             private string? _contentType;
-            private readonly Dictionary<string, string?> _metadata = new();
-            private readonly List<ReadOnlySequence<byte>> _buffers = new();
+            private readonly Dictionary<string, string?> _metadata = [];
+            private readonly List<ReadOnlySequence<byte>> _buffers = [];
             private readonly FileSystemEventClient _outer;
         }
 

@@ -32,7 +32,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
         }
 
         [Fact]
-        public async Task TestFilter()
+        public async Task TestFilterAsync()
         {
             var httpClient = _factory.CreateClient();
             var response = await httpClient.GetStringAsync(new Uri("http://localhost/swagger/v2/openapi.json"));
@@ -285,9 +285,11 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     public class EnumTestsController : ControllerBase
     {
         [HttpPost]
+#pragma warning disable IDE0060 // Remove unused parameter
         public TestEnum GetTestModel(TestEnum enumeration)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
-            ArgumentNullException.ThrowIfNull(enumeration);
+            // ArgumentNullException.ThrowIfNull(enumeration);
             return _myEnum;
         }
 

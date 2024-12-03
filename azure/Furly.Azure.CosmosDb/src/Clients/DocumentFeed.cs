@@ -55,7 +55,7 @@ namespace Furly.Azure.CosmosDb.Clients
                         throw DocumentCollection.FilterException(ex);
                     }
                 }
-                return Enumerable.Empty<IDocumentInfo<T>>();
+                return [];
             }, ct).ConfigureAwait(false);
         }
 

@@ -8,9 +8,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using Furly.Extensions.Serializers;
     using Furly.Extensions.Storage.Services;
     using global::Azure.Iot.Operations.Protocol;
-    using global::Azure.Iot.Operations.Services.LeasedLock;
     using global::Azure.Iot.Operations.Services.StateStore;
-    using k8s.LeaderElection;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -37,7 +35,7 @@ namespace Furly.Azure.IoT.Operations.Services
             _logger = logger;
             _serializer = serializer;
             _dss = new StateStoreClient(client);
-            _dss.KeyChangeMessageReceivedAsync += _client_KeyChangeMessageReceivedAsync;
+            _dss.KeyChangeMessageReceivedAsync += ClientKeyChangeMessageReceivedAsync;
 
             StartStateSynchronization();
         }
@@ -144,8 +142,7 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="sender"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        private Task _client_KeyChangeMessageReceivedAsync(object? sender,
+        private Task ClientKeyChangeMessageReceivedAsync(object? sender,
             KeyChangeMessageReceivedEventArgs arg)
         {
             ModifyState(state =>

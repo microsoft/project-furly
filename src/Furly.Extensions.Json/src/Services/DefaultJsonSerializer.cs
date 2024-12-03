@@ -340,7 +340,7 @@ namespace Furly.Extensions.Serializers.Json
                 {
                     return o.Select(p => p.Key);
                 }
-                return Enumerable.Empty<string>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -350,7 +350,7 @@ namespace Furly.Extensions.Serializers.Json
                 {
                     return array.Select(i => new JsonVariantValue(i, _serializer));
                 }
-                return Enumerable.Empty<VariantValue>();
+                return [];
             }
 
             /// <inheritdoc/>
@@ -551,14 +551,14 @@ namespace Furly.Extensions.Serializers.Json
                     var props2 = o2.OrderBy(k => k.Key)
                         .Select(p => p.Value);
                     return props1.SequenceEqual(props2,
-                        Compare.Using<JsonNode?>((x, y) => DeepEquals(x, y)));
+                        Compare.Using<JsonNode?>(DeepEquals));
                 }
 
                 if (t1 is JsonArray c1 && t2 is JsonArray c2)
                 {
                     // For arrays order is important
                     return c1.SequenceEqual(c2,
-                        Compare.Using<JsonNode?>((x, y) => DeepEquals(x, y)));
+                        Compare.Using<JsonNode?>(DeepEquals));
                 }
 
                 if (t1 is JsonValue && t2 is JsonValue)
@@ -741,7 +741,7 @@ namespace Furly.Extensions.Serializers.Json
             {
                 var ct = typeof(DataContractObjectConverterOfT<>)
                     .MakeGenericType(typeToConvert);
-                return (JsonConverter?)Activator.CreateInstance(ct, Array.Empty<object>());
+                return (JsonConverter?)Activator.CreateInstance(ct, []);
             }
 
             /// <summary>
@@ -1138,7 +1138,7 @@ namespace Furly.Extensions.Serializers.Json
                 System.Diagnostics.Debug.Assert(type != null);
                 var ct = typeof(ReadOnlySetConverterOfT<,>)
                     .MakeGenericType(typeToConvert, type.GetGenericArguments()[0]);
-                return (JsonConverter?)Activator.CreateInstance(ct, Array.Empty<object>());
+                return (JsonConverter?)Activator.CreateInstance(ct, []);
             }
 
             /// <summary>
@@ -1305,7 +1305,7 @@ namespace Furly.Extensions.Serializers.Json
             {
                 var ct = typeof(MatrixConverterOfT<,>).MakeGenericType(
                     typeToConvert, typeToConvert.GetElementType()!);
-                return (JsonConverter?)Activator.CreateInstance(ct, Array.Empty<object>());
+                return (JsonConverter?)Activator.CreateInstance(ct, []);
             }
 
             /// <summary>
