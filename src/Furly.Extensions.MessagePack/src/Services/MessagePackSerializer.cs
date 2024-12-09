@@ -576,7 +576,7 @@ namespace Furly.Extensions.Serializers.MessagePack
         /// <summary>
         /// Message pack resolver
         /// </summary>
-        private class MessagePackVariantFormatterResolver : IFormatterResolver
+        internal class MessagePackVariantFormatterResolver : IFormatterResolver
         {
             public static readonly MessagePackVariantFormatterResolver Instance =
                 new();
@@ -620,7 +620,7 @@ namespace Furly.Extensions.Serializers.MessagePack
             /// Variant formatter
             /// </summary>
             /// <typeparam name="T"></typeparam>
-            private sealed class MessagePackVariantFormatter<T> : IMessagePackFormatter<T?>
+            internal sealed class MessagePackVariantFormatter<T> : IMessagePackFormatter<T?>
                 where T : VariantValue
             {
                 /// <inheritdoc/>
@@ -686,7 +686,7 @@ namespace Furly.Extensions.Serializers.MessagePack
         /// <summary>
         /// XmlElement resolver
         /// </summary>
-        private class XmlElementFormatterResolver : IFormatterResolver
+        internal class XmlElementFormatterResolver : IFormatterResolver
         {
             public static readonly XmlElementFormatterResolver Instance = new();
 
@@ -702,9 +702,9 @@ namespace Furly.Extensions.Serializers.MessagePack
             }
 
             /// <summary>
-            /// Variant formatter
+            /// xml formatter
             /// </summary>
-            private sealed class XmlElementFormatter : IMessagePackFormatter<System.Xml.XmlElement?>
+            internal sealed class XmlElementFormatter : IMessagePackFormatter<System.Xml.XmlElement?>
             {
                 /// <inheritdoc/>
                 public void Serialize(ref MessagePackWriter writer, System.Xml.XmlElement? value,
@@ -814,7 +814,7 @@ namespace Furly.Extensions.Serializers.MessagePack
             /// </summary>
             /// <typeparam name="T"></typeparam>
             /// <typeparam name="TElement"></typeparam>
-            private sealed class ReadOnlySetFormatter<T, TElement> : IMessagePackFormatter<T?>
+            internal sealed class ReadOnlySetFormatter<T, TElement> : IMessagePackFormatter<T?>
             {
                 /// <inheritdoc/>
                 public void Serialize(ref MessagePackWriter writer, T? value,
@@ -842,7 +842,7 @@ namespace Furly.Extensions.Serializers.MessagePack
         /// <summary>
         /// ReadOnly Set resolver
         /// </summary>
-        private class AsyncEnumerableResolver : IFormatterResolver
+        internal class AsyncEnumerableResolver : IFormatterResolver
         {
             public static readonly AsyncEnumerableResolver Instance = new();
 
@@ -889,7 +889,7 @@ namespace Furly.Extensions.Serializers.MessagePack
             /// </summary>
             /// <typeparam name="T"></typeparam>
             /// <typeparam name="E"></typeparam>
-            private sealed class AsyncEnumerableFormatter<T, E> : IMessagePackFormatter<T?>
+            internal sealed class AsyncEnumerableFormatter<T, E> : IMessagePackFormatter<T?>
             {
                 /// <inheritdoc/>
                 public void Serialize(ref MessagePackWriter writer, T? value,
