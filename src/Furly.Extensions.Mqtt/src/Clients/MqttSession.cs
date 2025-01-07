@@ -351,10 +351,10 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="data"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public Task SendExtendedAuthenticationExchangeDataAsync(
-            MqttExtendedAuthenticationExchangeData data, CancellationToken ct)
+        public Task SendEnhancedAuthenticationExchangeDataAsync(
+            MqttEnhancedAuthenticationExchangeData data, CancellationToken ct)
         {
-            return UnderlyingMqttClient.SendExtendedAuthenticationExchangeDataAsync(
+            return UnderlyingMqttClient.SendEnhancedAuthenticationExchangeDataAsync(
                 data, ct);
         }
 
@@ -1830,8 +1830,8 @@ namespace Furly.Extensions.Mqtt.Clients
                     var token = File.ReadAllBytes(_tokenFilePath);
                     Task.Run(async () =>
                     {
-                        await outer.SendExtendedAuthenticationExchangeDataAsync(
-                            new MqttExtendedAuthenticationExchangeData
+                        await outer.SendEnhancedAuthenticationExchangeDataAsync(
+                            new MqttEnhancedAuthenticationExchangeData
                             {
                                 AuthenticationData = token,
                                 ReasonCode = MqttAuthenticateReasonCode.ReAuthenticate

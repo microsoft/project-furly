@@ -5,11 +5,10 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>Mqtt messaging abstraction used by Furly and friends</Description>
-    <NoWarn>NU5125;RS1022;AD0001;NU5104</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MQTTnet" Version="5.0.0.1214-RC" />
-    <PackageReference Include="MQTTnet.Server" Version="5.0.0.1214-RC" />
+    <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
+    <PackageReference Include="MQTTnet.Server" Version="5.0.1.1416" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
   </ItemGroup>

@@ -29,7 +29,7 @@
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.6.146" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.112" PrivateAssets="All"/>
   </ItemGroup>
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -39,7 +39,7 @@
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
-    <PackageReference Include="Roslynator.Analyzers" Version="4.12.9" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.9" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.12.10" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.12.10" PrivateAssets="All"/>
   </ItemGroup>
 </Project>

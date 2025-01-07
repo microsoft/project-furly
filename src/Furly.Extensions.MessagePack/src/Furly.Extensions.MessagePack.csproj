@@ -7,8 +7,8 @@
     <Description>Message Pack serializer used by Furly and friends</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MessagePack" Version="3.0.300" />
-    <PackageReference Include="Autofac" Version="8.1.1" />
+    <PackageReference Include="MessagePack" Version="3.1.1" />
+    <PackageReference Include="Autofac" Version="8.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
