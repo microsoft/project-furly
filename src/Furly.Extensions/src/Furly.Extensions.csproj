@@ -7,10 +7,10 @@
     <Description>Common utilities used by Furly and friends</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="9.0.2" />
+    <PackageReference Include="System.Text.Json" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Abstractions" Version="9.0.3" />
     <PackageReference Include="Autofac" Version="8.2.0" />
   </ItemGroup>
   <ItemGroup>

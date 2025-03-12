@@ -8,8 +8,8 @@
     <None Remove="Protos\dapr\proto\dapr\v1\dapr.proto" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.69.0">
+    <PackageReference Include="Grpc.AspNetCore" Version="2.70.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.71.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -27,7 +27,7 @@
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
-    <PackageReference Include="xunit.categories" Version="2.0.8" />
+    <PackageReference Include="xunit.categories" Version="3.0.1" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
     <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.5.1" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.4">
