@@ -9,6 +9,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using Furly.Extensions.Storage.Services;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.StateStore;
+    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -34,7 +35,8 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             _logger = logger;
             _serializer = serializer;
-            _dss = new StateStoreClient(client);
+            _context = new ApplicationContext();
+            _dss = new StateStoreClient(_context, client);
             _dss.KeyChangeMessageReceivedAsync += ClientKeyChangeMessageReceivedAsync;
 
             StartStateSynchronization();
@@ -129,6 +131,7 @@ namespace Furly.Azure.IoT.Operations.Services
                 {
                     _dss.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
+                _context.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
             finally
             {
@@ -163,6 +166,7 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         private readonly ISerializer _serializer;
+        private readonly ApplicationContext _context;
         private readonly StateStoreClient _dss;
         private readonly ILogger<AioDssClient> _logger;
     }

@@ -59,7 +59,7 @@ namespace Microsoft.OpenApi.Models
                         doc.Paths = prefixedPaths;
                     }
                 });
-                options.SerializeAsV2 = true; // config.Value.SchemaVersion == 2;
+                options.OpenApiVersion = OpenApiSpecVersion.OpenApi2_0; // config.Value.SchemaVersion == 2;
                 options.RouteTemplate = "swagger/{documentName}/openapi.json";
             });
         }

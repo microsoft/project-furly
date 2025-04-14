@@ -47,18 +47,15 @@ namespace Furly.Azure.IoT.Operations.Runtime
                 options.ClientCertificateFile = settings.CertFile;
                 options.ClientPrivateKeyFile = settings.KeyFile;
                 options.UserName = settings.Username;
-                options.Password = settings.Password;
                 options.PasswordFile = settings.PasswordFile;
                 options.KeepAlivePeriod = settings.KeepAlive;
                 options.SessionExpiry = settings.SessionExpiry;
-                options.ConnectionAttemptTimeout = settings.ConnectionTimeout;
                 options.CleanStart = settings.CleanStart;
                 options.HostName = settings.HostName;
                 options.Port = settings.TcpPort;
                 options.UseTls = settings.UseTls;
                 options.IssuerCertFile = settings.CaFile;
-                options.RequireRevocationCheck = settings.CaRequireRevocationCheck;
-                options.PrivateKeyPasswordFile = settings.KeyFilePassword;
+                options.PrivateKeyPasswordFile = settings.KeyPasswordFile;
                 options.SatAuthFile = settings.SatAuthFile;
             }
         }

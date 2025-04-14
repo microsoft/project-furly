@@ -8,7 +8,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using Furly.Extensions.Messaging;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
-    using global::Azure.Iot.Operations.Services.SchemaRegistry.dtmi_ms_adr_SchemaRegistry__1;
+    using global::Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -21,10 +21,11 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <summary>
         /// Create aio sr client
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="client"></param>
-        public AioSrClient(IMqttPubSubClient client)
+        public AioSrClient(ApplicationContext context, IMqttPubSubClient client)
         {
-            _client = new SchemaRegistryClient(client);
+            _client = new SchemaRegistryClient(context, client);
         }
 
         /// <inheritdoc/>
@@ -38,11 +39,15 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             var schemaType = schema.Type switch
             {
-                ContentMimeType.JsonSchema => Enum_Ms_Adr_SchemaRegistry_Format__1.JsonSchemaDraft07,
+                ContentMimeType.JsonSchema => Format.JsonSchemaDraft07,
                 _ => throw new NotSupportedException($"{schema.Type} type not supported")
             };
             var result = await _client.PutAsync(schema.Schema, schemaType,
                 cancellationToken: ct).ConfigureAwait(false);
+            if (result == null)
+            {
+                throw new InvalidOperationException($"Failed to register schema {schema.Name}");
+            }
             return $"{result.Namespace}/{result.Name}";
         }
 

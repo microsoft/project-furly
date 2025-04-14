@@ -7,7 +7,7 @@
     <Description>Furly Kafka extensions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.8.0" />
+    <PackageReference Include="Confluent.Kafka" Version="2.9.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />

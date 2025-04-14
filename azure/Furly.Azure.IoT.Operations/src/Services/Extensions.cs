@@ -103,7 +103,7 @@ namespace Furly.Azure.IoT.Operations.Services
                 .WithContentType(message.ContentType)
                 .WithCorrelationData(message.CorrelationData)
                 .WithMessageExpiryInterval(message.MessageExpiryInterval)
-                .WithPayload(message.PayloadSegment)
+                .WithPayload(message.Payload)
                 .WithPayloadFormatIndicator(message.PayloadFormatIndicator
                     == MqttPayloadFormatIndicator.Unspecified ?
                         MQTTnet.Protocol.MqttPayloadFormatIndicator.Unspecified :
