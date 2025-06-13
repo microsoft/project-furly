@@ -7,7 +7,7 @@
     <Description>Furly Azure Event Hubs extension</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.1" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageReference Include="Microsoft.Azure.Data.SchemaRegistry.ApacheAvro" Version="1.0.1" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
   </ItemGroup>

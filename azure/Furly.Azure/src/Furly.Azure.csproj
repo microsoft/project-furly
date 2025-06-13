@@ -8,7 +8,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.14.0" />
-    <PackageReference Include="Azure.Core" Version="1.46.1" />
+    <PackageReference Include="Azure.Core" Version="1.46.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
