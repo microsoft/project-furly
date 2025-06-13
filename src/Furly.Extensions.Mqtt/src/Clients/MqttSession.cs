@@ -228,7 +228,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
             var tcs = new TaskCompletionSource<MqttClientPublishResult>();
             var queuedRequest = Request.Create(message, tcs, ct);
-            ct.Register(async () =>
+            using var registration = ct.Register(async () =>
             {
                 try
                 {
@@ -258,7 +258,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
             var tcs = new TaskCompletionSource<MqttClientSubscribeResult>();
             var queuedRequest = Request.Create(options, tcs, ct);
-            ct.Register(async () =>
+            using var registration = ct.Register(async () =>
             {
                 try
                 {
@@ -286,7 +286,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
             var tcs = new TaskCompletionSource<MqttClientUnsubscribeResult>();
             var queuedRequest = Request.Create(options, tcs, ct);
-            ct.Register(async () =>
+            using var registration = ct.Register(async () =>
             {
                 try
                 {

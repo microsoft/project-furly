@@ -212,10 +212,9 @@ namespace Furly.Tunnel.Services
             /// <param name="ct"></param>
             public RequestTask(TimeSpan timeout, CancellationToken ct)
             {
-                _timeout = new CancellationTokenSource(timeout);
-                ct.Register(() => _timeout.Cancel());
+                _timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 // Register timeout handler
-                _timeout.Token.Register(() =>
+                _registration = _timeout.Token.Register(() =>
                 {
                     if (ct.IsCancellationRequested)
                     {
@@ -232,10 +231,12 @@ namespace Furly.Tunnel.Services
             /// <inheritdoc/>
             public void Dispose()
             {
+                _registration.Dispose();
                 _timeout.Dispose();
             }
 
             private readonly CancellationTokenSource _timeout;
+            private readonly CancellationTokenRegistration _registration;
         }
 
         private static readonly TimeSpan kDefaultTimeout = TimeSpan.FromMinutes(5);

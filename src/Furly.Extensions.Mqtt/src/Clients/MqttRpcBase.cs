@@ -212,7 +212,7 @@ namespace Furly.Extensions.Mqtt.Clients
             ReadOnlySequence<byte> buffer, string contentType, CancellationToken ct = default)
         {
             var tcs = new TaskCompletionSource<(string, MqttApplicationMessage)>();
-            ct.Register(() => tcs.TrySetCanceled());
+            using var registration = ct.Register(() => tcs.TrySetCanceled());
 
             var requestId = Guid.NewGuid();
             IAsyncDisposable? subscription = null;
