@@ -121,7 +121,7 @@ namespace Furly.Extensions.Kafka.Clients
                     using (var consumer = new ConsumerBuilder<string, byte[]>(config)
                         .SetErrorHandler(OnError)
                         .SetStatisticsHandler(OnMetrics)
-                        .SetLogHandler((_, m) => _logger.Log(m))
+                        .SetLogHandler((_, m) => _logger.HandleKafkaMessage(m))
                         .Build())
                     {
                         _logger.LogInformation("Starting consumer {ConsumerId} on {Topic}...",

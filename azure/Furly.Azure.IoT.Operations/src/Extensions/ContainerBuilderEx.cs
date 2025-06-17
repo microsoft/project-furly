@@ -21,6 +21,8 @@ namespace Autofac
         {
             builder.AddMqttClient();
 
+            builder.RegisterType<AioSdk>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AioSdkConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AioMqttClient>()
@@ -29,6 +31,8 @@ namespace Autofac
             builder.RegisterType<AioDssClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AioSrClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AioAdrClient>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder;
         }

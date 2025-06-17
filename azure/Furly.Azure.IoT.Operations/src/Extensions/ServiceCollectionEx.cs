@@ -5,7 +5,9 @@
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    using Azure.Iot.Operations.Protocol;
     using Furly;
+    using Furly.Azure.IoT.Operations.Runtime;
     using Furly.Azure.IoT.Operations.Services;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
@@ -25,12 +27,17 @@ namespace Microsoft.Extensions.DependencyInjection
             return services
                 .AddOptions()
                 .AddMqttClient()
+                .AddSingleton<AioSdkConfig>()
+                .AddSingleton<AioSdk>()
+                .AddSingleton<AioMqttClient>()
+                .AddSingleton<IAwaitable<IMqttPubSubClient>>(services => services.GetRequiredService<AioMqttClient>())
+                .AddSingleton<AioAdrClient>()
+                .AddSingleton<IAioAdrClient>(services => services.GetRequiredService<AioAdrClient>())
                 .AddSingleton<AioSrClient>()
                 .AddSingleton<ISchemaRegistry>(services => services.GetRequiredService<AioSrClient>())
                 .AddSingleton<AioDssClient>()
                 .AddSingleton<IKeyValueStore>(services => services.GetRequiredService<AioDssClient>())
                 .AddSingleton<IAwaitable<IKeyValueStore>>(services => services.GetRequiredService<AioDssClient>())
-                .AddSingleton<AioMqttClient>()
                 ;
         }
     }

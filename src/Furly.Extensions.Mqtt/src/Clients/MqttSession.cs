@@ -114,7 +114,7 @@ namespace Furly.Extensions.Mqtt.Clients
             object[] parameters, Exception exception)
         {
 #pragma warning disable CA2254 // Template should be a static expression
-            _logger.Log(LogLevel.Debug, exception, message, parameters);
+            MqttSessionLogging.HandleNetLogMessage(_logger, exception, message);
 #pragma warning restore CA2254 // Template should be a static expression
         }
 
@@ -1972,5 +1972,139 @@ namespace Furly.Extensions.Mqtt.Clients
         private bool _isDesiredConnected;
         private bool _isClosing;
         private readonly SemaphoreSlim _disconnectedEventLock = new(1);
+    }
+
+    /// <summary>
+    /// Source generated logging for MqttSession
+    /// </summary>
+    internal static partial class MqttSessionLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Debug,
+            Message = "{message}")]
+        public static partial void HandleNetLogMessage(this ILogger logger, Exception? exception, string message);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Successfully disconnected the session client from the MQTT broker. This connection will no longer be maintained.")]
+        public static partial void ConnectionClosed(this ILogger logger);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+            Message = "Successfully connected the session client to the MQTT broker. This connection will now be maintained.")]
+        public static partial void ConnectionMaintained(this ILogger logger);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+            Message = "Stopping the session client's worker thread")]
+        public static partial void StoppingWorker(this ILogger logger);
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
+            Message = "Starting the session client's worker thread")]
+        public static partial void StartingWorker(this ILogger logger);
+
+        [LoggerMessage(EventId = 5, Level = LogLevel.Information,
+            Message = "Disconnect reported by MQTTnet client, but it was already handled")]
+        public static partial void DisconnectAlreadyHandled(this ILogger logger);
+
+        [LoggerMessage(EventId = 6, Level = LogLevel.Information,
+            Message = "Disconnect detected and it was due to fatal error. The client will not attempt to reconnect. Disconnect reason: {Reason}")]
+        public static partial void FatalDisconnect(this ILogger logger, object reason);
+
+        [LoggerMessage(EventId = 7, Level = LogLevel.Information,
+            Message = "Disconnect detected, starting reconnection. Disconnect reason: {Reason}")]
+        public static partial void StartingReconnection(this ILogger logger, object reason);
+
+        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+            Message = "Waiting {RetryDelay} before next reconnect attempt")]
+        public static partial void WaitingToReconnect(this ILogger logger, TimeSpan retryDelay);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
+            Message = "Trying to connect. Attempt number {AttemptCount}")]
+        public static partial void AttemptingConnection(this ILogger logger, uint attemptCount);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
+            Message = "Reconnection finished after successfully connecting to the MQTT broker again and re-joining the existing MQTT session.")]
+        public static partial void ReconnectionComplete(this ILogger logger);
+
+        [LoggerMessage(EventId = 11, Level = LogLevel.Information,
+            Message = "Session client reconnection cancelled because the client is being closed.")]
+        public static partial void ReconnectionCancelled(this ILogger logger);
+
+        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+            Message = "Resetting the state of all queued messages")]
+        public static partial void ResettingMessages(this ILogger logger);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Information,
+            Message = "Publish message task cancelled.")]
+        public static partial void PublishCancelled(this ILogger logger);
+
+        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
+            Message = "Stopped publishing messages.")]
+        public static partial void PublishingStopped(this ILogger logger);
+
+        [LoggerMessage(EventId = 15, Level = LogLevel.Information,
+            Message = "Send acknowledgements task cancelled.")]
+        public static partial void AckSendingCancelled(this ILogger logger);
+
+        [LoggerMessage(EventId = 16, Level = LogLevel.Information,
+            Message = "Stopped sending acknowledgements.")]
+        public static partial void AckSendingStopped(this ILogger logger);
+
+        [LoggerMessage(EventId = 17, Level = LogLevel.Information,
+            Message = "Refresh token Timer set to {SecondsToRefresh} s.")]
+        public static partial void TokenRefreshScheduled(this ILogger logger, int secondsToRefresh);
+
+        [LoggerMessage(EventId = 18, Level = LogLevel.Information,
+            Message = "Refresh token Timer")]
+        public static partial void TokenRefreshTriggered(this ILogger logger);
+
+        [LoggerMessage(EventId = 19, Level = LogLevel.Warning,
+            Message = "Failed to remove a queued publish because the session client was already disposed.")]
+        public static partial void FailedToRemovePublish(this ILogger logger);
+
+        [LoggerMessage(EventId = 20, Level = LogLevel.Warning,
+            Message = "Failed to remove a queued subscribe because the session client was already disposed.")]
+        public static partial void FailedToRemoveSubscribe(this ILogger logger);
+
+        [LoggerMessage(EventId = 21, Level = LogLevel.Warning,
+            Message = "Failed to remove a queued unsubscribe because the session client was already disposed.")]
+        public static partial void FailedToRemoveUnsubscribe(this ILogger logger);
+
+        [LoggerMessage(EventId = 22, Level = LogLevel.Warning,
+            Message = "Encountered an exception while connecting. May attempt to reconnect.")]
+        public static partial void ConnectionException(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 23, Level = LogLevel.Warning,
+            Message = "Error while sending queued acknowledgements.")]
+        public static partial void QueuedAckError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 24, Level = LogLevel.Error,
+            Message = "Encountered a fatal exception while maintaining connection")]
+        public static partial void FatalException(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 25, Level = LogLevel.Error,
+            Message = "Retry policy was exhausted while trying to maintain a connection")]
+        public static partial void RetryExhausted(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 26, Level = LogLevel.Error,
+            Message = "Error while publishing queued application messages.")]
+        public static partial void QueuedPublishError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = 27, Level = LogLevel.Error,
+            Message = "Unrecognized queued item. Discarding it.")]
+        public static partial void UnrecognizedQueueItem(this ILogger logger);
+
+        [LoggerMessage(EventId = 28, Level = LogLevel.Error,
+            Message = "Failed to set task completion source for publish request")]
+        public static partial void PublishTaskCompletionError(this ILogger logger);
+
+        [LoggerMessage(EventId = 29, Level = LogLevel.Error,
+            Message = "Failed to set task completion source for subscribe request")]
+        public static partial void SubscribeTaskCompletionError(this ILogger logger);
+
+        [LoggerMessage(EventId = 30, Level = LogLevel.Error,
+            Message = "Failed to set task completion source for unsubscribe request")]
+        public static partial void UnsubscribeTaskCompletionError(this ILogger logger);
+
+        [LoggerMessage(EventId = 31, Level = LogLevel.Error,
+            Message = "Encountered an exception during the user-supplied callback for handling received messages.")]
+        public static partial void CallbackException(this ILogger logger, Exception ex);
     }
 }

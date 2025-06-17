@@ -118,7 +118,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 return;
             }
-            _logger.LogDebug("Closing {ClientId} ...", _options.Value.ClientId);
+            _logger.ClientClosing(_options.Value.ClientId ?? "unknown");
 
             // Dispose base server
             try
@@ -128,7 +128,7 @@ namespace Furly.Extensions.Mqtt.Clients
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to stop rpc server.");
+                _logger.RpcServerStopFailed(ex);
             }
 
             // Stop subscriber
@@ -141,7 +141,7 @@ namespace Furly.Extensions.Mqtt.Clients
             catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to stop subscriber.");
+                _logger.SubscriberStopFailed(ex);
             }
 
             // Stop client
@@ -156,7 +156,7 @@ namespace Furly.Extensions.Mqtt.Clients
             catch (ObjectDisposedException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to stop managed client.");
+                _logger.ManagedClientStopFailed(ex);
             }
             finally
             {
@@ -363,8 +363,7 @@ namespace Furly.Extensions.Mqtt.Clients
             MqttClientConnectedEventArgs args)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            _logger.LogInformation("Client connected with {Result} as {ClientId}.",
-                args.ConnectResult.ResultCode, client.ClientId);
+            _logger.ClientConnected(args.ConnectResult.ResultCode.ToString(), client.ClientId ?? "unknown");
             _triggerSubscriber.Set();
             return Task.CompletedTask;
         }
@@ -382,8 +381,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 return;
             }
 
-            _logger.LogTrace("Client {ClientId} received message on {Topic}",
-                client.ClientId, args.ApplicationMessage.Topic);
+            _logger.MessageReceivedTrace(client.ClientId ?? "unknown", args.ApplicationMessage.Topic);
 
             if (MessageReceived != null)
             {
@@ -405,8 +403,7 @@ namespace Furly.Extensions.Mqtt.Clients
             if (processingFailed)
             {
                 _metrics.ProcessingFailed.Add(1);
-                _logger.LogWarning("Failed to process MQTT message: {ReasonCode}",
-                    args.ReasonCode);
+                _logger.MessageProcessingFailed((int)args.ReasonCode);
                 return;
             }
 
@@ -459,17 +456,16 @@ namespace Furly.Extensions.Mqtt.Clients
 
             if (args.Exception != null)
             {
-                _logger.LogError(args.Exception,
-                    "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})",
-                    client.ClientId, args.ClientWasConnected ? "Connecting" : "Connected",
-                    args.Reason, args.ReasonString ?? "unspecified");
+                _logger.ClientDisconnectedWithError(client.ClientId ?? "unknown",
+                    args.ClientWasConnected ? "Connecting" : "Connected",
+                    args.Reason.ToString(), args.ReasonString ?? "unspecified",
+                    args.Exception);
             }
             else
             {
-                _logger.LogWarning(
-                    "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})",
-                    client.ClientId, args.ClientWasConnected ? "Connecting" : "Connected",
-                    args.Reason, args.ReasonString ?? "unspecified");
+                _logger.ClientDisconnected(client.ClientId ?? "unknown",
+                    args.ClientWasConnected ? "Connecting" : "Connected",
+                    args.Reason.ToString(), args.ReasonString ?? "unspecified");
             }
             return Task.CompletedTask;
         }
@@ -507,12 +503,12 @@ namespace Furly.Extensions.Mqtt.Clients
                     }
                     catch (MqttClientNotConnectedException nce)
                     {
-                        _logger.LogDebug(nce, "Failed to subscribe on connect. Retrying...");
+                        _logger.SubscribeOnConnectFailed(nce);
                         // Rety
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to subscribe.");
+                        _logger.SubscribeFailed(ex);
                         topic.Item1.TrySetException(ex);
                         _topics.TryDequeue(out _);
                     }
@@ -797,7 +793,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 _meter.Dispose();
             }
 
-            private readonly Meter _meter;
+            internal readonly Meter _meter;
         }
 
         private bool _isDisposed;
@@ -814,4 +810,44 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly ConcurrentQueue<(TaskCompletionSource, MqttTopicFilter)> _topics = new();
         private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = [];
     }
+
+    /// <summary>
+    /// Source generated logging for MqttClient
+    /// </summary>
+    internal static partial class MqttClientLogging
+    {
+        [LoggerMessage(1, LogLevel.Debug, "Closing {ClientId} ...")]
+        public static partial void ClientClosing(this ILogger logger, string clientId);
+
+        [LoggerMessage(2, LogLevel.Error, "Failed to stop rpc server.")]
+        public static partial void RpcServerStopFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(3, LogLevel.Error, "Failed to stop subscriber.")]
+        public static partial void SubscriberStopFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(4, LogLevel.Error, "Failed to stop managed client.")]
+        public static partial void ManagedClientStopFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(5, LogLevel.Debug, "Failed to subscribe on connect. Retrying...")]
+        public static partial void SubscribeOnConnectFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(6, LogLevel.Error, "Failed to subscribe.")]
+        public static partial void SubscribeFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(7, LogLevel.Information, "Client connected with {Result} as {ClientId}.")]
+        public static partial void ClientConnected(this ILogger logger, string result, string clientId);
+
+        [LoggerMessage(8, LogLevel.Trace, "Client {ClientId} received message on {Topic}")]
+        public static partial void MessageReceivedTrace(this ILogger logger, string clientId, string topic);
+
+        [LoggerMessage(9, LogLevel.Warning, "Failed to process MQTT message: {ReasonCode}")]
+        public static partial void MessageProcessingFailed(this ILogger logger, int reasonCode);
+
+        [LoggerMessage(10, LogLevel.Error, "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
+        public static partial void ClientDisconnectedWithError(this ILogger logger, string clientId, string state, string reason, string reasonString, Exception ex);
+
+        [LoggerMessage(11, LogLevel.Warning, "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
+        public static partial void ClientDisconnected(this ILogger logger, string clientId, string state, string reason, string reasonString);
+    }
+
 }

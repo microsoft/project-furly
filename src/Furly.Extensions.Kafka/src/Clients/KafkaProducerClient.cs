@@ -53,7 +53,7 @@ namespace Furly.Extensions.Kafka.Clients
                     identity?.Identity ?? Dns.GetHostName()))
                 .SetErrorHandler(OnError)
                 .SetStatisticsHandler(OnMetrics)
-                .SetLogHandler((_, m) => _logger.Log(m))
+                .SetLogHandler((_, m) => _logger.HandleKafkaMessage(m))
                 .Build();
             MaxEventPayloadSizeInBytes = config.Value.MessageMaxBytes ?? 1024 * 1024;
             _topic = EnsureTopicAsync(admin, config.Value.Topic);

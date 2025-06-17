@@ -39,7 +39,7 @@ namespace Furly.Extensions.Kafka.Clients
             _admin = new AdminClientBuilder(config.Value.ToClientConfig<AdminClientConfig>(
                     identity?.Identity ?? Dns.GetHostName()))
                 .SetErrorHandler(OnError)
-                .SetLogHandler((_, m) => _logger.Log(m))
+                .SetLogHandler((_, m) => _logger.HandleKafkaMessage(m))
                 .Build();
         }
 
@@ -110,7 +110,7 @@ namespace Furly.Extensions.Kafka.Clients
         /// </summary>
         /// <param name="client"></param>
         /// <param name="error"></param>
-        public void OnError(IClient client, Error error)
+        private void OnError(IClient client, Error error)
         {
             if (error.IsFatal)
             {

@@ -7,4 +7,4 @@ using System;
 using System.Runtime.CompilerServices;
 
 [assembly: CLSCompliant(false)]
-[assembly: InternalsVisibleTo("Furly.Extensions.IoT.Operations.Tests")]
+[assembly: InternalsVisibleTo("Furly.Azure.IoT.Operations.Tests")]

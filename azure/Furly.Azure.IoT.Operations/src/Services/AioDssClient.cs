@@ -28,15 +28,15 @@ namespace Furly.Azure.IoT.Operations.Services
         /// Create aio state store
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="sdk"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public AioDssClient(IMqttPubSubClient client, ISerializer serializer,
+        public AioDssClient(IMqttPubSubClient client, IAioSdk sdk, ISerializer serializer,
             ILogger<AioDssClient> logger) : base(logger)
         {
             _logger = logger;
             _serializer = serializer;
-            _context = new ApplicationContext();
-            _dss = new StateStoreClient(_context, client);
+            _dss = sdk.CreateStateStoreClient(client);
             _dss.KeyChangeMessageReceivedAsync += ClientKeyChangeMessageReceivedAsync;
 
             StartStateSynchronization();
@@ -131,7 +131,6 @@ namespace Furly.Azure.IoT.Operations.Services
                 {
                     _dss.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
-                _context.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
             finally
             {
@@ -166,8 +165,7 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         private readonly ISerializer _serializer;
-        private readonly ApplicationContext _context;
-        private readonly StateStoreClient _dss;
+        private readonly IStateStoreClient _dss;
         private readonly ILogger<AioDssClient> _logger;
     }
 }
