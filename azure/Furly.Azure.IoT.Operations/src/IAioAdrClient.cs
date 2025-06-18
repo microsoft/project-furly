@@ -9,7 +9,8 @@ namespace Furly.Azure.IoT.Operations.Services
     using System.Threading;
     using System.Threading.Tasks;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using global::Azure.Iot.Operations.Connector.Assets;
+    using global::Azure.Iot.Operations.Connector;
+    using global::Azure.Iot.Operations.Connector.Files;
 
     /// <summary>
     /// Akri connector client
@@ -40,9 +41,12 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <summary>
         /// Get credentials for endpoint
         /// </summary>
-        /// <param name="inboundEndpoint"></param>
+        /// <param name="deviceName"></param>
+        /// <param name="inboundEndpointName"></param>
+        /// <param name="settings"></param>
         /// <returns></returns>
-        EndpointCredentials GetEndpointCredentials(InboundEndpointSchemaMapValue inboundEndpoint);
+        EndpointCredentials GetEndpointCredentials(string deviceName, string inboundEndpointName,
+            InboundEndpointSchemaMapValue settings);
 
         /// <summary>
         /// Update status of an asset

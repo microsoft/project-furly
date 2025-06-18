@@ -30,15 +30,13 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <inheritdoc/>
         public IAdrClientWrapper CreateAdrClientWrapper(IMqttPubSubClient client)
         {
-            var clientId = client.ClientId ?? throw new ArgumentException("Must have client id");
-            return new AdrClientWrapper(_context, client, clientId);
+            return new AdrClientWrapper(_context, client);
         }
 
         /// <inheritdoc/>
         public IAdrServiceClient CreateAdrServiceClient(IMqttPubSubClient client)
         {
-            var clientId = client.ClientId ?? throw new ArgumentException("Must have client id");
-            return new AdrServiceClient(_context, client, clientId);
+            return new AdrServiceClient(_context, client);
         }
 
         /// <inheritdoc/>

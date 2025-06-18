@@ -105,7 +105,7 @@ namespace Furly.Tunnel.Protocol
             {
                 if (item.IsTimedOut)
                 {
-                    _logger.LogDebug("Timed out on handle {Handle}.", item.Handle);
+                    _logger.TimedOut(item.Handle);
                     _requests.TryRemove(item.Handle, out _);
                 }
             }
@@ -183,7 +183,7 @@ namespace Furly.Tunnel.Protocol
                     {
                         // Continue upload
                         _lastActivity = _outer._timeProvider.GetTimestamp();
-                        _outer._logger.LogDebug("Received on handle {Handle}", Handle);
+                        _outer._logger.Received(Handle);
                         return new MethodChunkModel
                         {
                             Handle = Handle
@@ -218,8 +218,7 @@ namespace Furly.Tunnel.Protocol
                     {
                         // Unexpected
                         status = (int)HttpStatusCode.InternalServerError;
-                        _outer._logger.LogError(ex,
-                            "Processing message resulted in unexpected error");
+                        _outer._logger.ProcessingError(ex);
                     }
                     _sent = 0;
                 }
@@ -239,13 +238,13 @@ namespace Furly.Tunnel.Protocol
                 {
                     // Done - remove ourselves
                     _outer._requests.TryRemove(Handle, out _);
-                    _outer._logger.LogDebug("Completed handle {Handle}", Handle);
+                    _outer._logger.Completed(Handle);
                 }
                 else
                 {
                     response.Handle = Handle;
                     _lastActivity = _outer._timeProvider.GetTimestamp();
-                    _outer._logger.LogDebug("Responded on handle {Handle}", Handle);
+                    _outer._logger.Responded(Handle);
                 }
                 return response;
 
@@ -289,5 +288,33 @@ namespace Furly.Tunnel.Protocol
         private readonly ConcurrentDictionary<string, ChunkProcessor> _requests;
         private static readonly ActivitySource kActivity = new(typeof(ChunkMethodInvoker).FullName!);
         private readonly Timer _timer;
+    }
+
+    /// <summary>
+    /// Source-generated logging for ChunkMethodInvoker
+    /// </summary>
+    internal static partial class ChunkMethodInvokerLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Timed out on handle {Handle}.")]
+        public static partial void TimedOut(this ILogger logger, string handle);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Received on handle {Handle}")]
+        public static partial void Received(this ILogger logger, string handle);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Processing message resulted in unexpected error")]
+        public static partial void ProcessingError(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Completed handle {Handle}")]
+        public static partial void Completed(this ILogger logger, string handle);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Responded on handle {Handle}")]
+        public static partial void Responded(this ILogger logger, string handle);
     }
 }

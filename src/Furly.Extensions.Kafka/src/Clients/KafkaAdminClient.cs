@@ -79,22 +79,17 @@ namespace Furly.Extensions.Kafka.Clients
                         OperationTimeout = TimeSpan.FromSeconds(30),
                         RequestTimeout = TimeSpan.FromSeconds(30)
                     }).ConfigureAwait(false);
-                _logger.LogInformation("Creating topic {Topic} took {Elapsed}.",
-                    topic, sw.Elapsed);
+                _logger.TopicCreated(topic, sw.Elapsed);
             }
             catch (CreateTopicsException e)
             {
                 if (e.Results.Count > 0 &&
                     e.Results[0].Error?.Code == ErrorCode.TopicAlreadyExists)
                 {
-                    _logger.LogInformation(
-                        "Topic {Topic} already exists (check took {Elapsed}).",
-                        topic, sw.Elapsed);
+                    _logger.TopicExists(topic, sw.Elapsed);
                     return;
                 }
-                _logger.LogError(e,
-                    "Failed to create topic {Topic} (check took {Elapsed}).",
-                        topic, sw.Elapsed);
+                _logger.TopicCreateFailed(e, topic, sw.Elapsed);
                 throw;
             }
         }
@@ -130,5 +125,23 @@ namespace Furly.Extensions.Kafka.Clients
         private readonly ILogger _logger;
         private readonly IAdminClient _admin;
         private readonly IOptionsSnapshot<KafkaServerOptions> _config;
+    }
+
+    /// <summary>
+    /// Source-generated logging for KafkaAdminClient
+    /// </summary>
+    internal static partial class KafkaAdminClientLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Information,
+            Message = "Creating topic {Topic} took {Elapsed}.")]
+        public static partial void TopicCreated(this ILogger logger, string topic, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Topic {Topic} already exists (check took {Elapsed}).")]
+        public static partial void TopicExists(this ILogger logger, string topic, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Error,
+            Message = "Failed to create topic {Topic} (check took {Elapsed}).")]
+        public static partial void TopicCreateFailed(this ILogger logger, Exception e, string topic, TimeSpan elapsed);
     }
 }

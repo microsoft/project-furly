@@ -127,7 +127,7 @@ namespace Furly.Extensions.Docker
                             {
                                 if (m.Error != null)
                                 {
-                                    _logger.LogError("{Message}", m.Error.Message);
+                                    _logger.DockerError(m.Error.Message);
                                 }
                             }), ct).ConfigureAwait(false);
                 }
@@ -288,5 +288,17 @@ namespace Furly.Extensions.Docker
         private readonly IHealthCheck? _check;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private bool _disposedValue;
+    }
+
+    /// <summary>
+    /// Source-generated logging for DockerContainer tests
+    /// </summary>
+    internal static partial class DockerContainerLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "{Message}")]
+        public static partial void DockerError(this ILogger logger, string message);
     }
 }

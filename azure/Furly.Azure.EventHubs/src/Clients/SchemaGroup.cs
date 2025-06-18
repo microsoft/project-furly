@@ -54,12 +54,22 @@ namespace Furly.Azure.EventHubs.Clients
                 _schemaGroupName, schema.Name, schemaString, schema.Type,
                 ct).ConfigureAwait(false);
 
-            _logger.LogInformation("Schema {Name} registered successfully.", schema.Name);
+            _logger.SchemaRegisteredSuccessfully(schema.Name);
             return schemaProperties.Value.Id ?? string.Empty;
         }
 
         private readonly SchemaRegistryClient _schemaRegistry;
         private readonly ILogger _logger;
         private readonly string _schemaGroupName;
+    }
+
+    /// <summary>
+    /// Source-generated logging for SchemaGroup
+    /// </summary>
+    internal static partial class SchemaGroupLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Schema {Name} registered successfully.")]
+        public static partial void SchemaRegisteredSuccessfully(this ILogger logger, string name);
     }
 }

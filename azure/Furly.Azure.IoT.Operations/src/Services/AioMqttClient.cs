@@ -59,7 +59,7 @@ namespace Furly.Azure.IoT.Operations.Services
             _client = new MqttClient(Options.Create(mqttClientOptions), logger.CreateLogger<MqttClient>(),
                 serializer, meter);
             _client.MessageReceived = OnReceiveAsync;
-            _logger.LogInformation("Connecting client {ClientId} ...", mqttClientOptions.ClientId);
+            _logger.Connecting(mqttClientOptions.ClientId);
         }
 
         /// <inheritdoc/>
@@ -69,7 +69,7 @@ namespace Furly.Azure.IoT.Operations.Services
             static async Task AwaitAsync(MqttClient client, ILogger _logger)
             {
                 await client;
-                _logger.LogInformation("Client connected with client id {ClientId}.", client.ClientId);
+                _logger.Connected(client.ClientId);
             }
         }
 
@@ -79,8 +79,7 @@ namespace Furly.Azure.IoT.Operations.Services
             _client.MessageReceived = null;
             var clientId = _client.ClientId;
             await _client.DisposeAsync().ConfigureAwait(false);
-            _logger.LogInformation("Client with client id {ClientId} was disposed.", clientId);
-
+            _logger.Disposed(clientId);
         }
 
         /// <inheritdoc/>
@@ -125,5 +124,25 @@ namespace Furly.Azure.IoT.Operations.Services
 
         private readonly MqttClient _client;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for AioMqttClient
+    /// </summary>
+    internal static partial class AioMqttClientLogging
+    {
+        private const int EventClass = 30;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Connecting client {ClientId} ...")]
+        public static partial void Connecting(this ILogger logger, string? clientId);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Client connected with client id {ClientId}.")]
+        public static partial void Connected(this ILogger logger, string? clientId);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Client with client id {ClientId} was disposed.")]
+        public static partial void Disposed(this ILogger logger, string? clientId);
     }
 }

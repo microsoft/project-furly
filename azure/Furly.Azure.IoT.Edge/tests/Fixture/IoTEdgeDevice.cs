@@ -71,7 +71,7 @@ namespace Furly.Azure.IoT.Edge.Services
         /// <inheritdoc/>
         public async Task StartAsync()
         {
-            _logger.LogInformation("Starting IoTEdge device...");
+            _logger.Starting();
             var param = GetContainerParameters(_ports);
             var name = $"iotedge_{string.Join("_", _ports)}";
             (_containerId, _owner) = await CreateAndStartContainerAsync(
@@ -82,7 +82,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 // Check running
                 await WaitForContainerStartedAsync(
                     _ports[0]).ConfigureAwait(false);
-                _logger.LogInformation("IoTEdge device running.");
+                _logger.Running();
             }
             catch
             {
@@ -101,7 +101,7 @@ namespace Furly.Azure.IoT.Edge.Services
             {
                 await StopAndRemoveContainerAsync(
                     _containerId).ConfigureAwait(false);
-                _logger.LogInformation("Stopped IoTEdge device.");
+                _logger.Stopped();
             }
             await DeleteGatewayAsync().ConfigureAwait(false);
         }
@@ -157,7 +157,7 @@ namespace Furly.Azure.IoT.Edge.Services
             {
                 ETag = "*"
             }).ConfigureAwait(false);
-            _logger.LogInformation("IoTEdge device removed from hub.");
+            _logger.RemovedFromHub();
         }
 
         /// <summary>
@@ -199,5 +199,29 @@ namespace Furly.Azure.IoT.Edge.Services
         private readonly IOptions<IoTHubServiceOptions> _options;
         private string _containerId;
         private bool _owner;
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTEdgeDevice
+    /// </summary>
+    internal static partial class IoTEdgeDeviceLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Starting IoTEdge device...")]
+        public static partial void Starting(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "IoTEdge device running.")]
+        public static partial void Running(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Stopped IoTEdge device.")]
+        public static partial void Stopped(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "IoTEdge device removed from hub.")]
+        public static partial void RemovedFromHub(this ILogger logger);
     }
 }

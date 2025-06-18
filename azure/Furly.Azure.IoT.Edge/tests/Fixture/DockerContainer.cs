@@ -127,11 +127,11 @@ namespace Furly.Azure.IoT.Edge.Services
                             {
                                 if (m.Error != null)
                                 {
-                                    _logger.LogError("{@message}", m);
+                                    _logger.JSONMessage(m);
                                 }
                                 else
                                 {
-                                    _logger.LogInformation("{@message}", m);
+                                    _logger.ProgressJSONMessage(m);
                                 }
                             }), ct).ConfigureAwait(false);
                 }
@@ -296,5 +296,21 @@ namespace Furly.Azure.IoT.Edge.Services
         private readonly IHealthCheck _check;
         private readonly SemaphoreSlim _lock = new(1, 1);
         private bool _disposedValue;
+    }
+
+    /// <summary>
+    /// Source-generated logging for DockerContainer
+    /// </summary>
+    internal static partial class DockerContainerLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "{@message}")]
+        public static partial void JSONMessage(this ILogger logger, JSONMessage message);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "{@message}")]
+        public static partial void ProgressJSONMessage(this ILogger logger, JSONMessage message);
     }
 }

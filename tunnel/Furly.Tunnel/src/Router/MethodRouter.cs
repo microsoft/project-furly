@@ -136,12 +136,12 @@ namespace Furly.Tunnel.Router.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to connect method router to rpc server.");
+                    _logger.FailedToConnect(ex);
                 }
             }
             if (disposables.Count == 0)
             {
-                _logger.LogError("Method router not connected to any rpc server.");
+                _logger.NotConnectedToServer();
             }
             return disposables;
         }
@@ -253,8 +253,7 @@ namespace Furly.Tunnel.Router.Services
             /// <param name="serializer"></param>
             public void Add(object controller, MethodInfo controllerMethod, IJsonSerializer serializer)
             {
-                _logger.LogTrace("Adding {Controller}.{Method} method to invoker...",
-                    controller.GetType().Name, controllerMethod.Name);
+                _logger.AddingMethod(controller.GetType().Name, controllerMethod.Name);
                 _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger, _summarizer));
                 MethodName = controllerMethod.Name;
             }
@@ -277,7 +276,7 @@ namespace Furly.Tunnel.Router.Services
                         e = ex;
                     }
                 }
-                _logger.LogTrace(e, "Exception during method invocation.");
+                _logger.InvocationException(e);
                 throw e!;
             }
 
@@ -551,7 +550,7 @@ namespace Furly.Tunnel.Router.Services
                 {
                     ex = aex.Flatten().InnerExceptions.FirstOrDefault() ?? ex;
                 }
-                _logger.LogTrace(ex, "Method call error");
+                _logger.MethodCallError(ex);
                 ex = _ef.Filter(ex, out var status);
                 throw ex.AsMethodCallStatusException(status, _summarizer);
             }
@@ -561,7 +560,7 @@ namespace Furly.Tunnel.Router.Services
             {
                 var ex = tr.Exception?.Flatten().InnerExceptions.FirstOrDefault();
                 ex ??= new TaskCanceledException(tr);
-                _logger.LogTrace(ex, "Method call error");
+                _logger.MethodCallError(ex);
                 ex = _ef.Filter(ex, out var status);
                 throw ex.AsMethodCallStatusException(status, _summarizer);
             }
@@ -591,5 +590,33 @@ namespace Furly.Tunnel.Router.Services
         private readonly IJsonSerializer _serializer;
         private readonly ChunkMethodServer _chunks;
         private readonly Task<List<IAsyncDisposable>> _connections;
+    }
+
+    /// <summary>
+    /// Source-generated logging for MethodRouter
+    /// </summary>
+    internal static partial class MethodRouterLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Failed to connect method router to rpc server.")]
+        public static partial void FailedToConnect(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Method router not connected to any rpc server.")]
+        public static partial void NotConnectedToServer(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Trace,
+            Message = "Adding {Controller}.{Method} method to invoker...")]
+        public static partial void AddingMethod(this ILogger logger, string controller, string method);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Trace,
+            Message = "Exception during method invocation.")]
+        public static partial void InvocationException(this ILogger logger, Exception? e);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Trace,
+            Message = "Method call error")]
+        public static partial void MethodCallError(this ILogger logger, Exception ex);
     }
 }

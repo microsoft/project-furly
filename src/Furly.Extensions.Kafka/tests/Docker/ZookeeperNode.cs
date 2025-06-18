@@ -46,7 +46,7 @@ namespace Furly.Extensions.Zookeeper.Server
                     return;
                 }
 
-                _logger.LogInformation("Starting Zookeeper node...");
+                _logger.NodeStarting();
                 var param = GetContainerParameters(_port);
                 var name = $"zookeeper_{_port}";
                 (_containerId, _owner) = await CreateAndStartContainerAsync(
@@ -56,7 +56,7 @@ namespace Furly.Extensions.Zookeeper.Server
                 {
                     // Check running
                     await WaitForContainerStartedAsync(_port).ConfigureAwait(false);
-                    _logger.LogInformation("Zookeeper node running.");
+                    _logger.NodeRunning();
                 }
                 catch
                 {
@@ -81,7 +81,7 @@ namespace Furly.Extensions.Zookeeper.Server
                 if (_containerId != null && _owner)
                 {
                     await StopAndRemoveContainerAsync(_containerId).ConfigureAwait(false);
-                    _logger.LogInformation("Stopped Zookeeper node...");
+                    _logger.NodeStopped();
                 }
             }
             finally
@@ -143,5 +143,25 @@ namespace Furly.Extensions.Zookeeper.Server
         private readonly int _port;
         private string? _containerId;
         private bool _owner;
+    }
+
+    /// <summary>
+    /// Source-generated logging for ZookeeperNode tests
+    /// </summary>
+    internal static partial class ZookeeperNodeLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Starting Zookeeper node...")]
+        public static partial void NodeStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Zookeeper node running.")]
+        public static partial void NodeRunning(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Stopped Zookeeper node...")]
+        public static partial void NodeStopped(this ILogger logger);
     }
 }

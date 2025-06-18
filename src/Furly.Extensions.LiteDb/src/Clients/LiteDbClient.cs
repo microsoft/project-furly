@@ -69,16 +69,16 @@ namespace Furly.Extensions.LiteDb.Clients
     }
 
     /// <summary>
-    /// Logging methods for LiteDbClient
+    /// Source-generated logging for LiteDbClient
     /// </summary>
     internal static partial class LiteDbClientLogging
     {
-        [LoggerMessage(EventId = 1, Level = LogLevel.Warning,
+        [LoggerMessage(EventId = 0, Level = LogLevel.Warning,
             Message = "No database connection string. Using in memory database!")]
         public static partial void NoDbConnectionString(
             this ILogger logger);
 
-        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
             Message = "To persist your data, configure a connection string!")]
         public static partial void ConfigureConnectionStringToPersist(
             this ILogger logger);

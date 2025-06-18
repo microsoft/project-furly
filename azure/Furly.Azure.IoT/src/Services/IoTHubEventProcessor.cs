@@ -57,8 +57,7 @@ namespace Furly.Azure.IoT.Services
                 out var connectionOptions);
             if (blobUri == null)
             {
-                _logger.LogInformation("No storage configured. Using consumer " +
-                    "client to read events from all partitions.");
+                _logger.NoStorageConfigured();
 
                 // Consumer client
                 var consumerOptions = new EventHubConsumerClientOptions
@@ -154,8 +153,7 @@ namespace Furly.Azure.IoT.Services
             {
                 return Task.CompletedTask;
             }
-            _logger.LogInformation("Partition {PartitionId} opened",
-                arg.PartitionId);
+            _logger.PartitionOpened(arg.PartitionId);
             if (!_options.Value.InitialReadFromStart ||
                 _options.Value.SkipEventsOlderThan != null)
             {
@@ -180,8 +178,7 @@ namespace Furly.Azure.IoT.Services
         /// <returns></returns>
         private Task PartitionClosingAsync(PartitionClosingEventArgs arg)
         {
-            _logger.LogInformation("Partition {PartitionId} closed ({Reason})",
-                arg.PartitionId, arg.Reason switch
+            _logger.PartitionClosed(arg.PartitionId, arg.Reason switch
                 {
                     ProcessingStoppedReason.OwnershipLost =>
                         "Another processor claimed ownership",
@@ -203,9 +200,7 @@ namespace Furly.Azure.IoT.Services
             {
                 return;
             }
-            _logger.LogWarning(arg.Exception,
-                "Partition {PartitionId} error during {Operation}",
-                arg.PartitionId, arg.Operation);
+            _logger.PartitionError(arg.Exception, arg.PartitionId, arg.Operation);
 
             Debug.Assert(_processor != null);
             if (!_processor.IsRunning && !_cts.IsCancellationRequested)
@@ -237,8 +232,7 @@ namespace Furly.Azure.IoT.Services
                 _ => new IntervalCheckpoint(_options.Value.CheckpointInterval?.TotalMilliseconds));
             if (arg.CancellationToken.IsCancellationRequested || checkpointer.ShouldCheckpoint)
             {
-                _logger.LogDebug("Checkpointing for partition {PartitionId}...",
-                    arg.Partition.PartitionId);
+                _logger.Checkpointing(arg.Partition.PartitionId);
                 await arg.UpdateCheckpointAsync().ConfigureAwait(false);
                 checkpointer.CheckpointComplete();
                 arg.CancellationToken.ThrowIfCancellationRequested();
@@ -266,7 +260,7 @@ namespace Furly.Azure.IoT.Services
                     catch (OperationCanceledException) { }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to read or process events");
+                        _logger.FailedToReadOrProcessEvents(ex);
                     }
                 }
                 else
@@ -289,7 +283,7 @@ namespace Furly.Azure.IoT.Services
                         catch (OperationCanceledException) { }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Failed to start processing events.");
+                            _logger.FailedToStartProcessingEvents(ex);
                         }
                         finally
                         {
@@ -335,9 +329,7 @@ namespace Furly.Azure.IoT.Services
                 eventData.Properties);
             if (eventData == null)
             {
-                _logger.LogTrace(
-                    "WARNING: Received empty message with {@properties}",
-                    properties);
+                _logger.ReceivedEmptyMessage(properties);
                 return;
             }
             if (!properties.TryGetValue(kIoTHubDeviceId, out var deviceId) &&
@@ -429,8 +421,7 @@ namespace Furly.Azure.IoT.Services
                 consumerGroup = string.IsNullOrEmpty(options.ConsumerGroup) ?
                     EventHubConsumerClient.DefaultConsumerGroupName :
                     options.ConsumerGroup;
-                _logger.LogInformation("Using Consumer Group {ConsumerGroup}",
-                    consumerGroup);
+                _logger.UsingConsumerGroup(consumerGroup);
 
                 // Create connection string otherwise use azure credentials
                 cs = default;
@@ -629,5 +620,50 @@ namespace Furly.Azure.IoT.Services
         private readonly CancellationTokenSource _cts;
         private readonly ConcurrentDictionary<IIoTHubTelemetryHandler, bool> _handlers = new();
         private readonly ConcurrentDictionary<string, ICheckpointer> _checkpointer = new();
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTHubEventProcessor
+    /// </summary>
+    internal static partial class IoTHubEventProcessorLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "No storage configured. Using consumer client to read events from all partitions.")]
+        public static partial void NoStorageConfigured(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Partition {PartitionId} opened")]
+        public static partial void PartitionOpened(this ILogger logger, string partitionId);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Partition {PartitionId} closed ({Reason})")]
+        public static partial void PartitionClosed(this ILogger logger, string partitionId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Warning,
+            Message = "Partition {PartitionId} error during {Operation}")]
+        public static partial void PartitionError(this ILogger logger, Exception ex,
+            string partitionId, string operation);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Checkpointing for partition {PartitionId}...")]
+        public static partial void Checkpointing(this ILogger logger, string partitionId);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Failed to read or process events")]
+        public static partial void FailedToReadOrProcessEvents(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Failed to start processing events.")]
+        public static partial void FailedToStartProcessingEvents(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Trace,
+            Message = "Received empty message with {@properties}")]
+        public static partial void ReceivedEmptyMessage(this ILogger logger, object properties);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Information,
+            Message = "Using Consumer Group {ConsumerGroup}")]
+        public static partial void UsingConsumerGroup(this ILogger logger, string consumerGroup);
     }
 }

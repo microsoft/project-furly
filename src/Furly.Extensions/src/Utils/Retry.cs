@@ -122,7 +122,7 @@ namespace Furly.Extensions.Utils
         {
             if ((k > maxRetry || !cont(ex)) && ex is not ITransientException)
             {
-                logger?.LogTrace(ex, "Give up after {Tries}", k);
+                logger?.GiveUp(ex, k);
                 throw ex;
             }
             var delay = policy(k, ex);
@@ -155,15 +155,19 @@ namespace Furly.Extensions.Utils
             }
         }
 
-        [LoggerMessage(EventId = 0, Level = LogLevel.Trace,
+        [LoggerMessage(EventId = 1000, Level = LogLevel.Trace,
             Message = "Retry {Times} in {Delay} ms...", SkipEnabledCheck = true)]
         private static partial void RetryWithException(this ILogger logger,
             Exception exception, int times, int delay);
 
-        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = 1001, Level = LogLevel.Debug,
             Message = "... Retry {Times} in {Delay} ms...")]
         private static partial void RetryWithoutException(
             this ILogger logger, int times, int delay);
+
+        [LoggerMessage(EventId = 1002, Level = LogLevel.Trace,
+           Message = "Give up after {Tries}")]
+        private static partial void GiveUp(this ILogger logger, Exception ex, int tries);
     }
 
 #pragma warning restore IDE1006 // Naming Styles

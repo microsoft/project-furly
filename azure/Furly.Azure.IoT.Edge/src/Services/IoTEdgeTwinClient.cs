@@ -71,7 +71,7 @@ namespace Furly.Azure.IoT.Edge.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to get twin...");
+                _logger.FailedToGetTwin(ex);
                 return null;
             }
         }
@@ -92,7 +92,7 @@ namespace Furly.Azure.IoT.Edge.Services
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error synchronizing values in batch {Batch}", twin);
+                _logger.ErrorSynchronizingBatch(ex, twin);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Furly.Azure.IoT.Edge.Services
             }, this, ct).ConfigureAwait(false);
 
             // Get twin
-            _logger.LogDebug("Initialize device twin ...");
+            _logger.InitializeDeviceTwin();
             for (var attempt = 1; !ct.IsCancellationRequested; attempt++)
             {
                 try
@@ -134,14 +134,13 @@ namespace Furly.Azure.IoT.Edge.Services
 
                         // Apply desired values on top.
                         OnUpdate(state, twin.Properties.Desired);
-                        _logger.LogDebug("Device twin initialized successfully.");
+                        _logger.DeviceTwinInitialized();
                     });
                     break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Attempt #{Attempt} failed in initializing twin - retrying...",
-                        attempt);
+                    _logger.TwinInitializationAttemptFailed(ex, attempt);
                     await Task.Delay(TimeSpan.FromSeconds(3), ct).ConfigureAwait(false);
                 }
             }
@@ -166,5 +165,33 @@ namespace Furly.Azure.IoT.Edge.Services
         private readonly IIoTEdgeDeviceClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger<IoTEdgeTwinClient> _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTEdgeTwinClient
+    /// </summary>
+    internal static partial class IoTEdgeTwinClientLogging
+    {
+        private const int EventClass = 30;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Failed to get twin...")]
+        public static partial void FailedToGetTwin(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Error synchronizing values in batch {Batch}")]
+        public static partial void ErrorSynchronizingBatch(this ILogger logger, Exception ex, TwinCollection batch);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Initialize device twin ...")]
+        public static partial void InitializeDeviceTwin(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Device twin initialized successfully.")]
+        public static partial void DeviceTwinInitialized(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Attempt #{Attempt} failed in initializing twin - retrying...")]
+        public static partial void TwinInitializationAttemptFailed(this ILogger logger, Exception ex, int attempt);
     }
 }

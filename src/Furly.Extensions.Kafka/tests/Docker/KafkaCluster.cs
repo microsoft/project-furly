@@ -50,7 +50,7 @@ namespace Furly.Extensions.Kafka.Server
 
                 await _zookeeper.StartAsync().ConfigureAwait(false);
 
-                _logger.LogInformation("Starting Kafka cluster...");
+                _logger.ClusterStarting();
                 for (var i = _nodes.Count; i < _kafkaNodes; i++)
                 {
                     var node = new KafkaNode(_logger,
@@ -59,7 +59,7 @@ namespace Furly.Extensions.Kafka.Server
                 }
                 await Task.WhenAll(_nodes.Select(n => n.StartAsync())).ConfigureAwait(false);
                 await WaitForClusterHealthAsync().ConfigureAwait(false);
-                _logger.LogInformation("Kafka cluster running.");
+                _logger.ClusterRunning();
             }
             catch
             {
@@ -147,5 +147,21 @@ namespace Furly.Extensions.Kafka.Server
         private readonly string _networkName;
         private readonly int _kafkaNodes;
         private readonly List<IHealthCheck> _checks;
+    }
+
+    /// <summary>
+    /// Source-generated logging for KafkaCluster tests
+    /// </summary>
+    internal static partial class KafkaClusterLogging
+    {
+        private const int EventClass = 1;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Starting Kafka cluster...")]
+        public static partial void ClusterStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Kafka cluster running.")]
+        public static partial void ClusterRunning(this ILogger logger);
     }
 }

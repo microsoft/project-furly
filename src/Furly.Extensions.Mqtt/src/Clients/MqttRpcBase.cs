@@ -112,7 +112,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                 {
-                    _logger.LogDebug("Retry call after timeout...");
+                    _logger.RetryCallAfterTimeout();
                 }
             }
             throw new MethodCallException(
@@ -212,7 +212,7 @@ namespace Furly.Extensions.Mqtt.Clients
             ReadOnlySequence<byte> buffer, string contentType, CancellationToken ct = default)
         {
             var tcs = new TaskCompletionSource<(string, MqttApplicationMessage)>();
-            using var registration = ct.Register(() => tcs.TrySetCanceled());
+            await using var registration = ct.Register(() => tcs.TrySetCanceled()).ConfigureAwait(false);
 
             var requestId = Guid.NewGuid();
             IAsyncDisposable? subscription = null;
@@ -444,8 +444,7 @@ namespace Furly.Extensions.Mqtt.Clients
                         payload, contentType, ct).ConfigureAwait(false);
                     if (result.Length > MaxMethodPayloadSizeInBytes)
                     {
-                        _logger.LogError("Result (Payload too large => {Length}",
-                            result.Length);
+                        _logger.PayloadTooLarge(result.Length);
                         return (default, (int)HttpStatusCode.RequestEntityTooLarge);
                     }
                     return (result, 200);
@@ -536,7 +535,7 @@ namespace Furly.Extensions.Mqtt.Clients
                         catch (OperationCanceledException) { }
                         catch (Exception ex)
                         {
-                            _logger.LogDebug(ex, "Failed to execute invoker");
+                            _logger.InvokerExecutionFailed(ex);
                         }
                     }
                     try
@@ -566,5 +565,29 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly ConcurrentDictionary<Guid, TaskCompletionSource<
             (string, MqttApplicationMessage)>> _pending = new();
         private bool _isClosed;
+    }
+
+    /// <summary>
+    /// Source-generated logging for MqttRpcBase
+    /// </summary>
+    internal static partial class MqttRpcServerLogging
+    {
+        private const int EventClass = 200;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Retry call after timeout...")]
+        public static partial void RetryCallAfterTimeout(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Result (Payload too large => {Length})")]
+        public static partial void PayloadTooLarge(this ILogger logger, long length);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Failed to execute invoker")]
+        public static partial void InvokerExecutionFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Client failed to connect to {Host}:{Port} with reason {Reason} and expiry {SessionExpiry}")]
+        public static partial void ConnectFailed(this ILogger logger, string host, int port, string reason, string sessionExpiry);
     }
 }

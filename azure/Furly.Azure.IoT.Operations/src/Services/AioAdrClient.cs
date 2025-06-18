@@ -6,7 +6,7 @@
 namespace Furly.Azure.IoT.Operations.Services
 {
     using global::Azure.Iot.Operations.Connector;
-    using global::Azure.Iot.Operations.Connector.Assets;
+    using global::Azure.Iot.Operations.Connector.Files;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
@@ -44,10 +44,8 @@ namespace Furly.Azure.IoT.Operations.Services
             _client.AssetChanged += OnAssetChanged;
             _client.DeviceChanged += OnDeviceChanged;
 
-            _discovery = sdk.CreateAdrServiceClient(client);
-
             // Any devices already available will trigger the notifications
-            _logger.LogInformation("Start monitoring ADR devices using client {ClientId}", client.ClientId);
+            _logger.StartMonitoring(client.ClientId);
             _client.ObserveDevices();
         }
 
@@ -62,14 +60,12 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             try
             {
-                _logger.LogInformation("Stop monitoring ADR devices.");
+                _logger.StopMonitoring();
                 await _client.UnobserveAllAsync(default).ConfigureAwait(false);
-
-                // await client.DisposeAsync();
             }
             finally
             {
-                await _discovery.DisposeAsync().ConfigureAwait(false);
+                await _client.DisposeAsync().ConfigureAwait(false);
             }
         }
 
@@ -92,9 +88,10 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         /// <inheritdoc/>
-        public EndpointCredentials GetEndpointCredentials(InboundEndpointSchemaMapValue inboundEndpoint)
+        public EndpointCredentials GetEndpointCredentials(string deviceName, string inboundEndpointName,
+            InboundEndpointSchemaMapValue settings)
         {
-            return _client.GetEndpointCredentials(inboundEndpoint);
+            return _client.GetEndpointCredentials(deviceName, inboundEndpointName, settings);
         }
 
         /// <inheritdoc/>
@@ -118,7 +115,7 @@ namespace Furly.Azure.IoT.Operations.Services
             string deviceName, string inboundEndpointName, string assetName, DiscoveredAsset asset,
             TimeSpan? commandTimeout, CancellationToken cancellationToken)
         {
-            var response = await _discovery.CreateOrUpdateDiscoveredAssetAsync(deviceName,
+            var response = await _client.CreateOrUpdateDiscoveredAssetAsync(deviceName,
                 inboundEndpointName, new CreateOrUpdateDiscoveredAssetRequest
                 {
                     DiscoveredAsset = asset,
@@ -133,7 +130,7 @@ namespace Furly.Azure.IoT.Operations.Services
             string deviceName, DiscoveredDevice device, string inboundEndpointType,
             TimeSpan? commandTimeout, CancellationToken cancellationToken)
         {
-            var response = await _discovery.CreateOrUpdateDiscoveredDeviceAsync(
+            var response = await _client.CreateOrUpdateDiscoveredDeviceAsync(
                 new CreateOrUpdateDiscoveredDeviceRequestSchema
                 {
                     DiscoveredDevice = device,
@@ -157,8 +154,7 @@ namespace Furly.Azure.IoT.Operations.Services
         internal void OnDeviceChanged(object? sender,
             global::Azure.Iot.Operations.Connector.DeviceChangedEventArgs e)
         {
-            _logger.LogInformation("Device with name {Name} and endpoint {EndpointName} was {Action}",
-               e.DeviceName, e.InboundEndpointName, e.ChangeType);
+            _logger.DeviceChanged(e.DeviceName, e.InboundEndpointName, e.ChangeType);
             switch (e.ChangeType)
             {
                 case ChangeType.Deleted:
@@ -178,8 +174,7 @@ namespace Furly.Azure.IoT.Operations.Services
         internal void OnAssetChanged(object? sender,
             global::Azure.Iot.Operations.Connector.AssetChangedEventArgs e)
         {
-            _logger.LogInformation("Asset with name {Name} for device {Device} and endpoint {EndpointName} was {Action}",
-                e.AssetName, e.DeviceName, e.InboundEndpointName, e.ChangeType);
+            _logger.AssetChanged(e.AssetName, e.DeviceName, e.InboundEndpointName, e.ChangeType);
             switch (e.ChangeType)
             {
                 case ChangeType.Deleted:
@@ -199,6 +194,29 @@ namespace Furly.Azure.IoT.Operations.Services
         private readonly ILogger _logger;
         private readonly IAdrClientWrapper _client;
         private readonly IAdrNotification _notifications;
-        private readonly IAdrServiceClient _discovery;
+    }
+
+    /// <summary>
+    /// Source-generated logging for AioAdrClient
+    /// </summary>
+    internal static partial class AioAdrClientLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Start monitoring ADR devices using client {ClientId}")]
+        public static partial void StartMonitoring(this ILogger logger, string? clientId);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Stop monitoring ADR devices.")]
+        public static partial void StopMonitoring(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Device with name {Name} and endpoint {EndpointName} was {Action}")]
+        public static partial void DeviceChanged(this ILogger logger, string name, string endpointName, ChangeType action);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Asset with name {Name} for device {Device} and endpoint {EndpointName} was {Action}")]
+        public static partial void AssetChanged(this ILogger logger, string name, string device, string endpointName, ChangeType action);
     }
 }

@@ -205,9 +205,7 @@ namespace Furly.Azure.IoT.Services
                 }
                 catch (Exception e)
                 {
-                    _logger.LogTrace(e,
-                        "Sending message to {DeviceId} ({ModuleId}) failed.",
-                        _deviceId, _moduleId ?? string.Empty);
+                    _logger.SendingMessageFailed(e, _deviceId, _moduleId ?? string.Empty);
                     throw e.Translate();
                 }
                 finally
@@ -258,5 +256,18 @@ namespace Furly.Azure.IoT.Services
         private readonly string? _moduleId;
         private readonly Task<ServiceClient> _client;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTHubEventClient
+    /// </summary>
+    internal static partial class IoTHubEventClientLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Trace,
+            Message = "Sending message to {DeviceId} ({ModuleId}) failed.")]
+        public static partial void SendingMessageFailed(this ILogger logger,
+            Exception ex, string deviceId, string moduleId);
     }
 }

@@ -5,6 +5,7 @@
 
 namespace Autofac
 {
+    using Azure.Iot.Operations.Protocol;
     using Furly.Azure.IoT.Operations.Runtime;
     using Furly.Azure.IoT.Operations.Services;
 
@@ -21,6 +22,8 @@ namespace Autofac
         {
             builder.AddMqttClient();
 
+            builder.RegisterType<ApplicationContext>()
+                .AsSelf().SingleInstance();
             builder.RegisterType<AioSdk>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AioSdkConfig>()

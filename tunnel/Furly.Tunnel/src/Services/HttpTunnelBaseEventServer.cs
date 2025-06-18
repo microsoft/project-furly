@@ -84,8 +84,7 @@ namespace Furly.Tunnel.Services
             if (typeParsed.Length != 2 ||
                 !int.TryParse(typeParsed[1], out var messageId))
             {
-                _logger.LogError("Bad content type {ContentType} in tunnel event" +
-                    " to {Topic}.", contentType, topic);
+                _logger.BadContentType(contentType, topic);
                 return;
             }
             var requestId = typeParsed[0];
@@ -112,8 +111,7 @@ namespace Furly.Tunnel.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to parse tunnel request from {Topic} " +
-                        "with id {RequestId} - giving up.", topic, requestId);
+                    _logger.FailedToParseTunnelRequest(ex, topic, requestId);
                     return;
                 }
                 // Complete request
@@ -131,15 +129,13 @@ namespace Furly.Tunnel.Services
             else
             {
                 // Timed out or expired
-                _logger.LogDebug(
-                    "Request from {Topic} with id {RequestId} timed out - give up.",
-                    topic, requestId);
+                _logger.RequestTimedOut(topic, requestId);
                 return;
             }
 
             if (responder == null)
             {
-                _logger.LogCritical("Cannot respond without responder!");
+                _logger.NoResponder();
                 return;
             }
 
@@ -150,8 +146,7 @@ namespace Furly.Tunnel.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to complete request from {Topic} " +
-                    "with id {RequestId} - giving up.", topic, requestId);
+                _logger.FailedToCompleteRequest(ex, topic, requestId);
             }
         }
 
@@ -310,5 +305,35 @@ namespace Furly.Tunnel.Services
         private readonly ILogger _logger;
         private readonly TimeProvider _timeProvider;
         private bool _disposedValue;
+    }
+
+    /// <summary>
+    /// Source-generated logging for HttpTunnelBaseEventServer
+    /// </summary>
+    internal static partial class HttpTunnelBaseEventServerLogging
+    {
+        private const int EventClass = 30;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Bad content type {ContentType} in tunnel event to {Topic}.")]
+        public static partial void BadContentType(this ILogger logger, string contentType, string topic);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Failed to parse tunnel request from {Topic} with id {RequestId} - giving up.")]
+        public static partial void FailedToParseTunnelRequest(this ILogger logger, 
+            Exception ex, string topic, string requestId);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Request from {Topic} with id {RequestId} timed out - give up.")]
+        public static partial void RequestTimedOut(this ILogger logger, string topic, string requestId);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Critical,
+            Message = "Cannot respond without responder!")]
+        public static partial void NoResponder(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Failed to complete request from {Topic} with id {RequestId} - giving up.")]
+        public static partial void FailedToCompleteRequest(this ILogger logger, 
+            Exception ex, string topic, string requestId);
     }
 }

@@ -38,7 +38,7 @@ namespace Furly.Azure.IoT.Operations.Runtime
             {
                 if (Environment.GetEnvironmentVariable("CONNECTOR_ID") != null)
                 {
-                    _logger.LogInformation("Running as AIO connector.");
+                    _logger.RunningAsConnector();
                     // Running as connector
                     for (var i = 0; ; i++)
                     {
@@ -49,14 +49,14 @@ namespace Furly.Azure.IoT.Operations.Runtime
                         catch (Exception ex) when (i < 2) // Retry once
                         {
                             // Try again after a second
-                            _logger.LogError(ex, "Failed to read connector configuration from file");
+                            _logger.FailedToReadConfig(ex);
                             Thread.Sleep(1000);
                         }
                     }
                 }
                 else if (Environment.GetEnvironmentVariable("AIO_BROKER_HOSTNAME") != null)
                 {
-                    _logger.LogInformation("Running as AIO workload.");
+                    _logger.RunningAsWorkload();
                     settings = MqttConnectionSettings.FromEnvVars();
                 }
             }
@@ -66,7 +66,7 @@ namespace Furly.Azure.IoT.Operations.Runtime
                 var cs = GetStringOrDefault("AIO_MQTT_CS");
                 if (cs != null)
                 {
-                    _logger.LogInformation("Configure using AIO connection string.");
+                    _logger.ConfigureUsingConnectionString();
                     settings = MqttConnectionSettings.FromConnectionString(cs);
                 }
             }
@@ -90,5 +90,29 @@ namespace Furly.Azure.IoT.Operations.Runtime
             }
         }
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for AioSdkConfig
+    /// </summary>
+    internal static partial class AioSdkConfigLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Running as AIO connector.")]
+        public static partial void RunningAsConnector(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Failed to read connector configuration from file")]
+        public static partial void FailedToReadConfig(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Running as AIO workload.")]
+        public static partial void RunningAsWorkload(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Configure using AIO connection string.")]
+        public static partial void ConfigureUsingConnectionString(this ILogger logger);
     }
 }

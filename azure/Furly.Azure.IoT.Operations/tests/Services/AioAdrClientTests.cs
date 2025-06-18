@@ -6,7 +6,7 @@
 namespace Furly.Azure.IoT.Operations.Services
 {
     using global::Azure.Iot.Operations.Connector;
-    using global::Azure.Iot.Operations.Connector.Assets;
+    using global::Azure.Iot.Operations.Connector.Files;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
@@ -32,30 +32,30 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         [Fact]
-        public void DisposeCallsDisposeAsync()
+        public void DisposeCallsDisposeAsyncOnUnderlyingClient()
         {
             _clientWrapperMock.Setup(c => c.UnobserveAllAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            _serviceClientMock.Setup(s => s.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _clientWrapperMock.Setup(s => s.DisposeAsync()).Returns(ValueTask.CompletedTask);
             var client = CreateClient();
             client.Dispose();
-            _serviceClientMock.Verify(s => s.DisposeAsync(), Times.Once);
+            _clientWrapperMock.Verify(s => s.DisposeAsync(), Times.Once);
         }
 
         [Fact]
         public async Task DisposeAsyncCallsUnobserveAllAndDisposeAsync()
         {
             _clientWrapperMock.Setup(c => c.UnobserveAllAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            _serviceClientMock.Setup(s => s.DisposeAsync()).Returns(ValueTask.CompletedTask);
+            _clientWrapperMock.Setup(s => s.DisposeAsync()).Returns(ValueTask.CompletedTask);
             var client = CreateClient();
             await client.DisposeAsync();
             _clientWrapperMock.Verify(c => c.UnobserveAllAsync(It.IsAny<CancellationToken>()), Times.Once);
-            _serviceClientMock.Verify(s => s.DisposeAsync(), Times.Once);
+            _clientWrapperMock.Verify(s => s.DisposeAsync(), Times.Once);
         }
 
         [Fact]
         public async Task StartMonitoringAssetsAsyncCallsObserveAssets()
         {
-            using var client = CreateClient();
+            await using var client = CreateClient();
             _clientWrapperMock.Setup(c => c.ObserveAssets("dev", "ep"));
             await client.StartMonitoringAssetsAsync("dev", "ep", CancellationToken.None);
             _clientWrapperMock.Verify(c => c.ObserveAssets("dev", "ep"), Times.Once);
@@ -64,7 +64,7 @@ namespace Furly.Azure.IoT.Operations.Services
         [Fact]
         public async Task StopMonitoringAssetsAsyncCallsUnobserveAssetsAsync()
         {
-            using var client = CreateClient();
+            await using var client = CreateClient();
             _clientWrapperMock.Setup(c => c.UnobserveAssetsAsync("dev", "ep", It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
             await client.StopMonitoringAssetsAsync("dev", "ep", CancellationToken.None);
             _clientWrapperMock.Verify(c => c.UnobserveAssetsAsync("dev", "ep", It.IsAny<CancellationToken>()), Times.Once);
@@ -75,9 +75,9 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             var endpoint = new InboundEndpointSchemaMapValue();
             var creds = new EndpointCredentials();
-            _clientWrapperMock.Setup(c => c.GetEndpointCredentials(endpoint)).Returns(creds);
+            _clientWrapperMock.Setup(c => c.GetEndpointCredentials("dev", "ep", endpoint)).Returns(creds);
             using var client = CreateClient();
-            Assert.Equal(creds, client.GetEndpointCredentials(endpoint));
+            Assert.Equal(creds, client.GetEndpointCredentials("dev", "ep", endpoint));
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             var status = new DeviceStatus();
             _clientWrapperMock.Setup(c => c.UpdateDeviceStatusAsync("dev", "ep", status, null, It.IsAny<CancellationToken>())).ReturnsAsync(status);
-            using var client = CreateClient();
+            await using var client = CreateClient();
             var result = await client.UpdateDeviceStatusAsync("dev", "ep", status, null, CancellationToken.None);
             Assert.Equal(status, result);
         }
@@ -100,7 +100,7 @@ namespace Furly.Azure.IoT.Operations.Services
             };
             var status = new AssetStatus();
             _clientWrapperMock.Setup(c => c.UpdateAssetStatusAsync("dev", "ep", req, null, It.IsAny<CancellationToken>())).ReturnsAsync(status);
-            using var client = CreateClient();
+            await using var client = CreateClient();
             var result = await client.UpdateAssetStatusAsync("dev", "ep", req, null, CancellationToken.None);
             Assert.Equal(status, result);
         }
@@ -109,9 +109,9 @@ namespace Furly.Azure.IoT.Operations.Services
         public async Task ReportDiscoveredAssetAsyncDelegatesToDiscovery()
         {
             var resp = new CreateOrUpdateDiscoveredAssetResponsePayload { DiscoveredAssetResponse = new DiscoveredAssetResponseSchema() };
-            _serviceClientMock.Setup(s => s.CreateOrUpdateDiscoveredAssetAsync("dev", "ep",
+            _clientWrapperMock.Setup(s => s.CreateOrUpdateDiscoveredAssetAsync("dev", "ep",
                 It.IsAny<CreateOrUpdateDiscoveredAssetRequest>(), null, It.IsAny<CancellationToken>())).ReturnsAsync(resp);
-            using var client = CreateClient();
+            await using var client = CreateClient();
             var result = await client.ReportDiscoveredAssetAsync("dev", "ep", "asset", new DiscoveredAsset {
                 DeviceRef = new AssetDeviceRef
                 {
@@ -126,9 +126,9 @@ namespace Furly.Azure.IoT.Operations.Services
         public async Task ReportDiscoveredDeviceAsyncDelegatesToDiscovery()
         {
             var resp = new CreateOrUpdateDiscoveredDeviceResponsePayload { DiscoveredDeviceResponse = new DiscoveredDeviceResponseSchema() };
-            _serviceClientMock.Setup(s => s.CreateOrUpdateDiscoveredDeviceAsync(It.IsAny<CreateOrUpdateDiscoveredDeviceRequestSchema>(),
+            _clientWrapperMock.Setup(s => s.CreateOrUpdateDiscoveredDeviceAsync(It.IsAny<CreateOrUpdateDiscoveredDeviceRequestSchema>(),
                 "type", null, It.IsAny<CancellationToken>())).ReturnsAsync(resp);
-            using var client = CreateClient();
+            await using var client = CreateClient();
             var result = await client.ReportDiscoveredDeviceAsync("dev", new DiscoveredDevice(), "type", null, CancellationToken.None);
             Assert.Equal(resp.DiscoveredDeviceResponse, result);
         }
@@ -237,8 +237,6 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             _sdkMock.Setup(s => s.CreateAdrClientWrapper(It.IsAny<IMqttPubSubClient>()))
                 .Returns(_clientWrapperMock.Object);
-            _sdkMock.Setup(s => s.CreateAdrServiceClient(It.IsAny<IMqttPubSubClient>()))
-                .Returns(_serviceClientMock.Object);
             _mqttClientMock.SetupGet(m => m.ClientId).Returns("test-client");
             return new AioAdrClient(_notificationMock.Object, _sdkMock.Object, _mqttClientMock.Object, _loggerMock.Object);
         }
@@ -248,6 +246,5 @@ namespace Furly.Azure.IoT.Operations.Services
         private readonly Mock<IMqttPubSubClient> _mqttClientMock = new();
         private readonly Mock<ILogger<AioAdrClient>> _loggerMock = new();
         private readonly Mock<IAdrClientWrapper> _clientWrapperMock = new();
-        private readonly Mock<IAdrServiceClient> _serviceClientMock = new();
     }
 }

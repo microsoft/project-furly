@@ -126,7 +126,7 @@ namespace Furly.Extensions.Mqtt.Clients
             catch (OperationCanceledException) { }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to stop rpc server.");
+                _logger.ServerStopFailed(ex);
             }
             try
             {
@@ -134,7 +134,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 {
                     _server.Result.Dispose();
                 }
-                _logger.LogDebug("Mqtt server disposed.");
+                _logger.ServerDisposed();
             }
             finally
             {
@@ -148,7 +148,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientConnectedAsync(ClientConnectedEventArgs args)
         {
-            _logger.LogInformation("Client {ClientId} connected.", args.ClientId);
+            _logger.ClientConnected(args.ClientId);
             return Task.CompletedTask;
         }
 
@@ -158,8 +158,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientUnsubscribedTopicAsync(ClientUnsubscribedTopicEventArgs args)
         {
-            _logger.LogInformation("Client {ClientId} unsubscribed from {Topic}.",
-                args.ClientId, args.TopicFilter);
+            _logger.ClientUnsubscribed(args.ClientId, args.TopicFilter.ToString());
             return Task.CompletedTask;
         }
 
@@ -169,8 +168,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientSubscribedTopicAsync(ClientSubscribedTopicEventArgs args)
         {
-            _logger.LogInformation("Client {ClientId} subscribed to {Topic}.",
-                args.ClientId, args.TopicFilter);
+            _logger.ClientSubscribed(args.ClientId, args.TopicFilter.ToString());
             return Task.CompletedTask;
         }
 
@@ -185,8 +183,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 return;
             }
             var topic = args.ApplicationMessage.Topic;
-            _logger.LogTrace("Client received message from {Client} on {Topic}",
-                args.ClientId, topic);
+            _logger.MessageReceived(args.ClientId, topic);
 
             // Handle rpc outside of topic handling
             if (await HandleRpcAsync(args.ApplicationMessage, false, 0).ConfigureAwait(false))
@@ -259,8 +256,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientDisconnectedAsync(ClientDisconnectedEventArgs args)
         {
-            _logger.LogInformation("Disconnected client {ClientId} with type {Reason}",
-                args.ClientId, args.DisconnectType);
+            _logger.ClientDisconnected(args.ClientId, args.DisconnectType.ToString());
             return Task.CompletedTask;
         }
 
@@ -354,5 +350,41 @@ namespace Furly.Extensions.Mqtt.Clients
         private readonly SemaphoreSlim _lock = new(1, 1);
         private readonly Dictionary<string, List<IEventConsumer>> _subscriptions = [];
         private bool _isDisposed;
+    }
+
+    /// <summary>
+    /// Source-generated logging for MqttServer
+    /// </summary>
+    internal static partial class MqttServerLogging
+    {
+        private const int EventClass = 300;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Failed to stop MQTT server.")]
+        public static partial void ServerStopFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Mqtt server disposed.")]
+        public static partial void ServerDisposed(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Client {ClientId} connected.")]
+        public static partial void ClientConnected(this ILogger logger, string clientId);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Client {ClientId} unsubscribed from {Topic}.")]
+        public static partial void ClientUnsubscribed(this ILogger logger, string clientId, string topic);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Client {ClientId} subscribed to {Topic}.")]
+        public static partial void ClientSubscribed(this ILogger logger, string clientId, string topic);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Trace,
+            Message = "Client received message from {Client} on {Topic}")]
+        public static partial void MessageReceived(this ILogger logger, string client, string topic);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "Disconnected client {ClientId} with type {Reason}")]
+        public static partial void ClientDisconnected(this ILogger logger, string clientId, string reason);
     }
 }

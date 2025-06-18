@@ -12,7 +12,7 @@ namespace Confluent.Kafka
     /// </summary>
     public static partial class LoggerEx
     {
-        [LoggerMessage(Message = "[{Facility}] {Name}: {Message}")]
+        [LoggerMessage(EventId = 0, Message = "[{Facility}] {Name}: {Message}")]
         private static partial void WriteKafkaMessage(ILogger logger, LogLevel level,
             string facility, string name, string message);
 

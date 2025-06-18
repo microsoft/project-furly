@@ -91,7 +91,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Create device failed during registration");
+                _logger.CreateDeviceFailedDuringRegistration(e);
                 throw e.Translate();
             }
 
@@ -113,7 +113,7 @@ namespace Furly.Azure.IoT.Services
                 }
                 catch (Exception e)
                 {
-                    _logger.LogTrace(e, "Create module failed during registration");
+                    _logger.CreateModuleFailedDuringRegistration(e);
                     throw e.Translate();
                 }
             }
@@ -151,7 +151,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Create Or update failed.");
+                _logger.CreateOrUpdateFailed(e);
                 throw e.Translate();
             }
         }
@@ -190,7 +190,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Create or update failed ");
+                _logger.CreateOrUpdateFailedWithSpace(e);
                 throw e.Translate();
             }
         }
@@ -223,7 +223,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Get twin failed ");
+                _logger.GetTwinFailed(e);
                 throw e.Translate();
             }
         }
@@ -284,7 +284,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Get registration failed ");
+                _logger.GetRegistrationFailed(e);
                 throw e.Translate();
             }
         }
@@ -317,7 +317,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Query failed ");
+                _logger.QueryFailed(e);
                 throw e.Translate();
             }
         }
@@ -350,7 +350,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Query failed ");
+                _logger.QueryFailed(e);
                 throw e.Translate();
             }
         }
@@ -384,7 +384,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Update properties failed ");
+                _logger.UpdatePropertiesFailed(e);
                 throw e.Translate();
             }
         }
@@ -408,7 +408,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogTrace(e, "Delete failed ");
+                _logger.DeleteFailed(e);
                 throw e.Translate();
             }
         }
@@ -428,7 +428,7 @@ namespace Furly.Azure.IoT.Services
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Creating registry manager failed ");
+                _logger.CreatingRegistryManagerFailed(e);
                 throw e.Translate();
             }
         }
@@ -599,5 +599,53 @@ namespace Furly.Azure.IoT.Services
         private readonly IJsonSerializer _serializer;
         private readonly ICredentialProvider _credential;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTHubServiceClient
+    /// </summary>
+    internal static partial class IoTHubServiceClientLogging
+    {
+        private const int EventClass = 40;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Trace,
+            Message = "Create device failed during registration")]
+        public static partial void CreateDeviceFailedDuringRegistration(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Trace,
+            Message = "Create module failed during registration")]
+        public static partial void CreateModuleFailedDuringRegistration(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Trace,
+            Message = "Create Or update failed.")]
+        public static partial void CreateOrUpdateFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Trace,
+            Message = "Create or update failed ")]
+        public static partial void CreateOrUpdateFailedWithSpace(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Trace,
+            Message = "Get twin failed ")]
+        public static partial void GetTwinFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Trace,
+            Message = "Get registration failed ")]
+        public static partial void GetRegistrationFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Trace,
+            Message = "Query failed ")]
+        public static partial void QueryFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Trace,
+            Message = "Update properties failed ")]
+        public static partial void UpdatePropertiesFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Trace,
+            Message = "Delete failed ")]
+        public static partial void DeleteFailed(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
+            Message = "Creating registry manager failed ")]
+        public static partial void CreatingRegistryManagerFailed(this ILogger logger, Exception ex);
     }
 }

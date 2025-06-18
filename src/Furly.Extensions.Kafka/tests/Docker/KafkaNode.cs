@@ -51,7 +51,7 @@ namespace Furly.Extensions.Kafka.Server
                     return;
                 }
 
-                _logger.LogInformation("Starting Kafka node at {Port}...", _port);
+                _logger.NodeStarting(_port);
                 var param = GetContainerParameters(_port);
                 var name = $"kafka_{_port}";
                 (_containerId, _owner) = await CreateAndStartContainerAsync(
@@ -60,7 +60,7 @@ namespace Furly.Extensions.Kafka.Server
                 {
                     // Check running
                     await WaitForContainerStartedAsync(_port).ConfigureAwait(false);
-                    _logger.LogInformation("Kafka node running at {Port}.", _port);
+                    _logger.NodeRunning(_port);
                 }
                 catch
                 {
@@ -85,7 +85,7 @@ namespace Furly.Extensions.Kafka.Server
                 if (_containerId != null && _owner)
                 {
                     await StopAndRemoveContainerAsync(_containerId).ConfigureAwait(false);
-                    _logger.LogInformation("Stopped Kafka node at {Port}.", _port);
+                    _logger.NodeStopped(_port);
                 }
             }
             finally
@@ -171,5 +171,25 @@ namespace Furly.Extensions.Kafka.Server
         private readonly int _port;
         private string? _containerId;
         private bool _owner;
+    }
+
+    /// <summary>
+    /// Source-generated logging for KafkaNode tests
+    /// </summary>
+    internal static partial class KafkaNodeLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Starting Kafka node at {Port}...")]
+        public static partial void NodeStarting(this ILogger logger, int port);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Kafka node running at {Port}.")]
+        public static partial void NodeRunning(this ILogger logger, int port);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Stopped Kafka node at {Port}.")]
+        public static partial void NodeStopped(this ILogger logger, int port);
     }
 }

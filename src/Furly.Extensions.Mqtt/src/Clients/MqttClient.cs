@@ -322,8 +322,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Client {ClientId} failed to subscribe to {Topic}.",
-                         _options.Value.ClientId, topic);
+                    _logger.SubscribeOnConnectFailed(ex);
                     throw;
                 }
             }
@@ -816,38 +815,52 @@ namespace Furly.Extensions.Mqtt.Clients
     /// </summary>
     internal static partial class MqttClientLogging
     {
-        [LoggerMessage(1, LogLevel.Debug, "Closing {ClientId} ...")]
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Closing {ClientId} ...")]
         public static partial void ClientClosing(this ILogger logger, string clientId);
 
-        [LoggerMessage(2, LogLevel.Error, "Failed to stop rpc server.")]
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Failed to stop rpc server.")]
         public static partial void RpcServerStopFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(3, LogLevel.Error, "Failed to stop subscriber.")]
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
+            Message = "Failed to stop subscriber.")]
         public static partial void SubscriberStopFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(4, LogLevel.Error, "Failed to stop managed client.")]
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Failed to stop managed client.")]
         public static partial void ManagedClientStopFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(5, LogLevel.Debug, "Failed to subscribe on connect. Retrying...")]
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
+            Message = "Failed to subscribe on connect. Retrying...")]
         public static partial void SubscribeOnConnectFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(6, LogLevel.Error, "Failed to subscribe.")]
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
+            Message = "Failed to subscribe.")]
         public static partial void SubscribeFailed(this ILogger logger, Exception ex);
 
-        [LoggerMessage(7, LogLevel.Information, "Client connected with {Result} as {ClientId}.")]
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "Client connected with {Result} as {ClientId}.")]
         public static partial void ClientConnected(this ILogger logger, string result, string clientId);
 
-        [LoggerMessage(8, LogLevel.Trace, "Client {ClientId} received message on {Topic}")]
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Trace,
+            Message = "Client {ClientId} received message on {Topic}")]
         public static partial void MessageReceivedTrace(this ILogger logger, string clientId, string topic);
 
-        [LoggerMessage(9, LogLevel.Warning, "Failed to process MQTT message: {ReasonCode}")]
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Warning,
+            Message = "Failed to process MQTT message: {ReasonCode}")]
         public static partial void MessageProcessingFailed(this ILogger logger, int reasonCode);
 
-        [LoggerMessage(10, LogLevel.Error, "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
-        public static partial void ClientDisconnectedWithError(this ILogger logger, string clientId, string state, string reason, string reasonString, Exception ex);
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
+            Message = "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
+        public static partial void ClientDisconnectedWithError(this ILogger logger, string clientId,
+            string state, string reason, string reasonString, Exception ex);
 
-        [LoggerMessage(11, LogLevel.Warning, "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
-        public static partial void ClientDisconnected(this ILogger logger, string clientId, string state, string reason, string reasonString);
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Warning,
+            Message = "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
+        public static partial void ClientDisconnected(this ILogger logger, string clientId,
+            string state, string reason, string reasonString);
     }
-
 }
