@@ -16,7 +16,7 @@ namespace Furly.Extensions.Utils
     /// </summary>
 #pragma warning disable CA1068 // CancellationToken parameters must come last
 #pragma warning disable IDE1006 // Naming Styles
-    public static class Retry
+    public static partial class Retry
     {
         /// <summary>Retry count max</summary>
         public static int DefaultMaxRetryCount { get; set; } = 10;
@@ -146,15 +146,26 @@ namespace Furly.Extensions.Utils
             {
                 if (logger.IsEnabled(LogLevel.Trace))
                 {
-                    logger.LogTrace(ex, "Retry {Times} in {Delay} ms...", retry, delay);
+                    logger.RetryWithException(ex, retry, delay);
                 }
                 else
                 {
-                    logger.LogDebug("  ... Retry {Times} in {Delay} ms...", retry, delay);
+                    logger.RetryWithoutException(retry, delay);
                 }
             }
         }
+
+        [LoggerMessage(EventId = 0, Level = LogLevel.Trace,
+            Message = "Retry {Times} in {Delay} ms...", SkipEnabledCheck = true)]
+        private static partial void RetryWithException(this ILogger logger,
+            Exception exception, int times, int delay);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+            Message = "... Retry {Times} in {Delay} ms...")]
+        private static partial void RetryWithoutException(
+            this ILogger logger, int times, int delay);
     }
+
 #pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore CA1068 // CancellationToken parameters must come last
 }
