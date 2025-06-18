@@ -44,9 +44,6 @@ namespace Furly.Extensions.Mqtt.Clients
         public MqttProtocolVersion ProtocolVersion
             => (MqttProtocolVersion)(int)UnderlyingMqttClient.Options.ProtocolVersion;
 
-        /// <inheritdoc/>
-        public bool IsEnabled => _logger.IsEnabled(LogLevel.Debug);
-
         /// <summary>
         /// Connected
         /// </summary>
@@ -114,7 +111,7 @@ namespace Furly.Extensions.Mqtt.Clients
             object[] parameters, Exception exception)
         {
 #pragma warning disable CA2254 // Template should be a static expression
-            MqttSessionLogging.HandleNetLogMessage(_logger, exception, message);
+            _logger.HandleNetLogMessage(exception, message);
 #pragma warning restore CA2254 // Template should be a static expression
         }
 
@@ -169,8 +166,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
             Debug.Assert(connectResult != null);
             _isDesiredConnected = true;
-            _logger.LogInformation("Successfully connected the session client to" +
-                " the MQTT broker. This connection will now be maintained.");
+            _logger.Connected();
 
             return connectResult;
         }
@@ -215,8 +211,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 "completed now that the session client has been closed by the user.");
             await FinalizeSessionAsync(e, disconnectedArgs, ct).ConfigureAwait(false);
             StopPublishingSubscribingAndUnsubscribing();
-            _logger.LogInformation("Successfully disconnected the session client from" +
-                " the MQTT broker. This connection will no longer be maintained.");
+            _logger.Disconnected();
         }
 
         /// <inheritdoc/>
@@ -238,8 +233,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (ObjectDisposedException)
                 {
-                    _logger.LogWarning("Failed to remove a queued publish " +
-                        "because the session client was already disposed.");
+                    _logger.QueuedRemovalFailed("publish");
                 }
             });
 
@@ -268,8 +262,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (ObjectDisposedException)
                 {
-                    _logger.LogWarning("Failed to remove a queued subscribe " +
-                        "because the session client was already disposed.");
+                    _logger.QueuedRemovalFailed("subscribe");
                 }
             });
 
@@ -296,8 +289,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 catch (ObjectDisposedException)
                 {
-                    _logger.LogWarning("Failed to remove a queued unsubscribe " +
-                        "because the session client was already disposed.");
+                    _logger.QueuedRemovalFailed("unsubscribe");
                 }
             });
 
@@ -322,7 +314,7 @@ namespace Furly.Extensions.Mqtt.Clients
             }
             catch (Exception e)
             {
-                _logger.LogDebug(e, "Error while disconnecting in dispose");
+                _logger.DisconnectError(e);
             }
             finally
             {
@@ -502,8 +494,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
                 if (IsConnected)
                 {
-                    _logger.LogInformation(
-                        "Disconnect reported by MQTTnet client, but it was already handled");
+                    _logger.DisconnectHandled();
                     return;
                 }
 
@@ -517,9 +508,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
                 if (IsFatal(args.Reason))
                 {
-                    _logger.LogInformation("Disconnect detected and it was due to fatal error. " +
-                        "The client will not attempt to reconnect. Disconnect reason: {Reason}",
-                        args.Reason);
+                    _logger.FatalDisconnect(args.Reason.ToString());
                     var retryException = new ResourceExhaustionException(
                         "A fatal error was encountered while trying to re-establish the session, " +
                         "so this request cannot be completed.", args.Exception);
@@ -527,9 +516,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     return;
                 }
 
-                _logger.LogInformation(
-                    "Disconnect detected, starting reconnection. Disconnect reason: {Reason}",
-                    args.Reason);
+                _logger.StartReconnect(args.Reason.ToString());
 
                 var options = UnderlyingMqttClient.Options;
 
@@ -601,8 +588,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 if (IsFatal(lastException!, _reconnectCts?.Token.IsCancellationRequested
                         ?? ct.IsCancellationRequested))
                 {
-                    _logger.LogError(lastException,
-                        "Encountered a fatal exception while maintaining connection");
+                    _logger.FatalConnectionException(lastException);
                     if (isReconnection)
                     {
                         var retryException = new ResourceExhaustionException(
@@ -630,8 +616,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 if ((isReconnection || attemptCount > 1)
                     && !_retryPolicy.ShouldRetry(attemptCount, lastException!, out retryDelay))
                 {
-                    _logger.LogError(lastException,
-                        "Retry policy was exhausted while trying to maintain a connection");
+                    _logger.RetryExhausted(lastException);
                     var retryException = new ResourceExhaustionException(
                         "Retry policy has been exhausted. See inner exception for the " +
                         "latest exception encountered while retrying.", lastException!);
@@ -665,14 +650,12 @@ namespace Furly.Extensions.Mqtt.Clients
                 {
                     if (retryDelay.CompareTo(TimeSpan.Zero) > 0)
                     {
-                        _logger.LogInformation("Waiting {RetryDelay} before next reconnect attempt",
-                            retryDelay);
+                        _logger.WaitingToReconnect(retryDelay);
                         await Task.Delay(retryDelay, ct).ConfigureAwait(false);
                     }
 
                     ct.ThrowIfCancellationRequested();
-                    _logger.LogInformation("Trying to connect. Attempt number {AttemptCount}",
-                        attemptCount);
+                    _logger.AttemptingConnect(attemptCount);
 
                     if (isReconnection || _options.RetryOnFirstConnect != false)
                     {
@@ -708,8 +691,7 @@ namespace Furly.Extensions.Mqtt.Clients
                             "is no longer present");
                         await FinalizeSessionAsync(queuedItemException, disconnectedArgs,
                             ct).ConfigureAwait(false);
-                        _logger.LogError("Reconnection succeeded, but the session was " +
-                            "lost so the client closed the connection.");
+                        _logger.SessionLost();
 
                         await FinalizeSessionAsync(queuedItemException, disconnectedArgs,
                             ct).ConfigureAwait(false);
@@ -725,9 +707,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
                     if (isReconnection)
                     {
-                        _logger.LogInformation("Reconnection finished after successfully " +
-                            "connecting to the MQTT broker again and re-joining the existing " +
-                            "MQTT session.");
+                        _logger.ReconnectSuccess();
                     }
 
                     if (mostRecentConnectResult != null && mostRecentConnectResult.ResultCode
@@ -744,15 +724,13 @@ namespace Furly.Extensions.Mqtt.Clients
                     // happens, we simply want to end the reconnection logic
                     // and let the thread end without throwing.
 
-                    _logger.LogInformation("Session client reconnection cancelled " +
-                        "because the client is being closed.");
+                    _logger.ReconnectCancelled();
                     return null;
                 }
                 catch (Exception e)
                 {
                     lastException = e;
-                    _logger.LogWarning(e, "Encountered an exception while connecting. " +
-                        "May attempt to reconnect.");
+                    _logger.ConnectionError(e);
                 }
 
                 attemptCount++;
@@ -802,7 +780,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 if (!_disposed)
                 {
-                    _logger.LogInformation("Starting the session client's worker thread");
+                    _logger.WorkerStarting();
                     _ = Task.Run(() => ExecuteQueuedItemsAsync(
                         _workerCts.Token),
                         _workerCts.Token);
@@ -819,7 +797,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 try
                 {
-                    _logger.LogInformation("Stopping the session client's worker thread");
+                    _logger.WorkerStopping();
                     _workerCts.Cancel(false);
                     _workerCts.Dispose();
                     _workerCts = new();
@@ -838,7 +816,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <returns></returns>
         private async Task ResetMessagesStatesAsync(CancellationToken ct)
         {
-            _logger.LogInformation("Resetting the state of all queued messages");
+            _logger.ResettingMessages();
             await _pendingReqs.MarkMessagesAsUnsentAsync(ct).ConfigureAwait(false);
         }
 
@@ -868,16 +846,15 @@ namespace Furly.Extensions.Mqtt.Clients
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Publish message task cancelled.");
+                _logger.PublishCancelled();
             }
             catch (Exception exception)
             {
-                _logger.LogError(exception,
-                    "Error while publishing queued application messages.");
+                _logger.PublishError(exception);
             }
             finally
             {
-                _logger.LogInformation("Stopped publishing messages.");
+                _logger.PublishingStopped();
             }
         }
 
@@ -905,7 +882,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 default:
                     // This should never happen since the queue should only contain pubs,
                     // subs, and unsubs
-                    _logger.LogError("Unrecognized queued item. Discarding it.");
+                    _logger.UnrecognizedQueueItem();
                     await _pendingReqs.RemoveAsync(queuedRequest,
                         connectionLostCancellationToken).ConfigureAwait(false);
                     break;
@@ -933,7 +910,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 await _pendingReqs.RemoveAsync(queuedPublish, default).ConfigureAwait(false);
                 if (!queuedPublish.ResultTaskCompletionSource.TrySetResult(publishResult))
                 {
-                    _logger.LogError("Failed to set task completion source for publish request");
+                    _logger.TaskCompletionFailed("publish");
                 }
             }
             catch (OperationCanceledException)
@@ -952,7 +929,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     await _pendingReqs.RemoveAsync(queuedPublish, default).ConfigureAwait(false);
                     if (!queuedPublish.ResultTaskCompletionSource.TrySetException(e))
                     {
-                        _logger.LogError("Failed to set task completion source for publish request");
+                        _logger.TaskCompletionFailed("publish");
                     }
                 }
             }
@@ -1000,7 +977,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     await _pendingReqs.RemoveAsync(queuedSubscribe, default).ConfigureAwait(false);
                     if (!queuedSubscribe.ResultTaskCompletionSource.TrySetException(e))
                     {
-                        _logger.LogError("Failed to set task completion source for subscribe request");
+                        _logger.TaskCompletionFailed("subscribe");
                     }
                 }
             }
@@ -1029,7 +1006,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 await _pendingReqs.RemoveAsync(queuedUnsubscribe, default).ConfigureAwait(false);
                 if (!queuedUnsubscribe.ResultTaskCompletionSource.TrySetResult(unsubscribeResult))
                 {
-                    _logger.LogError("Failed to set task completion source for unsubscribe request");
+                    _logger.TaskCompletionFailed("unsubscribe");
                 }
             }
             catch (OperationCanceledException)
@@ -1048,7 +1025,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     await _pendingReqs.RemoveAsync(queuedUnsubscribe, default).ConfigureAwait(false);
                     if (!queuedUnsubscribe.ResultTaskCompletionSource.TrySetException(e))
                     {
-                        _logger.LogError("Failed to set task completion source for unsubscribe request");
+                        _logger.TaskCompletionFailed("unsubscribe");
                     }
                 }
             }
@@ -1192,8 +1169,7 @@ namespace Furly.Extensions.Mqtt.Clients
                         }
                         catch (Exception e)
                         {
-                            _logger.LogError(e, "Encountered an exception during the " +
-                                "user-supplied callback for handling received messages.");
+                            MqttSessionLogging.CallbackError(_logger, e);
                         }
                     }
 
@@ -1243,8 +1219,7 @@ namespace Furly.Extensions.Mqtt.Clients
                         }
                         catch (Exception e)
                         {
-                            _logger.LogError(e, "Encountered an exception during the " +
-                                "user-supplied callback for handling received messages.");
+                            MqttSessionLogging.CallbackError(_logger, e);
 
                             // The user probably didn't get a chance to acknowledge the
                             // message, so send the acknowledgement for them.
@@ -1322,16 +1297,15 @@ namespace Furly.Extensions.Mqtt.Clients
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Send acknowledgements task cancelled.");
+                _logger.AckCancelled();
             }
             catch (Exception exception)
             {
-                _logger.LogWarning(exception,
-                    "Error while sending queued acknowledgements.");
+                _logger.AckError(exception);
             }
             finally
             {
-                _logger.LogInformation("Stopped sending acknowledgements.");
+                _logger.AckStopped();
             }
         }
 
@@ -1812,9 +1786,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
                 _refreshTimer = new Timer(RefreshToken, outer, secondsToRefresh * 1000,
                     Timeout.Infinite);
-                outer._logger.LogInformation(
-                    "Refresh token Timer set to {SecondsToRefresh} s.",
-                    secondsToRefresh);
+                MqttSessionLogging.TokenRefreshSet(outer._logger, secondsToRefresh);
             }
 
             /// <summary>
@@ -1824,7 +1796,7 @@ namespace Furly.Extensions.Mqtt.Clients
             private void RefreshToken(object? state)
             {
                 var outer = (MqttSession)state!;
-                outer._logger.LogInformation("Refresh token Timer");
+                MqttSessionLogging.TokenRefresh(outer._logger);
                 if (outer.IsConnected)
                 {
                     var token = File.ReadAllBytes(_tokenFilePath);
@@ -1839,9 +1811,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     });
                     var secondsToRefresh = GetTokenExpiry(token);
                     _refreshTimer.Change(secondsToRefresh * 1000, Timeout.Infinite);
-                    outer._logger.LogInformation(
-                        "Refresh token Timer set to {SecondsToRefresh} s.",
-                        secondsToRefresh);
+                    MqttSessionLogging.TokenRefreshSet(outer._logger, secondsToRefresh);
                 }
             }
 
@@ -1980,131 +1950,123 @@ namespace Furly.Extensions.Mqtt.Clients
     internal static partial class MqttSessionLogging
     {
         [LoggerMessage(EventId = 0, Level = LogLevel.Debug,
-            Message = "{message}")]
+            Message = "{Message}")]
         public static partial void HandleNetLogMessage(this ILogger logger, Exception? exception, string message);
 
         [LoggerMessage(EventId = 1, Level = LogLevel.Information,
-            Message = "Successfully disconnected the session client from the MQTT broker. This connection will no longer be maintained.")]
-        public static partial void ConnectionClosed(this ILogger logger);
+            Message = "Successfully connected the session client to the MQTT broker. This connection will now be maintained.")]
+        public static partial void Connected(this ILogger logger);
 
         [LoggerMessage(EventId = 2, Level = LogLevel.Information,
-            Message = "Successfully connected the session client to the MQTT broker. This connection will now be maintained.")]
-        public static partial void ConnectionMaintained(this ILogger logger);
+            Message = "Successfully disconnected the session client from the MQTT broker. This connection will no longer be maintained.")]
+        public static partial void Disconnected(this ILogger logger);
 
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
-            Message = "Stopping the session client's worker thread")]
-        public static partial void StoppingWorker(this ILogger logger);
+        [LoggerMessage(EventId = 3, Level = LogLevel.Warning,
+            Message = "Failed to remove a queued {Type} because the session client was already disposed.")]
+        public static partial void QueuedRemovalFailed(this ILogger logger, string type);
 
-        [LoggerMessage(EventId = 4, Level = LogLevel.Information,
-            Message = "Starting the session client's worker thread")]
-        public static partial void StartingWorker(this ILogger logger);
+        [LoggerMessage(EventId = 4, Level = LogLevel.Debug,
+            Message = "Error while disconnecting in dispose")]
+        public static partial void DisconnectError(this ILogger logger, Exception exception);
 
         [LoggerMessage(EventId = 5, Level = LogLevel.Information,
             Message = "Disconnect reported by MQTTnet client, but it was already handled")]
-        public static partial void DisconnectAlreadyHandled(this ILogger logger);
+        public static partial void DisconnectHandled(this ILogger logger);
 
         [LoggerMessage(EventId = 6, Level = LogLevel.Information,
             Message = "Disconnect detected and it was due to fatal error. The client will not attempt to reconnect. Disconnect reason: {Reason}")]
-        public static partial void FatalDisconnect(this ILogger logger, object reason);
+        public static partial void FatalDisconnect(this ILogger logger, string reason);
 
         [LoggerMessage(EventId = 7, Level = LogLevel.Information,
             Message = "Disconnect detected, starting reconnection. Disconnect reason: {Reason}")]
-        public static partial void StartingReconnection(this ILogger logger, object reason);
+        public static partial void StartReconnect(this ILogger logger, string reason);
 
-        [LoggerMessage(EventId = 8, Level = LogLevel.Information,
+        [LoggerMessage(EventId = 8, Level = LogLevel.Error,
+            Message = "Encountered a fatal exception while maintaining connection")]
+        public static partial void FatalConnectionException(this ILogger logger, Exception? exception);
+
+        [LoggerMessage(EventId = 9, Level = LogLevel.Error,
+            Message = "Retry policy was exhausted while trying to maintain a connection")]
+        public static partial void RetryExhausted(this ILogger logger, Exception? exception);
+
+        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
             Message = "Waiting {RetryDelay} before next reconnect attempt")]
         public static partial void WaitingToReconnect(this ILogger logger, TimeSpan retryDelay);
 
-        [LoggerMessage(EventId = 9, Level = LogLevel.Information,
-            Message = "Trying to connect. Attempt number {AttemptCount}")]
-        public static partial void AttemptingConnection(this ILogger logger, uint attemptCount);
-
-        [LoggerMessage(EventId = 10, Level = LogLevel.Information,
-            Message = "Reconnection finished after successfully connecting to the MQTT broker again and re-joining the existing MQTT session.")]
-        public static partial void ReconnectionComplete(this ILogger logger);
-
         [LoggerMessage(EventId = 11, Level = LogLevel.Information,
-            Message = "Session client reconnection cancelled because the client is being closed.")]
-        public static partial void ReconnectionCancelled(this ILogger logger);
+            Message = "Trying to connect. Attempt number {AttemptCount}")]
+        public static partial void AttemptingConnect(this ILogger logger, uint attemptCount);
 
-        [LoggerMessage(EventId = 12, Level = LogLevel.Information,
+        [LoggerMessage(EventId = 12, Level = LogLevel.Error,
+            Message = "Reconnection succeeded, but the session was lost so the client closed the connection.")]
+        public static partial void SessionLost(this ILogger logger);
+
+        [LoggerMessage(EventId = 13, Level = LogLevel.Information,
+            Message = "Reconnection finished after successfully connecting to the MQTT broker again and re-joining the existing session.")]
+        public static partial void ReconnectSuccess(this ILogger logger);
+
+        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
+            Message = "Session client reconnection cancelled because the client is being closed.")]
+        public static partial void ReconnectCancelled(this ILogger logger);
+
+        [LoggerMessage(EventId = 15, Level = LogLevel.Warning,
+            Message = "Encountered an exception while connecting. May attempt to reconnect.")]
+        public static partial void ConnectionError(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = 16, Level = LogLevel.Information,
+            Message = "Starting the session client's worker thread")]
+        public static partial void WorkerStarting(this ILogger logger);
+
+        [LoggerMessage(EventId = 17, Level = LogLevel.Information,
+            Message = "Stopping the session client's worker thread")]
+        public static partial void WorkerStopping(this ILogger logger);
+
+        [LoggerMessage(EventId = 18, Level = LogLevel.Information,
             Message = "Resetting the state of all queued messages")]
         public static partial void ResettingMessages(this ILogger logger);
 
-        [LoggerMessage(EventId = 13, Level = LogLevel.Information,
+        [LoggerMessage(EventId = 19, Level = LogLevel.Information,
             Message = "Publish message task cancelled.")]
         public static partial void PublishCancelled(this ILogger logger);
 
-        [LoggerMessage(EventId = 14, Level = LogLevel.Information,
+        [LoggerMessage(EventId = 20, Level = LogLevel.Error,
+            Message = "Error while publishing queued application messages.")]
+        public static partial void PublishError(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = 21, Level = LogLevel.Information,
             Message = "Stopped publishing messages.")]
         public static partial void PublishingStopped(this ILogger logger);
 
-        [LoggerMessage(EventId = 15, Level = LogLevel.Information,
-            Message = "Send acknowledgements task cancelled.")]
-        public static partial void AckSendingCancelled(this ILogger logger);
-
-        [LoggerMessage(EventId = 16, Level = LogLevel.Information,
-            Message = "Stopped sending acknowledgements.")]
-        public static partial void AckSendingStopped(this ILogger logger);
-
-        [LoggerMessage(EventId = 17, Level = LogLevel.Information,
-            Message = "Refresh token Timer set to {SecondsToRefresh} s.")]
-        public static partial void TokenRefreshScheduled(this ILogger logger, int secondsToRefresh);
-
-        [LoggerMessage(EventId = 18, Level = LogLevel.Information,
-            Message = "Refresh token Timer")]
-        public static partial void TokenRefreshTriggered(this ILogger logger);
-
-        [LoggerMessage(EventId = 19, Level = LogLevel.Warning,
-            Message = "Failed to remove a queued publish because the session client was already disposed.")]
-        public static partial void FailedToRemovePublish(this ILogger logger);
-
-        [LoggerMessage(EventId = 20, Level = LogLevel.Warning,
-            Message = "Failed to remove a queued subscribe because the session client was already disposed.")]
-        public static partial void FailedToRemoveSubscribe(this ILogger logger);
-
-        [LoggerMessage(EventId = 21, Level = LogLevel.Warning,
-            Message = "Failed to remove a queued unsubscribe because the session client was already disposed.")]
-        public static partial void FailedToRemoveUnsubscribe(this ILogger logger);
-
-        [LoggerMessage(EventId = 22, Level = LogLevel.Warning,
-            Message = "Encountered an exception while connecting. May attempt to reconnect.")]
-        public static partial void ConnectionException(this ILogger logger, Exception ex);
-
-        [LoggerMessage(EventId = 23, Level = LogLevel.Warning,
-            Message = "Error while sending queued acknowledgements.")]
-        public static partial void QueuedAckError(this ILogger logger, Exception ex);
-
-        [LoggerMessage(EventId = 24, Level = LogLevel.Error,
-            Message = "Encountered a fatal exception while maintaining connection")]
-        public static partial void FatalException(this ILogger logger, Exception ex);
-
-        [LoggerMessage(EventId = 25, Level = LogLevel.Error,
-            Message = "Retry policy was exhausted while trying to maintain a connection")]
-        public static partial void RetryExhausted(this ILogger logger, Exception ex);
-
-        [LoggerMessage(EventId = 26, Level = LogLevel.Error,
-            Message = "Error while publishing queued application messages.")]
-        public static partial void QueuedPublishError(this ILogger logger, Exception ex);
-
-        [LoggerMessage(EventId = 27, Level = LogLevel.Error,
+        [LoggerMessage(EventId = 22, Level = LogLevel.Error,
             Message = "Unrecognized queued item. Discarding it.")]
         public static partial void UnrecognizedQueueItem(this ILogger logger);
 
-        [LoggerMessage(EventId = 28, Level = LogLevel.Error,
-            Message = "Failed to set task completion source for publish request")]
-        public static partial void PublishTaskCompletionError(this ILogger logger);
+        [LoggerMessage(EventId = 23, Level = LogLevel.Error,
+            Message = "Failed to set task completion source for {Type} request")]
+        public static partial void TaskCompletionFailed(this ILogger logger, string type);
+
+        [LoggerMessage(EventId = 24, Level = LogLevel.Information,
+            Message = "Send acknowledgements task cancelled.")]
+        public static partial void AckCancelled(this ILogger logger);
+
+        [LoggerMessage(EventId = 25, Level = LogLevel.Warning,
+            Message = "Error while sending queued acknowledgements.")]
+        public static partial void AckError(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = 26, Level = LogLevel.Information,
+            Message = "Stopped sending acknowledgements.")]
+        public static partial void AckStopped(this ILogger logger);
+
+        [LoggerMessage(EventId = 27, Level = LogLevel.Information,
+            Message = "Refresh token Timer set to {SecondsToRefresh} s.")]
+        public static partial void TokenRefreshSet(this ILogger logger, int secondsToRefresh);
+
+        [LoggerMessage(EventId = 28, Level = LogLevel.Information,
+            Message = "Refresh token Timer")]
+        public static partial void TokenRefresh(this ILogger logger);
 
         [LoggerMessage(EventId = 29, Level = LogLevel.Error,
-            Message = "Failed to set task completion source for subscribe request")]
-        public static partial void SubscribeTaskCompletionError(this ILogger logger);
-
-        [LoggerMessage(EventId = 30, Level = LogLevel.Error,
-            Message = "Failed to set task completion source for unsubscribe request")]
-        public static partial void UnsubscribeTaskCompletionError(this ILogger logger);
-
-        [LoggerMessage(EventId = 31, Level = LogLevel.Error,
             Message = "Encountered an exception during the user-supplied callback for handling received messages.")]
-        public static partial void CallbackException(this ILogger logger, Exception ex);
+        public static partial void CallbackError(this ILogger logger, Exception exception);
     }
 }
