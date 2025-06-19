@@ -271,7 +271,7 @@ namespace Furly.Extensions.Storage.Services
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to process changes, existing.");
+                    _logger.ProcessingChangesFailed(ex);
                 }
                 await OnExitAsync().ConfigureAwait(false);
             }
@@ -358,5 +358,17 @@ namespace Furly.Extensions.Storage.Services
         private readonly Channel<(string, VariantValue)> _write;
         private Task _loaded = Task.CompletedTask;
         private Task? _processor;
+    }
+
+    /// <summary>
+    /// Source-generated logging for KVStoreCollection
+    /// </summary>
+    internal static partial class KVStoreCollectionLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Failed to process changes, existing.")]
+        public static partial void ProcessingChangesFailed(this ILogger logger, Exception ex);
     }
 }

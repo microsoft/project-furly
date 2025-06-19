@@ -16,7 +16,7 @@ namespace Furly.Extensions.Utils
     /// </summary>
 #pragma warning disable CA1068 // CancellationToken parameters must come last
 #pragma warning disable IDE1006 // Naming Styles
-    public static class Retry
+    public static partial class Retry
     {
         /// <summary>Retry count max</summary>
         public static int DefaultMaxRetryCount { get; set; } = 10;
@@ -122,7 +122,7 @@ namespace Furly.Extensions.Utils
         {
             if ((k > maxRetry || !cont(ex)) && ex is not ITransientException)
             {
-                logger?.LogTrace(ex, "Give up after {Tries}", k);
+                logger?.GiveUp(ex, k);
                 throw ex;
             }
             var delay = policy(k, ex);
@@ -146,15 +146,30 @@ namespace Furly.Extensions.Utils
             {
                 if (logger.IsEnabled(LogLevel.Trace))
                 {
-                    logger.LogTrace(ex, "Retry {Times} in {Delay} ms...", retry, delay);
+                    logger.RetryWithException(ex, retry, delay);
                 }
                 else
                 {
-                    logger.LogDebug("  ... Retry {Times} in {Delay} ms...", retry, delay);
+                    logger.RetryWithoutException(retry, delay);
                 }
             }
         }
+
+        [LoggerMessage(EventId = 1000, Level = LogLevel.Trace,
+            Message = "Retry {Times} in {Delay} ms...", SkipEnabledCheck = true)]
+        private static partial void RetryWithException(this ILogger logger,
+            Exception exception, int times, int delay);
+
+        [LoggerMessage(EventId = 1001, Level = LogLevel.Debug,
+            Message = "... Retry {Times} in {Delay} ms...")]
+        private static partial void RetryWithoutException(
+            this ILogger logger, int times, int delay);
+
+        [LoggerMessage(EventId = 1002, Level = LogLevel.Trace,
+           Message = "Give up after {Tries}")]
+        private static partial void GiveUp(this ILogger logger, Exception ex, int tries);
     }
+
 #pragma warning restore IDE1006 // Naming Styles
 #pragma warning restore CA1068 // CancellationToken parameters must come last
 }

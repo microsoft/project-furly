@@ -168,7 +168,7 @@ namespace Furly.Azure.IoT.Services
             var image = $"{server}/{deployment.Image}:{version}";
             var moduleName = deployment.ModuleName ?? deployment.Image;
 
-            _logger.LogInformation("Deployment {Image}", image);
+            _logger.DeploymentImage(image);
 
             // Return deployment modules object
             var content = """
@@ -297,5 +297,17 @@ namespace Furly.Azure.IoT.Services
         private readonly IEnumerable<IIoTEdgeDeployment> _layers;
         private readonly ICredentialProvider _credentials;
         private readonly Task _deployment;
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTHubModuleDeployer
+    /// </summary>
+    internal static partial class IoTHubModuleDeployerLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Deployment {Image}")]
+        public static partial void DeploymentImage(this ILogger logger, string image);
     }
 }

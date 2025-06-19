@@ -197,7 +197,7 @@ namespace Furly.Azure.EventHubs.Clients
                 }
                 catch (Exception e)
                 {
-                    Logger.LogTrace(e, "Sending message to to EventHub failed.");
+                    Logger.SendingMessageFailed(e);
                     throw; // e.Translate();
                 }
             }
@@ -238,5 +238,15 @@ namespace Furly.Azure.EventHubs.Clients
         private readonly IOptions<EventHubsClientOptions> _options;
         private readonly ISchemaRegistry? _schemaRegistry;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for EventHubsClient
+    /// </summary>
+    internal static partial class EventHubsClientLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Trace,
+            Message = "Sending message to to EventHub failed.")]
+        public static partial void SendingMessageFailed(this ILogger logger, Exception ex);
     }
 }

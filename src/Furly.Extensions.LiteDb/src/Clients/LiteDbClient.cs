@@ -30,10 +30,8 @@ namespace Furly.Extensions.LiteDb.Clients
             _options = options ?? throw new ArgumentNullException(nameof(options));
             if (string.IsNullOrEmpty(_options.Value.DbConnectionString))
             {
-                logger.LogWarning(
-                    "No database connection string. Using in memory database!");
-                logger.LogInformation(
-                    "To persist your data, configure a connection string!");
+                logger.NoDbConnectionString();
+                logger.ConfigureConnectionStringToPersist();
             }
         }
 
@@ -68,5 +66,21 @@ namespace Furly.Extensions.LiteDb.Clients
         }
 
         private readonly IOptionsSnapshot<LiteDbOptions> _options;
+    }
+
+    /// <summary>
+    /// Source-generated logging for LiteDbClient
+    /// </summary>
+    internal static partial class LiteDbClientLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Warning,
+            Message = "No database connection string. Using in memory database!")]
+        public static partial void NoDbConnectionString(
+            this ILogger logger);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "To persist your data, configure a connection string!")]
+        public static partial void ConfigureConnectionStringToPersist(
+            this ILogger logger);
     }
 }

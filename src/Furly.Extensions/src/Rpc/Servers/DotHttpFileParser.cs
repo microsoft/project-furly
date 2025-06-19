@@ -285,14 +285,10 @@ namespace Furly.Extensions.Rpc.Servers
                 case "@connection-timeout":
                 case "@no-redirect":
                 case "@no-cookie-jar":
-                    _logger.LogDebug(
-                        "Skipping unsupported directive {Directive} at line#{Line}.",
-                        directive, _lineNumber);
+                    _logger.SkippingUnsupportedDirective(directive, _lineNumber);
                     return;
                 default:
-                    _logger.LogWarning(
-                        "Skipping unsupported directive {Directive} at line#{Line}.",
-                        directive, _lineNumber);
+                    _logger.UnknownDirectiveWarning(directive, _lineNumber);
                     return;
             }
             _directives.AddOrUpdate(comment, value);
@@ -545,7 +541,7 @@ namespace Furly.Extensions.Rpc.Servers
         /// <param name="line"></param>
         private void WriteLine(string? line = null)
         {
-            _logger.LogDebug("line#{LineNumber}: {Line}.", _lineNumber, line);
+            _logger.LineDebug(_lineNumber, line);
 
             if (_directives.ContainsKey(Directive.NoLog))
             {
@@ -710,5 +706,25 @@ namespace Furly.Extensions.Rpc.Servers
         private bool _append;
         private string _output = string.Empty;
         private State _state = State.Method;
+    }
+
+    /// <summary>
+    /// Source-generated logging for DotHttpFileParser
+    /// </summary>
+    internal static partial class DotHttpFileParserLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Skipping unsupported directive {Directive} at line#{Line}.")]
+        public static partial void SkippingUnsupportedDirective(this ILogger logger, string directive, int line);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Warning,
+            Message = "Skipping unsupported directive {Directive} at line#{Line}.")]
+        public static partial void UnknownDirectiveWarning(this ILogger logger, string directive, int line);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "line#{LineNumber}: {Line}.")]
+        public static partial void LineDebug(this ILogger logger, int lineNumber, string? line);
     }
 }

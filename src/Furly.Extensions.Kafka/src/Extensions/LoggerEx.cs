@@ -10,39 +10,32 @@ namespace Confluent.Kafka
     /// <summary>
     /// Logger extensions
     /// </summary>
-    internal static class LoggerEx
+    public static partial class LoggerEx
     {
+        [LoggerMessage(EventId = 0, Message = "[{Facility}] {Name}: {Message}")]
+        private static partial void WriteKafkaMessage(ILogger logger, LogLevel level,
+            string facility, string name, string message);
+
         /// <summary>
-        /// Handle log message
+        /// Handle Kafka message logging using mapped log levels.
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="msg"></param>
-        public static void Log(this ILogger logger, LogMessage msg)
+        /// <param name="logger">The logger to use</param>
+        /// <param name="msg">The Kafka message to log</param>
+        public static void HandleKafkaMessage(this ILogger logger, LogMessage msg)
         {
-            LogLevel level;
-            switch (msg.Level)
+            var level = msg.Level switch
             {
-                case SyslogLevel.Emergency:
-                case SyslogLevel.Critical:
-                case SyslogLevel.Warning:
-                case SyslogLevel.Alert:
-                    level = LogLevel.Warning;
-                    break;
-                case SyslogLevel.Error:
-                    level = LogLevel.Error;
-                    break;
-                case SyslogLevel.Notice:
-                case SyslogLevel.Info:
-                    level = LogLevel.Information;
-                    break;
-                case SyslogLevel.Debug:
-                    level = LogLevel.Debug;
-                    break;
-                default:
-                    return;
+                SyslogLevel.Emergency or SyslogLevel.Critical or
+                SyslogLevel.Warning or SyslogLevel.Alert => LogLevel.Warning,
+                SyslogLevel.Error => LogLevel.Error,
+                SyslogLevel.Notice or SyslogLevel.Info => LogLevel.Information,
+                SyslogLevel.Debug => LogLevel.Debug,
+                _ => LogLevel.None
+            };
+            if (level != LogLevel.None)
+            {
+                WriteKafkaMessage(logger, level, msg.Facility, msg.Name, msg.Message);
             }
-            logger.Log(level, "[{Facility}] {Name}: {Message}",
-                msg.Facility, msg.Name, msg.Message);
         }
     }
 }

@@ -344,7 +344,7 @@ namespace Furly.Extensions.CouchDb.Clients
             {
                 throw new FormatException("Mango query is not Json");
             }
-            _logger.LogDebug("Sending query {Mango}", mango);
+            _logger.SendingQuery(mango);
             return await _db.NewRequest()
                 .AppendPathSegments("_find")
                 .WithHeader("Content-Type", ContentMimeType.Json)
@@ -396,7 +396,7 @@ namespace Furly.Extensions.CouchDb.Clients
                 catch (FlurlHttpException ex)
                 {
                     var e = await ex.TranslateExceptionAsync().ConfigureAwait(false);
-                    _logger.LogError(e, "Failure when trying to get revision");
+                    _logger.RevisionFailure(e);
                 }
             }
         }
@@ -988,5 +988,19 @@ namespace Furly.Extensions.CouchDb.Clients
             new();
         private readonly Dictionary<string, object> _queryStore =
             [];
+    }
+
+    /// <summary>
+    /// Source-generated logging for CouchDbCollection
+    /// </summary>
+    internal static partial class CouchDbCollectionLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Debug,
+            Message = "Sending query {Mango}")]
+        public static partial void SendingQuery(this ILogger logger, string mango);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Failure when trying to get revision")]
+        public static partial void RevisionFailure(this ILogger logger, Exception e);
     }
 }

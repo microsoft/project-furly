@@ -22,7 +22,7 @@ namespace Microsoft.Extensions.Configuration
     /// <summary>
     /// Extension methods
     /// </summary>
-    public static class ConfigurationEx
+    public static partial class ConfigurationEx
     {
         /// <summary>
         /// Add configuration from Azure KeyVault. Providers configured prior to
@@ -205,14 +205,11 @@ namespace Microsoft.Extensions.Configuration
                 var vaultUri = configuration.GetValue<string?>(keyVaultUrlVarName, null);
                 if (string.IsNullOrEmpty(vaultUri))
                 {
-                    logger.LogDebug("No keyvault uri found in configuration under {Key}. ",
-                        keyVaultUrlVarName);
+                    logger.NoKeyVaultUriInConfiguration(keyVaultUrlVarName);
                     vaultUri = Environment.GetEnvironmentVariable(keyVaultUrlVarName);
                     if (string.IsNullOrEmpty(vaultUri))
                     {
-                        logger.LogDebug("No keyvault uri found in environment under {Key}. " +
-                            "Not reading configuration from keyvault without keyvault uri.",
-                            keyVaultUrlVarName);
+                        logger.NoKeyVaultUriInEnvironment(keyVaultUrlVarName);
                         return null;
                     }
                 }
@@ -243,8 +240,7 @@ namespace Microsoft.Extensions.Configuration
                         catch (TaskCanceledException) { }
                         catch (SocketException) { }
                         await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
-                        logger.LogInformation(
-                            "Failed loading secrets due to timeout or network - try again ...");
+                        logger.RetryLoadingSecrets();
                     }
                 }
                 return provider;
@@ -334,5 +330,17 @@ namespace Microsoft.Extensions.Configuration
             private readonly ConfigurationReloadToken _reloadToken;
             private bool _allSecretsLoaded;
         }
+
+        [LoggerMessage(EventId = 0, Level = LogLevel.Debug,
+            Message = "No keyvault uri found in configuration under {Key}. ")]
+        private static partial void NoKeyVaultUriInConfiguration(this ILogger logger, string key);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Debug,
+            Message = "No keyvault uri found in environment under {Key}. Not reading configuration from keyvault without keyvault uri.")]
+        private static partial void NoKeyVaultUriInEnvironment(this ILogger logger, string key);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Information,
+            Message = "Failed loading secrets due to timeout or network - try again ...")]
+        private static partial void RetryLoadingSecrets(this ILogger logger);
     }
 }

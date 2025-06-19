@@ -28,15 +28,15 @@ namespace Furly.Azure.IoT.Operations.Services
         /// Create aio state store
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="sdk"></param>
         /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public AioDssClient(IMqttPubSubClient client, ISerializer serializer,
+        public AioDssClient(IMqttPubSubClient client, IAioSdk sdk, ISerializer serializer,
             ILogger<AioDssClient> logger) : base(logger)
         {
             _logger = logger;
             _serializer = serializer;
-            _context = new ApplicationContext();
-            _dss = new StateStoreClient(_context, client);
+            _dss = sdk.CreateStateStoreClient(client);
             _dss.KeyChangeMessageReceivedAsync += ClientKeyChangeMessageReceivedAsync;
 
             StartStateSynchronization();
@@ -61,7 +61,7 @@ namespace Furly.Azure.IoT.Operations.Services
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "Failed to page in state for key {Key}", key);
+                _logger.FailedToPageIn(ex, key);
                 return null;
             }
         }
@@ -92,7 +92,7 @@ namespace Furly.Azure.IoT.Operations.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to {Action} state {Key}.",
+                    _logger.FailedToModifyState(ex,
                         item.Value == null ? "delete" : "save", item.Key);
                 }
             }
@@ -117,8 +117,7 @@ namespace Furly.Azure.IoT.Operations.Services
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex,
-                    "Failed to load state using query. Query is optional api");
+                _logger.FailedToLoadState(ex);
             }
         }
 
@@ -131,7 +130,6 @@ namespace Furly.Azure.IoT.Operations.Services
                 {
                     _dss.DisposeAsync().AsTask().GetAwaiter().GetResult();
                 }
-                _context.DisposeAsync().AsTask().GetAwaiter().GetResult();
             }
             finally
             {
@@ -145,7 +143,7 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="sender"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        private Task ClientKeyChangeMessageReceivedAsync(object? sender,
+        internal Task ClientKeyChangeMessageReceivedAsync(object? sender,
             KeyChangeMessageReceivedEventArgs arg)
         {
             ModifyState(state =>
@@ -166,8 +164,27 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         private readonly ISerializer _serializer;
-        private readonly ApplicationContext _context;
-        private readonly StateStoreClient _dss;
+        private readonly IStateStoreClient _dss;
         private readonly ILogger<AioDssClient> _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for AioDssClient
+    /// </summary>
+    internal static partial class AioDssClientLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Failed to page in state for key {Key}")]
+        public static partial void FailedToPageIn(this ILogger logger, Exception ex, string key);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
+            Message = "Failed to {Action} state {Key}.")]
+        public static partial void FailedToModifyState(this ILogger logger, Exception ex, string action, string key);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Failed to load state using query. Query is optional api")]
+        public static partial void FailedToLoadState(this ILogger logger, Exception ex);
     }
 }

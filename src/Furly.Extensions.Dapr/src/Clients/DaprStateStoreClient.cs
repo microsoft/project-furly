@@ -59,7 +59,7 @@ namespace Furly.Extensions.Dapr.Clients
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "Failed to page in state for key {Key}", key);
+                _logger.PageInFailed(ex, key);
                 return null;
             }
         }
@@ -91,8 +91,7 @@ namespace Furly.Extensions.Dapr.Clients
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to {Action} state {Key}.",
-                        item.Value == null ? "delete" : "save", item.Key);
+                    _logger.StateFailed(ex, item.Value == null ? "delete" : "save", item.Key);
                 }
             }
         }
@@ -120,8 +119,7 @@ namespace Furly.Extensions.Dapr.Clients
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex,
-                    "Failed to load state using query. Query is optional api");
+                _logger.LoadStateQueryFailed(ex);
             }
         }
 
@@ -145,5 +143,23 @@ namespace Furly.Extensions.Dapr.Clients
         private readonly DaprClient _client;
         private readonly bool _checkHealth;
         private readonly ILogger<DaprStateStoreClient> _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for DaprStateStoreClient
+    /// </summary>
+    internal static partial class DaprStateStoreClientLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Debug,
+            Message = "Failed to page in state for key {Key}")]
+        public static partial void PageInFailed(this ILogger logger, Exception ex, string key);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Error,
+            Message = "Failed to {Action} state {Key}.")]
+        public static partial void StateFailed(this ILogger logger, Exception ex, string action, string key);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "Failed to load state using query. Query is optional api")]
+        public static partial void LoadStateQueryFailed(this ILogger logger, Exception ex);
     }
 }

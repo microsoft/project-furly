@@ -93,7 +93,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to register method handler.");
+                    _logger.FailedToRegisterMethodHandler(ex);
                     _registered = false;
                 }
             }
@@ -122,7 +122,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogDebug(ex, "Failed to unregister method handler.");
+                    _logger.FailedToUnregisterMethodHandler(ex);
                 }
             }
         }
@@ -198,8 +198,7 @@ namespace Furly.Azure.IoT.Edge.Services
                         ct).ConfigureAwait(false);
                     if (result.Length > kMaxMessageSize)
                     {
-                        _outer._logger.LogError("Result (Payload too large => {Length}",
-                            result.Length);
+                        _outer._logger.PayloadTooLarge(result.Length);
                         return new MethodResponse(
                             (int)HttpStatusCode.RequestEntityTooLarge);
                     }
@@ -231,5 +230,25 @@ namespace Furly.Azure.IoT.Edge.Services
         private bool _registered;
         private ImmutableHashSet<Listener> _listeners;
         private readonly Lock _lock = new();
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTEdgeRpcServer
+    /// </summary>
+    internal static partial class IoTEdgeRpcServerLogging
+    {
+        private const int EventClass = 20;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Failed to register method handler.")]
+        public static partial void FailedToRegisterMethodHandler(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Failed to unregister method handler.")]
+        public static partial void FailedToUnregisterMethodHandler(this ILogger logger, Exception ex);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
+            Message = "Result (Payload too large => {Length}")]
+        public static partial void PayloadTooLarge(this ILogger logger, long length);
     }
 }

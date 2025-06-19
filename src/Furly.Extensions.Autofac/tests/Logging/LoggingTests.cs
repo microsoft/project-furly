@@ -37,7 +37,7 @@ namespace Furly.Extensions.Logging
             var logger = container.Resolve<ILogger<Test>>();
 
             Assert.NotNull(logger);
-            Assert.IsAssignableFrom<ILogger<Test>>(logger);
+            Assert.True(logger is ILogger<Test>);
         }
 
         [Fact]

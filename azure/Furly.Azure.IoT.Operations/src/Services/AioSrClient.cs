@@ -21,11 +21,11 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <summary>
         /// Create aio sr client
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="sdk"></param>
         /// <param name="client"></param>
-        public AioSrClient(ApplicationContext context, IMqttPubSubClient client)
+        public AioSrClient(IAioSdk sdk, IMqttPubSubClient client)
         {
-            _client = new SchemaRegistryClient(context, client);
+            _client = sdk.CreateSchemaRegistryClient(client);
         }
 
         /// <inheritdoc/>
@@ -51,6 +51,6 @@ namespace Furly.Azure.IoT.Operations.Services
             return $"{result.Namespace}/{result.Name}";
         }
 
-        private readonly SchemaRegistryClient _client;
+        private readonly ISchemaRegistryClient _client;
     }
 }

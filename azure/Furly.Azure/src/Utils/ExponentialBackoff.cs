@@ -14,7 +14,7 @@ namespace Furly.Azure
     /// <summary>
     /// Retry helper class with different retry policies
     /// </summary>
-    public static class ExponentialBackoff
+    public static partial class ExponentialBackoff
     {
         /// <summary>Retry count max</summary>
         public static int DefaultMaxRetryCount { get; set; } = 10;
@@ -293,7 +293,7 @@ namespace Furly.Azure
         {
             if (k > maxRetry || !cont(ex))
             {
-                logger?.LogTrace(ex, "Give up after {Attempt}", k);
+                logger?.GiveUpAfterAttempt(ex, k);
                 throw ex;
             }
             if (ex is TemporarilyBusyException tbx && tbx.RetryAfter != null)
@@ -326,13 +326,28 @@ namespace Furly.Azure
             {
                 if (logger.IsEnabled(LogLevel.Trace))
                 {
-                    logger.LogTrace(ex, "Retry {Attempt} in {Delay} ms...", retry, delay);
+                    logger.RetryWithDelayTrace(ex, retry, delay);
                 }
                 else
                 {
-                    logger.LogDebug("  ... Retry {Attempt} in {Delay} ms...", retry, delay);
+                    logger.RetryWithDelayDebug(retry, delay);
                 }
             }
         }
+
+        [LoggerMessage(EventId = 0, Level = LogLevel.Trace,
+          Message = "Give up after {Attempt}")]
+        private static partial void GiveUpAfterAttempt(this ILogger logger,
+            Exception ex, int attempt);
+
+        [LoggerMessage(EventId = 1, Level = LogLevel.Trace,
+            Message = "Retry {Attempt} in {Delay} ms...", SkipEnabledCheck = true)]
+        private static partial void RetryWithDelayTrace(this ILogger logger,
+            Exception ex, int attempt, int delay);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Debug,
+            Message = "  ... Retry {Attempt} in {Delay} ms...")]
+        private static partial void RetryWithDelayDebug(this ILogger logger,
+            int attempt, int delay);
     }
 }

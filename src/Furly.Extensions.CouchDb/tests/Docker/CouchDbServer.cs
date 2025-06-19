@@ -63,7 +63,7 @@ namespace Furly.Extensions.CouchDb.Server
                     return;
                 }
 
-                _logger.LogInformation("Starting CouchDB server at {Port}...", _port);
+                _logger.ServerStarting(_port);
                 var param = GetContainerParameters(_port);
                 var name = $"couchdb_{_port}";
                 (_containerId, _owner) = await CreateAndStartContainerAsync(
@@ -73,7 +73,7 @@ namespace Furly.Extensions.CouchDb.Server
                 {
                     // Check running
                     await WaitForContainerStartedAsync(_port).ConfigureAwait(false);
-                    _logger.LogInformation("CouchDB server running at {Port}.", _port);
+                    _logger.ServerRunning(_port);
                 }
                 catch
                 {
@@ -100,7 +100,7 @@ namespace Furly.Extensions.CouchDb.Server
                 if (_containerId != null && _owner)
                 {
                     await StopAndRemoveContainerAsync(_containerId).ConfigureAwait(false);
-                    _logger.LogInformation("Stopped CouchDB server at {Port}.", _port);
+                    _logger.ServerStopped(_port);
                 }
             }
             finally
@@ -153,5 +153,25 @@ namespace Furly.Extensions.CouchDb.Server
         private readonly int _port;
         private string? _containerId;
         private bool _owner;
+    }
+
+    /// <summary>
+    /// Source-generated logging for CouchDbServer tests
+    /// </summary>
+    internal static partial class CouchDbServerTestsLogging
+    {
+        private const int EventClass = 1;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
+            Message = "Starting CouchDB server at {Port}...")]
+        public static partial void ServerStarting(this ILogger logger, int port);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "CouchDB server running at {Port}.")]
+        public static partial void ServerRunning(this ILogger logger, int port);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Stopped CouchDB server at {Port}.")]
+        public static partial void ServerStopped(this ILogger logger, int port);
     }
 }

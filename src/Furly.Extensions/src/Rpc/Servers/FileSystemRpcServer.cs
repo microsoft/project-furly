@@ -99,7 +99,7 @@ namespace Furly.Extensions.Rpc.Servers
             }
             catch
             {
-                _logger.LogWarning("Error disposing server.");
+                _logger.ErrorDisposing();
             }
             finally
             {
@@ -141,9 +141,7 @@ namespace Furly.Extensions.Rpc.Servers
                             responseFile.LastModified == requestFile.LastModified)
                         {
                             // Already processed, dont run again
-                            _logger.LogInformation(
-                                "Skipping {Request} as it was already processed.",
-                                requestFile.Name);
+                            _logger.SkippingProcessedRequest(requestFile.Name);
                             continue;
                         }
 
@@ -175,20 +173,18 @@ namespace Furly.Extensions.Rpc.Servers
                     }
                     catch (Exception e) when (e is not OperationCanceledException)
                     {
-                        _logger.LogInformation("Error {Error} processing request {Request}.",
-                            e.Message, requestFile.Name);
-                        _logger.LogDebug(e, "Error processing request {Request}.",
-                            requestFile.Name);
+                        _logger.ProcessingError(e.Message, requestFile.Name);
+                        _logger.RequestError(e, requestFile.Name);
                     }
                 }
                 catch (OperationCanceledException)
                 {
-                    _logger.LogDebug("Exiting request processor ...");
+                    _logger.ExitingProcessor();
                     break;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected error during request processing ...");
+                    _logger.UnexpectedError(ex);
                 }
             }
 
@@ -345,5 +341,37 @@ namespace Furly.Extensions.Rpc.Servers
         private TaskCompletionSource _tcs = new();
         private IChangeToken? _watch;
         private bool _disposed;
+    }
+
+    /// <summary>
+    /// Source-generated logging for FileSystemRpcServer
+    /// </summary>
+    internal static partial class FileSystemRpcServerLogging
+    {
+        private const int EventClass = 10;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Warning,
+            Message = "Error disposing server.")]
+        public static partial void ErrorDisposing(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Skipping {Request} as it was already processed.")]
+        public static partial void SkippingProcessedRequest(this ILogger logger, string request);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Error {Error} processing request {Request}.")]
+        public static partial void ProcessingError(this ILogger logger, string error, string request);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
+            Message = "Error processing request {Request}.")]
+        public static partial void RequestError(this ILogger logger, Exception e, string request);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug,
+            Message = "Exiting request processor ...")]
+        public static partial void ExitingProcessor(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
+            Message = "Unexpected error during request processing ...")]
+        public static partial void UnexpectedError(this ILogger logger, Exception ex);
     }
 }

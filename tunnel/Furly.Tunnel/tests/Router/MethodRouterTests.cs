@@ -388,7 +388,7 @@ namespace Furly.Tunnel.Router.Tests
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddExceptionSummarization();
-            using var provider = serviceCollection.BuildServiceProvider();
+            await using var provider = serviceCollection.BuildServiceProvider();
             var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
 
             await using var router = GetRouter(out _, summarizer: summarizer);
@@ -415,7 +415,7 @@ namespace Furly.Tunnel.Router.Tests
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddExceptionSummarization();
-            using var provider = serviceCollection.BuildServiceProvider();
+            await using var provider = serviceCollection.BuildServiceProvider();
             var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
 
             await using var router = GetRouter(out _, summarizer: summarizer);
@@ -442,7 +442,7 @@ namespace Furly.Tunnel.Router.Tests
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddExceptionSummarization();
-            using var provider = serviceCollection.BuildServiceProvider();
+            await using var provider = serviceCollection.BuildServiceProvider();
             var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
 
             await using var router = GetRouter(out _, summarizer: summarizer);
@@ -469,7 +469,7 @@ namespace Furly.Tunnel.Router.Tests
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddExceptionSummarization();
-            using var provider = serviceCollection.BuildServiceProvider();
+            await using var provider = serviceCollection.BuildServiceProvider();
             var summarizer = provider.GetRequiredService<IExceptionSummarizer>();
 
             await using var router = GetRouter(out _, summarizer: summarizer);

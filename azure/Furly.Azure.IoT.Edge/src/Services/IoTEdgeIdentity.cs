@@ -74,7 +74,7 @@ namespace Furly.Azure.IoT.Edge.Services
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Bad configuration value in EdgeHubConnectionString config.");
+                logger.BadConfigurationValue(e);
             }
 
             if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(hub))
@@ -91,5 +91,17 @@ namespace Furly.Azure.IoT.Edge.Services
             DeviceId = deviceId;
             Gateway = gateway;
         }
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTEdgeIdentity
+    /// </summary>
+    internal static partial class IoTEdgeIdentityLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Bad configuration value in EdgeHubConnectionString config.")]
+        public static partial void BadConfigurationValue(this ILogger logger, Exception e);
     }
 }

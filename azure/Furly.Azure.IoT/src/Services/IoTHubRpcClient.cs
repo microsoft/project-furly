@@ -93,20 +93,16 @@ namespace Furly.Azure.IoT.Services
 
                 if (result.Status != 200)
                 {
-                    _logger.LogDebug("Call {Method} on {Device} ({Module}) with {Payload} " +
-                        "returned with error {Status}: {Result} after {Elapsed}",
-                        method, deviceId, moduleId, payload, result.Status, resultPayload, sw.Elapsed);
+                    _logger.CallReturnedWithError(method, deviceId, moduleId, payload, result.Status, resultPayload, sw.Elapsed);
                     MethodCallStatusException.Throw(GetPayload(contentType, resultPayload), _serializer,
                         result.Status);
                 }
-                _logger.LogDebug("Call {Method} on {Device} ({Module}) took {Elapsed}... ",
-                   method, deviceId, moduleId, sw.Elapsed);
+                _logger.CallCompleted(method, deviceId, moduleId, sw.Elapsed);
                 return new ReadOnlySequence<byte>(GetPayload(contentType, resultPayload));
             }
             catch (Exception e) when (e is not MethodCallStatusException)
             {
-                _logger.LogDebug(e, "Call {Method} on {Device} ({Module}) failed after {Elapsed}... ",
-                    method, deviceId, moduleId, sw.Elapsed);
+                _logger.CallFailed(e, method, deviceId, moduleId, sw.Elapsed);
                 throw e.Translate();
             }
 
@@ -163,5 +159,29 @@ namespace Furly.Azure.IoT.Services
         private readonly Task<ServiceClient> _client;
         private readonly ILogger _logger;
         private const int kDefaultMethodTimeout = 300; // 5 minutes - default is 30 seconds
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTHubRpcClient
+    /// </summary>
+    internal static partial class IoTHubRpcClientLogging
+    {
+        private const int EventClass = 30;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Call {Method} on {Device} ({Module}) with {Payload} returned " +
+            "with error {Status}: {Result} after {Elapsed}")]
+        public static partial void CallReturnedWithError(this ILogger logger, string method,
+            string device, string? module, object payload, int status, string result, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+            Message = "Call {Method} on {Device} ({Module}) took {Elapsed}... ")]
+        public static partial void CallCompleted(this ILogger logger, string method,
+            string device, string? module, TimeSpan elapsed);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Call {Method} on {Device} ({Module}) failed after {Elapsed}... ")]
+        public static partial void CallFailed(this ILogger logger, Exception ex, string method,
+            string device, string? module, TimeSpan elapsed);
     }
 }

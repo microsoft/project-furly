@@ -9,6 +9,7 @@ namespace Furly.Extensions.Kafka.Clients
     using Furly.Extensions.Messaging;
     using Autofac;
     using Confluent.Kafka;
+    using LogMessage = Confluent.Kafka.LogMessage;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
@@ -24,7 +25,7 @@ namespace Furly.Extensions.Kafka.Clients
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public sealed class KafkaConsumerClient : IEventSubscriber, IAsyncDisposable, IDisposable
+    public sealed partial class KafkaConsumerClient : IEventSubscriber, IAsyncDisposable, IDisposable
     {
         /// <inheritdoc/>
         public string Name => "Kafka";
@@ -121,11 +122,10 @@ namespace Furly.Extensions.Kafka.Clients
                     using (var consumer = new ConsumerBuilder<string, byte[]>(config)
                         .SetErrorHandler(OnError)
                         .SetStatisticsHandler(OnMetrics)
-                        .SetLogHandler((_, m) => _logger.Log(m))
+                        .SetLogHandler((_, m) => _logger.HandleKafkaMessage(m))
                         .Build())
                     {
-                        _logger.LogInformation("Starting consumer {ConsumerId} on {Topic}...",
-                            _consumerId, consumerTopic);
+                        _logger.ConsumerStarting(_consumerId, consumerTopic);
                         consumer.Subscribe(consumerTopic);
                         while (!ct.IsCancellationRequested)
                         {
@@ -191,12 +191,10 @@ namespace Furly.Extensions.Kafka.Clients
                 catch (Exception error)
                 {
                     // Exception - report and continue
-                    _logger.LogWarning(error, "Consumer {ConsumerId} encountered error...",
-                        _consumerId);
+                    _logger.ConsumerError(_consumerId, error);
                 }
             }
-            _logger.LogInformation("Exiting consumer {ConsumerId} on {Topic}...",
-                _consumerId, consumerTopic);
+            _logger.ConsumerExiting(_consumerId, consumerTopic);
         }
 
         /// <summary>
@@ -281,5 +279,23 @@ namespace Furly.Extensions.Kafka.Clients
         private readonly TimeProvider _timeProvider;
         private readonly CancellationTokenSource _cts = new();
         private readonly Task _runner;
+    }
+
+    /// <summary>
+    /// Source-generated logging for KafkaConsumerClient
+    /// </summary>
+    internal static partial class KafkaConsumerClientLogging
+    {
+        [LoggerMessage(EventId = 1, Level = LogLevel.Information,
+            Message = "Starting consumer {ConsumerId} on {Topic}...")]
+        public static partial void ConsumerStarting(this ILogger logger, string consumerId, string topic);
+
+        [LoggerMessage(EventId = 2, Level = LogLevel.Warning,
+            Message = "Consumer {ConsumerId} encountered error...")]
+        public static partial void ConsumerError(this ILogger logger, string consumerId, Exception error);
+
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information,
+            Message = "Exiting consumer {ConsumerId} on {Topic}...")]
+        public static partial void ConsumerExiting(this ILogger logger, string consumerId, string topic);
     }
 }

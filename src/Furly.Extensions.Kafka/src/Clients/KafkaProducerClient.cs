@@ -3,23 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using Furly.Extensions.Kafka;
+using Furly.Extensions.Hosting;
+using Furly.Extensions.Messaging;
+using Confluent.Kafka;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
+using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace Furly.Extensions.Kafka.Clients
 {
-    using Furly.Extensions.Kafka;
-    using Furly.Extensions.Hosting;
-    using Furly.Extensions.Messaging;
-    using Confluent.Kafka;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
-    using System;
-    using System.Buffers;
-    using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Net;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Kafka producer
     /// </summary>
@@ -53,7 +53,7 @@ namespace Furly.Extensions.Kafka.Clients
                     identity?.Identity ?? Dns.GetHostName()))
                 .SetErrorHandler(OnError)
                 .SetStatisticsHandler(OnMetrics)
-                .SetLogHandler((_, m) => _logger.Log(m))
+                .SetLogHandler((_, m) => _logger.HandleKafkaMessage(m))
                 .Build();
             MaxEventPayloadSizeInBytes = config.Value.MessageMaxBytes ?? 1024 * 1024;
             _topic = EnsureTopicAsync(admin, config.Value.Topic);
@@ -225,9 +225,7 @@ namespace Furly.Extensions.Kafka.Clients
                         Headers = _header
                     };
                     var result = await _outer._producer.ProduceAsync(topicHandle, ev, ct).ConfigureAwait(false);
-                    _outer._logger.LogTrace(
-                        "Written with {Status} to {Topic} (Part:{Partition} Offset:{Offset})",
-                        result.Status, result.Topic, result.TopicPartition.Partition.Value,
+                    _outer._logger.MessageWritten(result.Status, result.Topic, result.TopicPartition.Partition.Value,
                         result.TopicPartitionOffset.Offset.Value);
                 }
                 if (_qos == QoS.AtMostOnce)
@@ -256,5 +254,16 @@ namespace Furly.Extensions.Kafka.Clients
         private readonly IProducer<string, byte[]> _producer;
         private readonly Task<string> _topic;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for KafkaProducerClient
+    /// </summary>
+    internal static partial class KafkaProducerClientLogging
+    {
+        [LoggerMessage(EventId = 4, Level = LogLevel.Trace,
+            Message = "Written with {Status} to {Topic} (Part:{Partition} Offset:{Offset})")]
+        public static partial void MessageWritten(this ILogger logger, Confluent.Kafka.PersistenceStatus status,
+            string topic, int partition, long offset);
     }
 }

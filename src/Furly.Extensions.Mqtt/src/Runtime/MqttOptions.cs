@@ -14,7 +14,7 @@ namespace Furly.Extensions.Mqtt
     /// <summary>
     /// Mqtt configuration
     /// </summary>
-    public class MqttOptions
+    public record class MqttOptions
     {
         /// <summary>
         /// Client identity

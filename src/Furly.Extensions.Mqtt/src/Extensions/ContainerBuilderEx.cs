@@ -24,6 +24,7 @@ namespace Autofac
             Action<MqttOptions>? configure = null)
         {
             builder.RegisterType<MqttClient>()
+                .AsSelf()
                 .AsImplementedInterfaces().SingleInstance();
             return ConfigureMqtt(builder, configure);
         }

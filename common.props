@@ -3,7 +3,7 @@
     <Product>Furly</Product>
     <RepositoryUrl>https://github.com/microsoft/project-furly</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <NoWarn>NU5125;RS1022;AD0001</NoWarn>
+    <NoWarn>NU5125;NU5104;RS1022;AD0001</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <copyright>© Microsoft. All rights reserved.</copyright>

@@ -13,7 +13,7 @@ namespace Furly.Extensions.CouchDb.Clients
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Lite database
+    /// CouchDb database
     /// </summary>
     internal sealed class CouchDbDatabase : IDatabase, IDisposable
     {
@@ -45,7 +45,7 @@ namespace Furly.Extensions.CouchDb.Clients
                 }
                 catch (CouchException e)
                 {
-                    _logger.LogError(e, "Failure when trying to get or create database.");
+                    _logger.DatabaseCreateFailed(e);
                 }
             }
         }
@@ -68,5 +68,15 @@ namespace Furly.Extensions.CouchDb.Clients
 
         private readonly CouchClient _client;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for CouchDbDatabase
+    /// </summary>
+    internal static partial class CouchDbDatabaseLogging
+    {
+        [LoggerMessage(EventId = 0, Level = LogLevel.Error,
+            Message = "Failure when trying to get or create database.")]
+        public static partial void DatabaseCreateFailed(this ILogger logger, Exception e);
     }
 }

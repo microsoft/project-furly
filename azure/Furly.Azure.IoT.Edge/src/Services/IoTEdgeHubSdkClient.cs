@@ -62,8 +62,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 {
                     transportToUse = TransportOption.AmqpOverTcp;
                 }
-                _logger.LogDebug("Connecting all clients to {EdgeHub} using {Transport}.",
-                    identity.Gateway, transportToUse);
+                _logger.ConnectingAllClients(identity.Gateway, transportToUse);
             }
             else
             {
@@ -80,7 +79,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 Environment.GetEnvironmentVariable(
                     nameof(options.Value.EdgeHubConnectionString)) != null)
             {
-                _logger.LogInformation("---------- Running in iotedgehubdev mode ---------");
+                _logger.RunningInIotedgehubdevMode();
                 cs = null; // This forces the use of sdk reading from environment variables.
             }
 
@@ -339,11 +338,11 @@ namespace Furly.Azure.IoT.Edge.Services
             {
                 if (cs == null)
                 {
-                    logger.LogInformation("Running in iotedge context.");
+                    logger.RunningInIotedgeContext();
                 }
                 else
                 {
-                    logger.LogInformation("Running outside iotedge context.");
+                    logger.RunningOutsideIotedgeContext();
                 }
 
                 var client = await CreateAsync(cs, transportSetting).ConfigureAwait(false);
@@ -656,36 +655,31 @@ namespace Furly.Azure.IoT.Edge.Services
                 /// <inheritdoc/>
                 public void OnClosed(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogInformation("{Counter}: Module {DeviceId}_{ModuleId} closed " +
-                        "due to {Reason}.", counter, deviceId, moduleId, reason);
+                    _logger.ModuleClosed(counter, deviceId, moduleId, reason);
                 }
 
                 /// <inheritdoc/>
                 public void OnConnected(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogInformation("{Counter}: Module {DeviceId}_{ModuleId} reconnected " +
-                        "due to {Reason}.", counter, deviceId, moduleId, reason);
+                    _logger.ModuleReconnected(counter, deviceId, moduleId, reason);
                 }
 
                 /// <inheritdoc/>
                 public void OnDisconnected(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogInformation("{Counter}: Module {DeviceId}_{ModuleId} disconnected " +
-                        "due to {Reason}...", counter, deviceId, moduleId, reason);
+                    _logger.ModuleDisconnected(counter, deviceId, moduleId, reason);
                 }
 
                 /// <inheritdoc/>
                 public void OnOpened(int counter, string deviceId, string? moduleId)
                 {
-                    _logger.LogInformation("{Counter}:Module {DeviceId}_{ModuleId} opened.",
-                        counter, deviceId, moduleId);
+                    _logger.ModuleOpened(counter, deviceId, moduleId);
                 }
 
                 /// <inheritdoc/>
                 public void OnError(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogError("{Counter}: MModule {DeviceId}_{ModuleId} error {Reason}...",
-                        counter, deviceId, moduleId, reason);
+                    _logger.ModuleError(counter, deviceId, moduleId, reason);
                 }
 
                 private readonly ILogger _logger;
@@ -1035,35 +1029,31 @@ namespace Furly.Azure.IoT.Edge.Services
                 /// <inheritdoc/>
                 public void OnClosed(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogInformation("{Counter}: Device {DeviceId} closed due to {Reason}.",
-                        counter, deviceId, reason);
+                    _logger.DeviceClosed(counter, deviceId, reason);
                 }
 
                 /// <inheritdoc/>
                 public void OnConnected(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogInformation("{Counter}: Device {DeviceId} reconnected due to {Reason}.",
-                        counter, deviceId, reason);
+                    _logger.DeviceReconnected(counter, deviceId, reason);
                 }
 
                 /// <inheritdoc/>
                 public void OnDisconnected(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogInformation("{Counter}: Device {DeviceId} disconnected due to {Reason}...",
-                        counter, deviceId, reason);
+                    _logger.DeviceDisconnected(counter, deviceId, reason);
                 }
 
                 /// <inheritdoc/>
                 public void OnOpened(int counter, string deviceId, string? moduleId)
                 {
-                    _logger.LogInformation("{Counter}: Module {DeviceId} opened.", counter, deviceId);
+                    _logger.DeviceOpened(counter, deviceId);
                 }
 
                 /// <inheritdoc/>
                 public void OnError(int counter, string deviceId, string? moduleId, string reason)
                 {
-                    _logger.LogError("{Counter}: Device {DeviceId} error {Reason}...",
-                        counter, deviceId, reason);
+                    _logger.DeviceError(counter, deviceId, reason);
                 }
 
                 private readonly ILogger _logger;
@@ -1115,5 +1105,79 @@ namespace Furly.Azure.IoT.Edge.Services
         private readonly IIoTEdgeClientState? _callback;
         private readonly IOptions<IoTEdgeClientOptions> _options;
         private readonly IIoTEdgeDeviceIdentity _identity;
+    }
+
+    /// <summary>
+    /// Source-generated logging for IoTEdgeHubSdkClient
+    /// </summary>
+    internal static partial class IoTEdgeHubSdkClientLogging
+    {
+        private const int EventClass = 1;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Connecting all clients to {EdgeHub} using {Transport}.")]
+        public static partial void ConnectingAllClients(this ILogger logger, string edgeHub, object transport);
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "---------- Running in iotedgehubdev mode ---------")]
+        public static partial void RunningInIotedgehubdevMode(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Running in iotedge context.")]
+        public static partial void RunningInIotedgeContext(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
+            Message = "Running outside iotedge context.")]
+        public static partial void RunningOutsideIotedgeContext(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "{Counter}: Module {DeviceId}_{ModuleId} closed due to {Reason}.")]
+        public static partial void ModuleClosed(this ILogger logger, int counter,
+            string deviceId, string? moduleId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Information,
+            Message = "{Counter}: Module {DeviceId}_{ModuleId} reconnected due to {Reason}.")]
+        public static partial void ModuleReconnected(this ILogger logger, int counter,
+            string deviceId, string? moduleId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
+            Message = "{Counter}: Module {DeviceId}_{ModuleId} disconnected due to {Reason}...")]
+        public static partial void ModuleDisconnected(this ILogger logger, int counter,
+            string deviceId, string? moduleId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
+            Message = "{Counter}:Module {DeviceId}_{ModuleId} opened.")]
+        public static partial void ModuleOpened(this ILogger logger, int counter,
+            string deviceId, string? moduleId);
+
+        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
+            Message = "{Counter}: MModule {DeviceId}_{ModuleId} error {Reason}...")]
+        public static partial void ModuleError(this ILogger logger, int counter,
+            string deviceId, string? moduleId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Information,
+            Message = "{Counter}: Device {DeviceId} closed due to {Reason}.")]
+        public static partial void DeviceClosed(this ILogger logger, int counter,
+            string deviceId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Information,
+            Message = "{Counter}: Device {DeviceId} reconnected due to {Reason}.")]
+        public static partial void DeviceReconnected(this ILogger logger, int counter,
+            string deviceId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Information,
+            Message = "{Counter}: Device {DeviceId} disconnected due to {Reason}...")]
+        public static partial void DeviceDisconnected(this ILogger logger, int counter,
+            string deviceId, string reason);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "{Counter}: Module {DeviceId} opened.")]
+        public static partial void DeviceOpened(this ILogger logger, int counter,
+            string deviceId);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Error,
+            Message = "{Counter}: Device {DeviceId} error {Reason}...")]
+        public static partial void DeviceError(this ILogger logger, int counter,
+            string deviceId, string reason);
     }
 }

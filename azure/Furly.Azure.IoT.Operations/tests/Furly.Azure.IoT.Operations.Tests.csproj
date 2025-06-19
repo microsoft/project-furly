@@ -1,36 +1,36 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AutoFixture" Version="4.18.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="4.3.1" />
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
-    <PackageReference Include="MQTTnet.Extensions.Rpc" Version="5.0.1.1416" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="Moq" Version="[4.20.2]" />
+    <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
     <PackageReference Include="xunit.assert" Version="2.9.3" />
+    <PackageReference Include="xunit" Version="2.9.3">
+      <TreatAsUsed>true</TreatAsUsed>
+    </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Xunit.SkippableFact" Version="1.5.23" />
     <PackageReference Include="xunit.categories" Version="3.0.1" />
-    <PackageReference Include="xunit" Version="2.9.3">
-      <TreatAsUsed>true</TreatAsUsed>
-    </PackageReference>
-    <PackageReference Include="Docker.DotNet" Version="3.125.15" />
-    <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.6.0" />
     <PackageReference Include="coverlet.msbuild" Version="6.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Furly.Extensions.Newtonsoft\src\Furly.Extensions.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\src\Furly.Extensions.Json\src\Furly.Extensions.Json.csproj" />
+    <ProjectReference Include="..\..\..\src\Furly.Extensions.Newtonsoft\src\Furly.Extensions.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\src\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\Furly.Extensions.Mqtt.csproj" />
+    <ProjectReference Include="..\src\Furly.Azure.IoT.Operations.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

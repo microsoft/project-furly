@@ -142,9 +142,7 @@ namespace Furly.Tunnel.Protocol
                 var responsePayload = received.ToArray().Unzip();
                 if (status != 200)
                 {
-                    _logger.LogDebug("Chunked call on {Method} on {Target} with {Payload} " +
-                         "returned with error {Status}: {Result}",
-                         method, target, payload, status, AsString(responsePayload));
+                    _logger.ChunkedCallFailed(method, target, payload, status, AsString(responsePayload));
                     MethodCallStatusException.Throw(responsePayload, _serializer, status);
                 }
                 return responsePayload;
@@ -187,5 +185,18 @@ namespace Furly.Tunnel.Protocol
         private readonly IRpcClient _client;
         private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
+    }
+
+    /// <summary>
+    /// Source-generated logging for ChunkMethodClient
+    /// </summary>
+    internal static partial class ChunkMethodClientLogging
+    {
+        private const int EventClass = 0;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Chunked call on {Method} on {Target} with {Payload} returned with error {Status}: {Result}")]
+        public static partial void ChunkedCallFailed(this ILogger logger, string method, string target,
+            ReadOnlyMemory<byte> payload, int status, string result);
     }
 }

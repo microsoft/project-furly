@@ -74,8 +74,7 @@ namespace Furly.Tunnel.Services
             if (typeParsed.Length != 2 ||
                 !int.TryParse(typeParsed[1], out var messageId))
             {
-                _logger.LogError("Bad content type {ContentType} in tunnel event" +
-                    " from {RequestId}.", contentType, topic);
+                _logger.EventClientBadContentType(contentType, topic);
                 return Task.CompletedTask;
             }
             var requestId = typeParsed[0];
@@ -196,5 +195,18 @@ namespace Furly.Tunnel.Services
         private readonly IEventSubscriber _subscriber;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, HttpResponseProcessor> _responses = new();
+    }
+
+    /// <summary>
+    /// Source-generated logging for HttpTunnelEventClientHandler
+    /// </summary>
+    internal static partial class HttpTunnelEventClientHandlerLogging
+    {
+        private const int EventClass = 40;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Error,
+            Message = "Bad content type {ContentType} in tunnel event from {RequestId}.")]
+        public static partial void EventClientBadContentType(this ILogger logger,
+            string contentType, string requestId);
     }
 }
