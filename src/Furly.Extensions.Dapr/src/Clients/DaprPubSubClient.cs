@@ -73,6 +73,12 @@ namespace Furly.Extensions.Dapr.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent SetQoS(QoS value)
             {
                 AddProperty("qos", ((int)value).ToString(CultureInfo.InvariantCulture));

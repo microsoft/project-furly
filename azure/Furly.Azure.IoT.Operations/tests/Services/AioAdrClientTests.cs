@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable disable
 namespace Furly.Azure.IoT.Operations.Services
 {
     using global::Azure.Iot.Operations.Connector;
@@ -99,9 +99,12 @@ namespace Furly.Azure.IoT.Operations.Services
                 AssetStatus = new AssetStatus()
             };
             var status = new AssetStatus();
-            _clientWrapperMock.Setup(c => c.UpdateAssetStatusAsync("dev", "ep", req, null, It.IsAny<CancellationToken>())).ReturnsAsync(status);
+            _clientWrapperMock.Setup(c => c.UpdateAssetStatusAsync("dev", "ep",
+                It.Is<UpdateAssetStatusRequest>(r => r.AssetName == "asset"),
+                null, It.IsAny<CancellationToken>())).ReturnsAsync(status);
             await using var client = CreateClient();
-            var result = await client.UpdateAssetStatusAsync("dev", "ep", req, null, CancellationToken.None);
+            var result = await client.UpdateAssetStatusAsync("dev", "ep", "asset", new AssetStatus(),
+                null, CancellationToken.None);
             Assert.Equal(status, result);
         }
 

@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
-
+#nullable disable
 namespace Furly.Azure.IoT.Operations.Services
 {
     using global::Azure.Iot.Operations.Connector;

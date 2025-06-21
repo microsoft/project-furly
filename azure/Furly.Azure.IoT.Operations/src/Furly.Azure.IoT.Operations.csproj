@@ -7,6 +7,11 @@
     <Description>Azure IoT operations support</Description>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Azure.Iot.Operations.Services.AssetAndDeviceRegistry\**" />
+    <EmbeddedResource Remove="Azure.Iot.Operations.Services.AssetAndDeviceRegistry\**" />
+    <None Remove="Azure.Iot.Operations.Services.AssetAndDeviceRegistry\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Azure.Iot.Operations.Connector" Version="0.10.7-akri" />
     <PackageReference Include="KubernetesClient" Version="17.0.4" />
   </ItemGroup>

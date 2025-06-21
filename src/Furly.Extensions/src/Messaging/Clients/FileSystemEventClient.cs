@@ -113,6 +113,28 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                _metadata.AddOrUpdate("ce:specversion", "1.0");
+                _metadata.AddOrUpdate("ce:id", header.Id);
+                _metadata.AddOrUpdate("ce:source", header.Source.ToString());
+                _metadata.AddOrUpdate("ce:type", header.Type);
+                if (header.Time != null)
+                {
+                    _metadata.AddOrUpdate("ce:time", header.Time.ToString());
+                }
+                if (header.DataContentType != null)
+                {
+                    _metadata.AddOrUpdate("ce:datacontenttype", header.DataContentType);
+                }
+                if (header.Subject != null)
+                {
+                    _metadata.AddOrUpdate("ce:subject", header.Subject);
+                }
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent SetTopic(string? value)
             {
                 _topic = value;

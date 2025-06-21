@@ -123,6 +123,28 @@ namespace Furly.Extensions.Kafka.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                _header.Add("ce_specversion", "1.0"u8.ToArray());
+                _header.Add("ce_id", Encoding.UTF8.GetBytes(header.Id));
+                _header.Add("ce_source", Encoding.UTF8.GetBytes(header.Source.ToString()));
+                _header.Add("ce_type", Encoding.UTF8.GetBytes(header.Type));
+                if (header.Time != null)
+                {
+                    _header.Add("ce_time", Encoding.UTF8.GetBytes(header.Time.ToString()!));
+                }
+                if (header.DataContentType != null)
+                {
+                    _header.Add("ce_datacontenttype", Encoding.UTF8.GetBytes(header.DataContentType));
+                }
+                if (header.Subject != null)
+                {
+                    _header.Add("ce_subject", Encoding.UTF8.GetBytes(header.Subject));
+                }
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent SetQoS(QoS value)
             {
                 _qos = value;

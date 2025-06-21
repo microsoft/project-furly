@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
+    using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Azure.Devices.Client;
     using System;
     using System.Buffers;
@@ -125,6 +126,28 @@ namespace Furly.Azure.IoT.Edge.Services
             public IoTEdgeMessage(IoTEdgeEventClient outer)
             {
                 _outer = outer;
+            }
+
+            /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                _template.Properties.AddOrUpdate("specversion", "1.0");
+                _template.Properties.AddOrUpdate("id", header.Id);
+                _template.Properties.AddOrUpdate("source", header.Source.ToString());
+                _template.Properties.AddOrUpdate("type", header.Type);
+                if (header.Time != null)
+                {
+                    _template.Properties.AddOrUpdate("time", header.Time.ToString());
+                }
+                if (header.DataContentType != null)
+                {
+                    _template.Properties.AddOrUpdate("datacontenttype", header.DataContentType);
+                }
+                if (header.Subject != null)
+                {
+                    _template.Properties.AddOrUpdate("subject", header.Subject);
+                }
+                return this;
             }
 
             /// <inheritdoc/>

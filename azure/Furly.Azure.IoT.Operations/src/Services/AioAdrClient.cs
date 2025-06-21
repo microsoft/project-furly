@@ -95,19 +95,25 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         /// <inheritdoc/>
-        public Task<DeviceStatus> UpdateDeviceStatusAsync(string deviceName, string inboundEndpointName,
-            DeviceStatus status, TimeSpan? commandTimeout, CancellationToken ct)
+        public async ValueTask<DeviceStatus> UpdateDeviceStatusAsync(string deviceName,
+            string inboundEndpointName, DeviceStatus status, TimeSpan? commandTimeout,
+            CancellationToken ct)
         {
-            return _client.UpdateDeviceStatusAsync(deviceName, inboundEndpointName, status,
-                commandTimeout, ct);
+            return await _client.UpdateDeviceStatusAsync(deviceName, inboundEndpointName, status,
+                commandTimeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
-        public Task<AssetStatus> UpdateAssetStatusAsync(string deviceName, string inboundEndpointName,
-            UpdateAssetStatusRequest request, TimeSpan? commandTimeout, CancellationToken ct)
+        public async ValueTask<AssetStatus> UpdateAssetStatusAsync(string deviceName,
+            string inboundEndpointName, string assetName, AssetStatus status,
+            TimeSpan? commandTimeout, CancellationToken ct)
         {
-            return _client.UpdateAssetStatusAsync(deviceName, inboundEndpointName, request,
-                commandTimeout, ct);
+            return await _client.UpdateAssetStatusAsync(deviceName, inboundEndpointName,
+                new UpdateAssetStatusRequest
+                {
+                    AssetName = assetName,
+                    AssetStatus = status
+                }, commandTimeout, ct).ConfigureAwait(false);
         }
 
         /// <inheritdoc/>
