@@ -37,6 +37,30 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
+        public IEvent AsCloudEvent(CloudEventHeader header)
+        {
+            if (_version != MqttVersion.v311)
+            {
+                _builder.WithUserProperty("id", header.Id);
+                _builder.WithUserProperty("source", header.Source.ToString());
+                _builder.WithUserProperty("type", header.Type);
+                if (header.Time != null)
+                {
+                    _builder.WithUserProperty("time", header.Time.ToString());
+                }
+                if (header.DataContentType != null)
+                {
+                    _builder.WithUserProperty("datacontenttype", header.DataContentType);
+                }
+                if (header.Subject != null)
+                {
+                    _builder.WithUserProperty("subject", header.Subject);
+                }
+            }
+            return this;
+        }
+
+        /// <inheritdoc/>
         public IEvent SetContentEncoding(string? value)
         {
             if (_version != MqttVersion.v311 && !string.IsNullOrWhiteSpace(value))

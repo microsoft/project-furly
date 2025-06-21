@@ -101,6 +101,12 @@ namespace Furly.Azure.EventHubs.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent SetQoS(QoS value)
             {
                 return this;

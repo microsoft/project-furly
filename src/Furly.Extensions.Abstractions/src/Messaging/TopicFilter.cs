@@ -1,5 +1,6 @@
 ﻿// ------------------------------------------------------------
 //  Copyright (c) 2016-2019 Christian Kratky
+//  Copyright (c) Microsoft.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 

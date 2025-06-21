@@ -128,6 +128,13 @@ namespace Furly.Azure.IoT.Edge.Services
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                return this;
+            }
+
+
+            /// <inheritdoc/>
             public IEvent SetQoS(QoS value)
             {
                 return this;

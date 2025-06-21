@@ -123,6 +123,12 @@ namespace Furly.Extensions.Kafka.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent SetQoS(QoS value)
             {
                 _qos = value;

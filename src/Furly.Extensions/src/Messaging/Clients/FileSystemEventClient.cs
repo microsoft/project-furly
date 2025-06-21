@@ -113,6 +113,12 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public IEvent SetTopic(string? value)
             {
                 _topic = value;
