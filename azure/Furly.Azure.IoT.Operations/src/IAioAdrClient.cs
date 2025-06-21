@@ -53,12 +53,13 @@ namespace Furly.Azure.IoT.Operations.Services
         /// </summary>
         /// <param name="deviceName"></param>
         /// <param name="inboundEndpointName"></param>
-        /// <param name="request"></param>
+        /// <param name="assetName"></param>
+        /// <param name="status"></param>
         /// <param name="commandTimeout"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<AssetStatus> UpdateAssetStatusAsync(string deviceName, string inboundEndpointName,
-            UpdateAssetStatusRequest request, TimeSpan? commandTimeout = null,
+        ValueTask<AssetStatus> UpdateAssetStatusAsync(string deviceName, string inboundEndpointName,
+            string assetName, AssetStatus status, TimeSpan? commandTimeout = null,
             CancellationToken ct = default);
 
         /// <summary>
@@ -70,7 +71,7 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="commandTimeout"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DeviceStatus> UpdateDeviceStatusAsync(string deviceName, string inboundEndpointName,
+        ValueTask<DeviceStatus> UpdateDeviceStatusAsync(string deviceName, string inboundEndpointName,
             DeviceStatus status, TimeSpan? commandTimeout = null,
             CancellationToken ct = default);
 
