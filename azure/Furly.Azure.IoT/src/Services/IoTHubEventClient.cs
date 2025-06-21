@@ -121,6 +121,22 @@ namespace Furly.Azure.IoT.Services
             /// <inheritdoc/>
             public IEvent AsCloudEvent(CloudEventHeader header)
             {
+                _properties.AddOrUpdate("specversion", "1.0");
+                _properties.AddOrUpdate("id", header.Id);
+                _properties.AddOrUpdate("source", header.Source.ToString());
+                _properties.AddOrUpdate("type", header.Type);
+                if (header.Time != null)
+                {
+                    _properties.AddOrUpdate("time", header.Time.ToString());
+                }
+                if (header.DataContentType != null)
+                {
+                    _properties.AddOrUpdate("datacontenttype", header.DataContentType);
+                }
+                if (header.Subject != null)
+                {
+                    _properties.AddOrUpdate("subject", header.Subject);
+                }
                 return this;
             }
 

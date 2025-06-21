@@ -65,6 +65,23 @@ namespace Furly.Extensions.Messaging.Clients
             /// <inheritdoc/>
             public IEvent AsCloudEvent(CloudEventHeader header)
             {
+                _request.AddHeader("ce-specversion", "1.0");
+                _request.AddHeader("ce-id", header.Id);
+                _request.AddHeader("ce-source", header.Source.ToString());
+                _request.AddHeader("ce-type", header.Type);
+                if (header.Time != null)
+                {
+                    _request.AddHeader("ce-time", header.Time.ToString());
+                }
+                if (header.DataContentType != null)
+                {
+                    _request.AddHeader("ce-datacontenttype", header.DataContentType);
+                }
+                if (header.Subject != null)
+                {
+                    _request.AddHeader("ce-subject", header.Subject);
+                }
+
                 return this;
             }
 

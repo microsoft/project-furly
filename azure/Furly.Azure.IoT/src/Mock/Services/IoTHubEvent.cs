@@ -40,8 +40,12 @@ namespace Furly.Azure.IoT.Mock.Services
         }
 
         /// <inheritdoc/>
+        public CloudEventHeader? Ce { get; private set; }
+
+        /// <inheritdoc/>
         public IEvent AsCloudEvent(CloudEventHeader header)
         {
+            Ce = header;
             return this;
         }
 

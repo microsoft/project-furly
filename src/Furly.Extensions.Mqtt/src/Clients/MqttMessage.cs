@@ -41,6 +41,7 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             if (_version != MqttVersion.v311)
             {
+                _builder.WithUserProperty("specversion", "1.0");
                 _builder.WithUserProperty("id", header.Id);
                 _builder.WithUserProperty("source", header.Source.ToString());
                 _builder.WithUserProperty("type", header.Type);
