@@ -16,7 +16,7 @@ namespace Furly.Extensions.Messaging.Clients
     /// <summary>
     /// Nil output client
     /// </summary>
-    public sealed class NullEventClient : IEventClient, IEvent
+    public sealed class NullEventClient : IEvent, IEventClient
     {
         /// <inheritdoc/>
         public string Name => "NULL";
@@ -40,6 +40,12 @@ namespace Furly.Extensions.Messaging.Clients
         /// <inheritdoc/>
         public void Dispose()
         {
+        }
+
+        /// <inheritdoc/>
+        public IEvent AsCloudEvent(CloudEventHeader header)
+        {
+            return this;
         }
 
         /// <inheritdoc/>

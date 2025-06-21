@@ -84,6 +84,12 @@ namespace Furly.Tunnel.AspNetCore.Tests
             }
 
             /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+            {
+                return this;
+            }
+
+            /// <inheritdoc/>
             public QoS QoS { get; private set; }
 
             /// <inheritdoc/>

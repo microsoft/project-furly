@@ -37,6 +37,12 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
+        public IEvent AsCloudEvent(CloudEventHeader header)
+        {
+            return this;
+        }
+
+        /// <inheritdoc/>
         public IEvent SetContentEncoding(string? value)
         {
             if (_version != MqttVersion.v311 && !string.IsNullOrWhiteSpace(value))
