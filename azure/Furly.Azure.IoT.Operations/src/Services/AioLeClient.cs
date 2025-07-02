@@ -36,7 +36,7 @@ namespace Furly.Azure.IoT.Operations.Services
             _logger = logger;
             _cts = new CancellationTokenSource();
             _client = sdk.CreateLeaderElectionClient(client);
-            _client.LeadershipChangeEventReceivedAsync += async (sender, args) =>
+            _client.LeadershipChangeEventReceivedAsync += async (_, args) =>
             {
                 IsLeader = args.NewLeader != null &&
                     args.NewLeader.GetString().Equals(client.ClientId);

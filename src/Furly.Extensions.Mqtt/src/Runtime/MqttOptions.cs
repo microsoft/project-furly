@@ -5,11 +5,12 @@
 
 namespace Furly.Extensions.Mqtt
 {
-    using Furly.Extensions.Mqtt.Runtime;
     using Furly.Extensions.Messaging;
+    using Furly.Extensions.Mqtt.Runtime;
     using Furly.Extensions.Rpc;
     using MQTTnet;
     using System;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Mqtt configuration
@@ -196,6 +197,13 @@ namespace Furly.Extensions.Mqtt
         public string? IssuerCertFile { get; set; }
 
         /// <summary>
+        /// Alternative trust chain to use
+        /// </summary>
+#pragma warning disable CA2227 // Collection properties should be read only
+        public X509Certificate2Collection? TrustChain { get; set; }
+#pragma warning restore CA2227 // Collection properties should be read only
+
+        /// <summary>
         /// Require revocation check for issuer issued
         /// certificates.
         /// </summary>
@@ -207,6 +215,11 @@ namespace Furly.Extensions.Mqtt
         public string? ClientCertificateFile { get; set; }
 
         /// <summary>
+        /// Alternatively a client certificate can be provided
+        /// </summary>
+        public X509Certificate2? ClientCertificate { get; set; }
+
+        /// <summary>
         /// Certificate Key file
         /// </summary>
         public string? ClientPrivateKeyFile { get; set; }
@@ -215,5 +228,10 @@ namespace Furly.Extensions.Mqtt
         /// Password for the key file
         /// </summary>
         public string? PrivateKeyPasswordFile { get; set; }
+
+        /// <summary>
+        /// Max receive
+        /// </summary>
+        public ushort? ReceiveMaximum { get; set; }
     }
 }

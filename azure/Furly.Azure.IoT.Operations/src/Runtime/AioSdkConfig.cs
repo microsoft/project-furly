@@ -87,7 +87,9 @@ namespace Furly.Azure.IoT.Operations.Runtime
             {
                 options.ClientId = settings.ClientId;
                 options.ClientCertificateFile = settings.CertFile;
+                options.ClientCertificate = settings.ClientCertificate;
                 options.ClientPrivateKeyFile = settings.KeyFile;
+                options.PrivateKeyPasswordFile = settings.KeyPasswordFile;
                 options.UserName = settings.Username;
                 options.PasswordFile = settings.PasswordFile;
                 options.KeepAlivePeriod = settings.KeepAlive;
@@ -97,7 +99,9 @@ namespace Furly.Azure.IoT.Operations.Runtime
                 options.Port = settings.TcpPort;
                 options.UseTls = settings.UseTls;
                 options.IssuerCertFile = settings.CaFile;
-                options.PrivateKeyPasswordFile = settings.KeyPasswordFile;
+                options.TrustChain = settings.TrustChain;
+                options.RequireRevocationCheck = false;
+                options.ReceiveMaximum = settings.ReceiveMaximum;
                 options.SatAuthFile = settings.SatAuthFile;
 
                 _logger.ConfigurationLoaded();

@@ -641,13 +641,27 @@ namespace Furly.Extensions.Mqtt.Clients
                     268435455u : 0u,
                 KeepAlivePeriod = _options.Value.KeepAlivePeriod ?? TimeSpan.FromSeconds(15),
             };
+            if (_options.Value.ReceiveMaximum != null)
+            {
+                options.ReceiveMaximum = _options.Value.ReceiveMaximum.Value;
+            }
             _options.Value.ConfigureMqttClient?.Invoke(options);
             return options;
 
             MqttClientTlsOptions GetTlsOptions()
             {
                 var certs = new List<X509Certificate2>();
-                if (!string.IsNullOrEmpty(_options.Value.ClientCertificateFile) &&
+                if (_options.Value.ClientCertificate != null)
+                {
+                    var cert = new X509Certificate2(_options.Value.ClientCertificate);
+                    if (!cert.HasPrivateKey)
+                    {
+                        throw new SecurityException(
+                            "Provided certificate is missing the private key information.");
+                    }
+                    certs.Add(cert);
+                }
+                else if (!string.IsNullOrEmpty(_options.Value.ClientCertificateFile) &&
                     !string.IsNullOrEmpty(_options.Value.ClientPrivateKeyFile))
                 {
                     var cert = Load(_options.Value.ClientCertificateFile, _options.Value.ClientPrivateKeyFile,
@@ -685,7 +699,15 @@ namespace Furly.Extensions.Mqtt.Clients
                     UseTls = _options.Value.UseTls ?? true,
                 };
 
-                if (!string.IsNullOrEmpty(_options.Value.IssuerCertFile))
+                if (_options.Value.TrustChain != null)
+                {
+                    tlsParams.TrustChain = _options.Value.TrustChain;
+                    tlsParams.RevocationMode =
+                        _options.Value.RequireRevocationCheck == true ?
+                        X509RevocationMode.Online :
+                        X509RevocationMode.NoCheck;
+                }
+                else if (!string.IsNullOrEmpty(_options.Value.IssuerCertFile))
                 {
                     var caCerts = new X509Certificate2Collection();
                     caCerts.ImportFromPemFile(_options.Value.IssuerCertFile);
