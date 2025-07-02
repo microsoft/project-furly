@@ -5,11 +5,13 @@
 #nullable disable
 namespace Furly.Azure.IoT.Operations.Services
 {
+    using Furly.Azure.IoT.Operations.Runtime;
+    using Furly.Extensions.Configuration;
     using global::Azure.Iot.Operations.Connector;
+    using global::Azure.Iot.Operations.Protocol; // For ApplicationContext
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
     using global::Azure.Iot.Operations.Services.StateStore;
-    using global::Azure.Iot.Operations.Protocol; // For ApplicationContext
     using Moq;
     using System;
     using System.Threading.Tasks;
@@ -28,7 +30,7 @@ namespace Furly.Azure.IoT.Operations.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var context = new ApplicationContext();
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var sdk = new AioSdk(context))
+            using (var sdk = new AioSdk(context, new OptionsMock<AioOptions>()))
             {
                 await using var result = sdk.CreateAdrClientWrapper(client.Object);
                 Assert.NotNull(result);
@@ -45,7 +47,7 @@ namespace Furly.Azure.IoT.Operations.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var context = new ApplicationContext();
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var sdk = new AioSdk(context))
+            using (var sdk = new AioSdk(context, new OptionsMock<AioOptions>()))
             {
                 await using var result = sdk.CreateAdrServiceClient(client.Object);
                 Assert.NotNull(result);
@@ -62,7 +64,7 @@ namespace Furly.Azure.IoT.Operations.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var context = new ApplicationContext();
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var sdk = new AioSdk(context))
+            using (var sdk = new AioSdk(context, new OptionsMock<AioOptions>()))
             {
                 await using var result = sdk.CreateStateStoreClient(client.Object);
                 Assert.NotNull(result);
@@ -79,7 +81,7 @@ namespace Furly.Azure.IoT.Operations.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var context = new ApplicationContext();
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var sdk = new AioSdk(context))
+            using (var sdk = new AioSdk(context, new OptionsMock<AioOptions>()))
             {
                 await using var result = sdk.CreateSchemaRegistryClient(client.Object);
                 Assert.NotNull(result);
@@ -94,7 +96,7 @@ namespace Furly.Azure.IoT.Operations.Services
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var context = new ApplicationContext();
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            var sdk = new AioSdk(context);
+            var sdk = new AioSdk(context, new OptionsMock<AioOptions>());
             Assert.False(IsDisposed(context));
             sdk.Dispose();
             Assert.True(IsDisposed(context));
