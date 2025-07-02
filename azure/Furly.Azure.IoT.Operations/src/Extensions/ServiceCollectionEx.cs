@@ -9,6 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
     using Furly;
     using Furly.Azure.IoT.Operations.Runtime;
     using Furly.Azure.IoT.Operations.Services;
+    using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
 
@@ -36,6 +37,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<IAioAdrClient>(services => services.GetRequiredService<AioAdrClient>())
                 .AddSingleton<AioSrClient>()
                 .AddSingleton<ISchemaRegistry>(services => services.GetRequiredService<AioSrClient>())
+                .AddSingleton<AioLeClient>()
+                .AddSingleton<ILeaderElection>(services => services.GetRequiredService<AioLeClient>())
                 .AddSingleton<AioDssClient>()
                 .AddSingleton<IKeyValueStore>(services => services.GetRequiredService<AioDssClient>())
                 .AddSingleton<IAwaitable<IKeyValueStore>>(services => services.GetRequiredService<AioDssClient>())

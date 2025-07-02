@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Connector;
     using global::Azure.Iot.Operations.Connector.Files;
     using global::Azure.Iot.Operations.Protocol;
+    using global::Azure.Iot.Operations.Protocol.Connection;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using k8s.KubeConfigModels;
@@ -29,7 +30,7 @@ namespace Furly.Azure.IoT.Operations.Services
         public IEnumerable<string> Devices => _client.GetDeviceNames();
 
         /// <summary>
-        /// Create aio sr client
+        /// Create aio adr client
         /// </summary>
         /// <param name="notifications"></param>
         /// <param name="sdk"></param>

@@ -10,6 +10,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.StateStore;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
+    using global::Azure.Iot.Operations.Services.LeaderElection;
 
     /// <summary>
     /// Aio sdk
@@ -43,5 +44,12 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="client"></param>
         /// <returns></returns>
         ISchemaRegistryClient CreateSchemaRegistryClient(IMqttPubSubClient client);
+
+        /// <summary>
+        /// Create leader election client
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        ILeaderElectionClient CreateLeaderElectionClient(IMqttPubSubClient client);
     }
 }

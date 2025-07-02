@@ -21,8 +21,15 @@ namespace Furly.Azure.IoT.Operations.Runtime
     /// <summary>
     /// Azure IoT Operations configuration
     /// </summary>
-    internal sealed class AioSdkConfig : PostConfigureOptionBase<MqttOptions>
+    internal sealed class AioSdkConfig : PostConfigureOptionBase<MqttOptions>,
+        IPostConfigureOptions<AioOptions>
     {
+        public const string Name = "AioName";
+        public const string Identity = "AioIdentity";
+        public const string ConnectorId = "CONNECTOR_ID";
+        public const string BrokerHostName = "AIO_BROKER_HOSTNAME";
+        public const string MqttConnectionString = "AIO_MQTT_CS";
+
         /// <inheritdoc/>
         public AioSdkConfig(IConfiguration configuration, ILogger<AioSdkConfig> logger)
             : base(configuration)
@@ -36,7 +43,7 @@ namespace Furly.Azure.IoT.Operations.Runtime
             MqttConnectionSettings? settings = null;
             if (KubernetesClientConfiguration.IsInCluster())
             {
-                if (Environment.GetEnvironmentVariable("CONNECTOR_ID") != null)
+                if (Environment.GetEnvironmentVariable(ConnectorId) != null)
                 {
                     _logger.RunningAsConnector();
                     // Running as connector
@@ -45,16 +52,21 @@ namespace Furly.Azure.IoT.Operations.Runtime
                         try
                         {
                             settings = ConnectorFileMountSettings.FromFileMount();
+                            break;
                         }
-                        catch (Exception ex) when (i < 2) // Retry once
+                        catch (Exception ex)
                         {
-                            // Try again after a second
                             _logger.FailedToReadConfig(ex);
-                            Thread.Sleep(1000);
+                            if (i > 1)
+                            {
+                                throw;
+                            }
                         }
+                        // Try again after a second
+                        Thread.Sleep(1000);
                     }
                 }
-                else if (Environment.GetEnvironmentVariable("AIO_BROKER_HOSTNAME") != null)
+                else if (Environment.GetEnvironmentVariable(BrokerHostName) != null)
                 {
                     _logger.RunningAsWorkload();
                     settings = MqttConnectionSettings.FromEnvVars();
@@ -63,7 +75,7 @@ namespace Furly.Azure.IoT.Operations.Runtime
 
             if (settings == null)
             {
-                var cs = GetStringOrDefault("AIO_MQTT_CS");
+                var cs = GetStringOrDefault(MqttConnectionString);
                 if (cs != null)
                 {
                     _logger.ConfigureUsingConnectionString();
@@ -87,8 +99,20 @@ namespace Furly.Azure.IoT.Operations.Runtime
                 options.IssuerCertFile = settings.CaFile;
                 options.PrivateKeyPasswordFile = settings.KeyPasswordFile;
                 options.SatAuthFile = settings.SatAuthFile;
+
+                _logger.ConfigurationLoaded();
             }
         }
+
+        /// <inheritdoc/>
+        public void PostConfigure(string? name, AioOptions options)
+        {
+            options.ConnectorId ??= GetStringOrDefault(ConnectorId) ??
+                Environment.GetEnvironmentVariable(ConnectorId);
+            options.Name ??= GetStringOrDefault(Name);
+            options.Identity ??= GetStringOrDefault(Identity);
+        }
+
         private readonly ILogger _logger;
     }
 
@@ -100,7 +124,7 @@ namespace Furly.Azure.IoT.Operations.Runtime
         private const int EventClass = 0;
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
-            Message = "Running as AIO connector.")]
+            Message = "Running as Azure IoT Operations connector.")]
         public static partial void RunningAsConnector(this ILogger logger);
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
@@ -108,11 +132,15 @@ namespace Furly.Azure.IoT.Operations.Runtime
         public static partial void FailedToReadConfig(this ILogger logger, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
-            Message = "Running as AIO workload.")]
+            Message = "Running as Azure IoT Operations workload.")]
         public static partial void RunningAsWorkload(this ILogger logger);
 
         [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
-            Message = "Configure using AIO connection string.")]
+            Message = "Configure using Azure IoT Operations connection string.")]
         public static partial void ConfigureUsingConnectionString(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
+            Message = "Azure IoT Operations configuration loaded.")]
+        public static partial void ConfigurationLoaded(this ILogger logger);
     }
 }

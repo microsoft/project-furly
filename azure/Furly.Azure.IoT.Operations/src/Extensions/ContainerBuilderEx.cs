@@ -21,6 +21,7 @@ namespace Autofac
         public static ContainerBuilder AddAzureIoTOperations(this ContainerBuilder builder)
         {
             builder.AddMqttClient();
+            builder.AddOptions();
 
             builder.RegisterType<ApplicationContext>()
                 .AsSelf().SingleInstance();
@@ -32,6 +33,8 @@ namespace Autofac
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<AioDssClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AioLeClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AioSrClient>()
                 .AsImplementedInterfaces().SingleInstance();
