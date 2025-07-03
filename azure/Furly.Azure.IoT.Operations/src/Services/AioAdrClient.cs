@@ -8,16 +8,10 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Connector;
     using global::Azure.Iot.Operations.Connector.Files;
     using global::Azure.Iot.Operations.Protocol;
-    using global::Azure.Iot.Operations.Protocol.Connection;
-    using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
-    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Runtime.CompilerServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -29,21 +23,31 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <inheritdoc/>
         public IEnumerable<string> Devices => _client.GetDeviceNames();
 
+        /// <inheritdoc/>
+        public event EventHandler<DeviceChangedEventArgs> OnDeviceChanged
+        {
+            add => _client.DeviceChanged += value;
+            remove => _client.DeviceChanged -= value;
+        }
+
+        /// <inheritdoc/>
+        public event EventHandler<AssetChangedEventArgs> OnAssetChanged
+        {
+            add => _client.AssetChanged += value;
+            remove => _client.AssetChanged -= value;
+        }
+
         /// <summary>
         /// Create aio adr client
         /// </summary>
-        /// <param name="notifications"></param>
         /// <param name="sdk"></param>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        public AioAdrClient(IAdrNotification notifications, IAioSdk sdk,
+        public AioAdrClient(IAioSdk sdk,
             IMqttPubSubClient client, ILogger<AioAdrClient> logger)
         {
             _logger = logger;
-            _notifications = notifications;
             _client = sdk.CreateAdrClientWrapper(client);
-            _client.AssetChanged += OnAssetChanged;
-            _client.DeviceChanged += OnDeviceChanged;
 
             // Any devices already available will trigger the notifications
             _logger.StartMonitoring(client.ClientId);
@@ -158,49 +162,8 @@ namespace Furly.Azure.IoT.Operations.Services
             return _client.GetInboundEndpointNames(deviceName);
         }
 
-        internal void OnDeviceChanged(object? sender,
-            global::Azure.Iot.Operations.Connector.DeviceChangedEventArgs e)
-        {
-            _logger.DeviceChanged(e.DeviceName, e.InboundEndpointName, e.ChangeType);
-            switch (e.ChangeType)
-            {
-                case ChangeType.Deleted:
-                    _notifications.OnDeviceDeleted(e.DeviceName, e.InboundEndpointName, e.Device);
-                    break;
-                case ChangeType.Created:
-                    Debug.Assert(e.Device != null);
-                    _notifications.OnDeviceCreated(e.DeviceName, e.InboundEndpointName, e.Device);
-                    break;
-                case ChangeType.Updated:
-                    Debug.Assert(e.Device != null);
-                    _notifications.OnDeviceUpdated(e.DeviceName, e.InboundEndpointName, e.Device);
-                    break;
-            }
-        }
-
-        internal void OnAssetChanged(object? sender,
-            global::Azure.Iot.Operations.Connector.AssetChangedEventArgs e)
-        {
-            _logger.AssetChanged(e.AssetName, e.DeviceName, e.InboundEndpointName, e.ChangeType);
-            switch (e.ChangeType)
-            {
-                case ChangeType.Deleted:
-                    _notifications.OnAssetDeleted(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset);
-                    break;
-                case ChangeType.Created:
-                    Debug.Assert(e.Asset != null);
-                    _notifications.OnAssetCreated(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset);
-                    break;
-                case ChangeType.Updated:
-                    Debug.Assert(e.Asset != null);
-                    _notifications.OnAssetUpdated(e.DeviceName, e.InboundEndpointName, e.AssetName, e.Asset);
-                    break;
-            }
-        }
-
         private readonly ILogger _logger;
         private readonly IAdrClientWrapper _client;
-        private readonly IAdrNotification _notifications;
     }
 
     /// <summary>
@@ -217,13 +180,5 @@ namespace Furly.Azure.IoT.Operations.Services
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Stop monitoring ADR devices.")]
         public static partial void StopMonitoring(this ILogger logger);
-
-        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
-            Message = "Device with name {Name} and endpoint {EndpointName} was {Action}")]
-        public static partial void DeviceChanged(this ILogger logger, string name, string endpointName, ChangeType action);
-
-        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
-            Message = "Asset with name {Name} for device {Device} and endpoint {EndpointName} was {Action}")]
-        public static partial void AssetChanged(this ILogger logger, string name, string device, string endpointName, ChangeType action);
     }
 }

@@ -18,6 +18,16 @@ namespace Furly.Azure.IoT.Operations.Services
     public interface IAioAdrClient : IAsyncDisposable
     {
         /// <summary>
+        /// Called when a device is changed
+        /// </summary>
+        event EventHandler<DeviceChangedEventArgs> OnDeviceChanged;
+
+        /// <summary>
+        /// Called when a asset resource is changed
+        /// </summary>
+        event EventHandler<AssetChangedEventArgs> OnAssetChanged;
+
+        /// <summary>
         /// Register for asset notification for a found device. This should be
         /// called for all device endpoints we are interested in.
         /// </summary>

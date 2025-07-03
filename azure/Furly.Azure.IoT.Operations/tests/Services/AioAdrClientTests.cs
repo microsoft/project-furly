@@ -8,12 +8,9 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Connector;
     using global::Azure.Iot.Operations.Connector.Files;
     using global::Azure.Iot.Operations.Protocol;
-    using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry.Models;
     using Microsoft.Extensions.Logging;
     using Moq;
-    using System;
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
@@ -115,7 +112,8 @@ namespace Furly.Azure.IoT.Operations.Services
             _clientWrapperMock.Setup(s => s.CreateOrUpdateDiscoveredAssetAsync("dev", "ep",
                 It.IsAny<CreateOrUpdateDiscoveredAssetRequest>(), null, It.IsAny<CancellationToken>())).ReturnsAsync(resp);
             await using var client = CreateClient();
-            var result = await client.ReportDiscoveredAssetAsync("dev", "ep", "asset", new DiscoveredAsset {
+            var result = await client.ReportDiscoveredAssetAsync("dev", "ep", "asset", new DiscoveredAsset
+            {
                 DeviceRef = new AssetDeviceRef
                 {
                     DeviceName = "dev",
@@ -154,97 +152,14 @@ namespace Furly.Azure.IoT.Operations.Services
             Assert.Equal(expected, client.GetInboundEndpointNames("dev"));
         }
 
-        [Theory]
-        [InlineData(ChangeType.Created)]
-        [InlineData(ChangeType.Updated)]
-        [InlineData(ChangeType.Deleted)]
-        public void OnDeviceChangedTriggersNotification(ChangeType type)
-        {
-            using var client = CreateClient();
-            var device = new Device();
-            var args = (global::Azure.Iot.Operations.Connector.DeviceChangedEventArgs)Activator.CreateInstance(
-                typeof(global::Azure.Iot.Operations.Connector.DeviceChangedEventArgs),
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                binder: null,
-                args: new object[] { "dev", "ep", type, device },
-                culture: null);
-            switch (type)
-            {
-                case ChangeType.Created:
-                    _notificationMock.Setup(n => n.OnDeviceCreated("dev", "ep", device));
-                    break;
-                case ChangeType.Updated:
-                    _notificationMock.Setup(n => n.OnDeviceUpdated("dev", "ep", device));
-                    break;
-                case ChangeType.Deleted:
-                    _notificationMock.Setup(n => n.OnDeviceDeleted("dev", "ep", device));
-                    break;
-            }
-            client.OnDeviceChanged(this, args);
-            switch (type)
-            {
-                case ChangeType.Created:
-                    _notificationMock.Verify(n => n.OnDeviceCreated("dev", "ep", device), Times.Once);
-                    break;
-                case ChangeType.Updated:
-                    _notificationMock.Verify(n => n.OnDeviceUpdated("dev", "ep", device), Times.Once);
-                    break;
-                case ChangeType.Deleted:
-                    _notificationMock.Verify(n => n.OnDeviceDeleted("dev", "ep", device), Times.Once);
-                    break;
-            }
-        }
-
-        [Theory]
-        [InlineData(ChangeType.Created)]
-        [InlineData(ChangeType.Updated)]
-        [InlineData(ChangeType.Deleted)]
-        public void OnAssetChangedTriggersNotification(ChangeType type)
-        {
-            using var client = CreateClient();
-            var asset = new Asset { DeviceRef = new AssetDeviceRef { DeviceName = "dev", EndpointName = "ep" } };
-            var args = (global::Azure.Iot.Operations.Connector.AssetChangedEventArgs)Activator.CreateInstance(
-                typeof(global::Azure.Iot.Operations.Connector.AssetChangedEventArgs),
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                binder: null,
-                args: new object[] { "dev", "ep", "asset", type, asset },
-                culture: null);
-            switch (type)
-            {
-                case ChangeType.Created:
-                    _notificationMock.Setup(n => n.OnAssetCreated("dev", "ep", "asset", asset));
-                    break;
-                case ChangeType.Updated:
-                    _notificationMock.Setup(n => n.OnAssetUpdated("dev", "ep", "asset", asset));
-                    break;
-                case ChangeType.Deleted:
-                    _notificationMock.Setup(n => n.OnAssetDeleted("dev", "ep", "asset", asset));
-                    break;
-            }
-            client.OnAssetChanged(this, args);
-            switch (type)
-            {
-                case ChangeType.Created:
-                    _notificationMock.Verify(n => n.OnAssetCreated("dev", "ep", "asset", asset), Times.Once);
-                    break;
-                case ChangeType.Updated:
-                    _notificationMock.Verify(n => n.OnAssetUpdated("dev", "ep", "asset", asset), Times.Once);
-                    break;
-                case ChangeType.Deleted:
-                    _notificationMock.Verify(n => n.OnAssetDeleted("dev", "ep", "asset", asset), Times.Once);
-                    break;
-            }
-        }
-
         private AioAdrClient CreateClient()
         {
             _sdkMock.Setup(s => s.CreateAdrClientWrapper(It.IsAny<IMqttPubSubClient>()))
                 .Returns(_clientWrapperMock.Object);
             _mqttClientMock.SetupGet(m => m.ClientId).Returns("test-client");
-            return new AioAdrClient(_notificationMock.Object, _sdkMock.Object, _mqttClientMock.Object, _loggerMock.Object);
+            return new AioAdrClient(_sdkMock.Object, _mqttClientMock.Object, _loggerMock.Object);
         }
 
-        private readonly Mock<IAdrNotification> _notificationMock = new();
         private readonly Mock<IAioSdk> _sdkMock = new();
         private readonly Mock<IMqttPubSubClient> _mqttClientMock = new();
         private readonly Mock<ILogger<AioAdrClient>> _loggerMock = new();
