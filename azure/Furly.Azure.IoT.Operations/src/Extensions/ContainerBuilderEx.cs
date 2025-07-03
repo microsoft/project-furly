@@ -20,9 +20,72 @@ namespace Autofac
         /// <param name="builder"></param>
         public static ContainerBuilder AddAzureIoTOperations(this ContainerBuilder builder)
         {
+            return builder
+                .AddAzureIoTOperationsCore()
+                .AddLeaderElection()
+                .AddSchemaRegistry()
+                .AddAdrClient()
+                .AddStateStore()
+                ;
+        }
+
+        /// <summary>
+        /// Add Azure IoT Operations state store services
+        /// </summary>
+        /// <param name="builder"></param>
+        public static ContainerBuilder AddStateStore(this ContainerBuilder builder)
+        {
+            builder.AddAzureIoTOperationsCore();
+            builder.RegisterType<AioDssClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Add Azure IoT Operations leader election services
+        /// </summary>
+        /// <param name="builder"></param>
+        public static ContainerBuilder AddLeaderElection(this ContainerBuilder builder)
+        {
+            builder.AddAzureIoTOperationsCore();
+            builder.RegisterType<AioLeClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Add Azure IoT Operations schema registry services
+        /// </summary>
+        /// <param name="builder"></param>
+        public static ContainerBuilder AddSchemaRegistry(this ContainerBuilder builder)
+        {
+            builder.AddAzureIoTOperationsCore();
+            builder.RegisterType<AioSrClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Add Azure IoT Operations ADR services
+        /// </summary>
+        /// <param name="builder"></param>
+        public static ContainerBuilder AddAdrClient(this ContainerBuilder builder)
+        {
+            builder.AddAzureIoTOperationsCore();
+            builder.RegisterType<AioAdrClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Add azure iot operations core services
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static ContainerBuilder AddAzureIoTOperationsCore(this ContainerBuilder builder)
+        {
             builder.AddMqttClient();
             builder.AddOptions();
-
             builder.RegisterType<ApplicationContext>()
                 .AsSelf().SingleInstance();
             builder.RegisterType<AioSdk>()
@@ -30,15 +93,6 @@ namespace Autofac
             builder.RegisterType<AioSdkConfig>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AioMqttClient>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            builder.RegisterType<AioDssClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AioLeClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AioSrClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AioAdrClient>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder;
         }
