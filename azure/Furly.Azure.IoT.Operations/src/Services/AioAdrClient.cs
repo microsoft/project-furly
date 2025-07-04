@@ -26,7 +26,11 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <inheritdoc/>
         public event EventHandler<DeviceChangedEventArgs> OnDeviceChanged
         {
-            add => _client.DeviceChanged += value;
+            add
+            {
+                _client.DeviceChanged += value;
+                _client.ObserveDevices(); // Start observing device changes
+            }
             remove => _client.DeviceChanged -= value;
         }
 
@@ -51,7 +55,6 @@ namespace Furly.Azure.IoT.Operations.Services
 
             // Any devices already available will trigger the notifications
             _logger.StartMonitoring(client.ClientId);
-            _client.ObserveDevices();
         }
 
         /// <inheritdoc/>
@@ -174,11 +177,11 @@ namespace Furly.Azure.IoT.Operations.Services
         private const int EventClass = 10;
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
-            Message = "Start monitoring ADR devices using client {ClientId}")]
+            Message = "Start ADR service client {ClientId}")]
         public static partial void StartMonitoring(this ILogger logger, string? clientId);
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
-            Message = "Stop monitoring ADR devices.")]
+            Message = "Stop ADR service client.")]
         public static partial void StopMonitoring(this ILogger logger);
     }
 }

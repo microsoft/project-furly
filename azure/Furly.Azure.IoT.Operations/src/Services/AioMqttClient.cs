@@ -132,7 +132,7 @@ namespace Furly.Azure.IoT.Operations.Services
                 var buffer = args.ApplicationMessage.Payload.ToArray();
                 var payload = MQTTnet.MqttApplicationMessageExtensions
                     .ConvertPayloadToString(args.ApplicationMessage);
-                _logger.Send(args.ClientId, payload);
+                _logger.Receive(args.ClientId, payload);
             }
             return ApplicationMessageReceivedAsync.Invoke(
                 args.ToSdkType((a, ct) => args.AcknowledgeAsync(ct)));
