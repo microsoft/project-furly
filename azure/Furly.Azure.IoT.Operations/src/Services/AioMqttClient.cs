@@ -17,7 +17,9 @@ namespace Furly.Azure.IoT.Operations.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Buffers;
     using System.Data.Common;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -42,11 +44,11 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
         /// <param name="meter"></param>
-        public AioMqttClient(IOptions<MqttOptions> options, ILoggerFactory logger, ISerializer serializer,
+        public AioMqttClient(IOptions<AioOptions> options, ILoggerFactory logger, ISerializer serializer,
             IMeterProvider? meter = null)
         {
             _logger = logger.CreateLogger<AioMqttClient>();
-            var mqttClientOptions = options.Value;
+            var mqttClientOptions = options.Value.Mqtt;
             if (string.IsNullOrEmpty(mqttClientOptions.ClientId))
             {
                 throw new ArgumentException("Client id is null or empty");
@@ -89,6 +91,13 @@ namespace Furly.Azure.IoT.Operations.Services
         public Task<MqttClientPublishResult> PublishAsync(MqttApplicationMessage applicationMessage,
             CancellationToken cancellationToken = default)
         {
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                var buffer = applicationMessage.Payload.ToArray();
+                var payload = MQTTnet.MqttApplicationMessageExtensions
+                    .ConvertPayloadToString(applicationMessage.FromSdkType());
+                _logger.Send(ClientId, payload);
+            }
             return _client.PublishAsync(applicationMessage.FromSdkType(), cancellationToken)
                 .ContinueWith(t => t.Result.ToSdkType(), cancellationToken,
                     TaskContinuationOptions.None, TaskScheduler.Current);
@@ -118,6 +127,13 @@ namespace Furly.Azure.IoT.Operations.Services
             {
                 return Task.CompletedTask;
             }
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                var buffer = args.ApplicationMessage.Payload.ToArray();
+                var payload = MQTTnet.MqttApplicationMessageExtensions
+                    .ConvertPayloadToString(args.ApplicationMessage);
+                _logger.Send(args.ClientId, payload);
+            }
             return ApplicationMessageReceivedAsync.Invoke(
                 args.ToSdkType((a, ct) => args.AcknowledgeAsync(ct)));
         }
@@ -144,5 +160,13 @@ namespace Furly.Azure.IoT.Operations.Services
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
             Message = "Client with client id {ClientId} was disposed.")]
         public static partial void Disposed(this ILogger logger, string? clientId);
+
+        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug, SkipEnabledCheck = true,
+            Message = "Client id {ClientId} sent: {Payload}.")]
+        public static partial void Send(this ILogger logger, string? clientId, string? payload);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Debug, SkipEnabledCheck = true,
+            Message = "Client id {ClientId} received: {Payload}.")]
+        public static partial void Receive(this ILogger logger, string? clientId, string? payload);
     }
 }

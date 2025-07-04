@@ -5,6 +5,7 @@
 
 namespace Furly.Azure.IoT.Operations.Runtime
 {
+    using Furly.Extensions.Mqtt;
     using System;
 
     /// <summary>
@@ -18,14 +19,23 @@ namespace Furly.Azure.IoT.Operations.Runtime
         public string? ConnectorId { get; set; }
 
         /// <summary>
+        /// Mqtt options
+        /// </summary>
+        public MqttOptions Mqtt { get; } = new MqttOptions
+        {
+            Protocol = MqttVersion.v5,
+            QoS = Extensions.Messaging.QoS.AtLeastOnce
+        };
+
+        /// <summary>
         /// Identity used to compain over
         /// </summary>
-        public string? Identity { get; internal set; }
+        public string? Identity { get; set; }
 
         /// <summary>
         /// Name of the connector or workload
         /// </summary>
-        public string? Name { get; internal set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// Length to stay leader

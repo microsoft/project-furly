@@ -84,7 +84,6 @@ namespace Autofac
         /// <returns></returns>
         public static ContainerBuilder AddAzureIoTOperationsCore(this ContainerBuilder builder)
         {
-            builder.AddMqttClient();
             builder.AddOptions();
             builder.RegisterType<ApplicationContext>()
                 .AsSelf().SingleInstance();

@@ -253,7 +253,6 @@ namespace Furly.Azure.IoT.Operations.Services
                     mqttNetItem.TopicFilter,
                     (MqttClientUnsubscribeReasonCode)(int)mqttNetItem.ResultCode));
             }
-
             return new MqttClientUnsubscribeResult(result.PacketIdentifier,
                 genericItems, result.ReasonString, ToSdkType(result.UserProperties));
         }

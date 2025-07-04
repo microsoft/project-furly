@@ -9,12 +9,13 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Connector;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
+    using global::Azure.Iot.Operations.Services.LeaderElection;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
     using global::Azure.Iot.Operations.Services.StateStore;
-    using global::Azure.Iot.Operations.Services.LeaderElection;
     using k8s.KubeConfigModels;
-    using System;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using System;
 
     /// <summary>
     /// Wraps the aio sdk concept
@@ -26,10 +27,21 @@ namespace Furly.Azure.IoT.Operations.Services
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        public AioSdk(ApplicationContext context, IOptions<AioOptions> options)
+        /// <param name="logger"></param>
+        public AioSdk(ApplicationContext context, IOptions<AioOptions> options,
+            ILogger<AioSdk> logger)
         {
             _context = context;
             _options = options;
+
+            if (_options.Value.ConnectorId != null)
+            {
+                logger.RunningAsConnector();
+            }
+            else
+            {
+                logger.RunningAsWorkload();
+            }
         }
 
         /// <inheritdoc/>
@@ -80,5 +92,21 @@ namespace Furly.Azure.IoT.Operations.Services
 
         private readonly ApplicationContext _context;
         private readonly IOptions<AioOptions> _options;
+    }
+
+    /// <summary>
+    /// Source-generated logging for AioSdkConfig
+    /// </summary>
+    internal static partial class AioSdkLogging
+    {
+        private const int EventClass = 2;
+
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
+            Message = "Running as Azure IoT Operations connector.")]
+        public static partial void RunningAsConnector(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
+            Message = "Running as Azure IoT Operations workload.")]
+        public static partial void RunningAsWorkload(this ILogger logger);
     }
 }

@@ -114,7 +114,8 @@ namespace Furly.Extensions.Mqtt.Clients
             object[] parameters, Exception exception)
         {
 #pragma warning disable CA2254 // Template should be a static expression
-            _logger.HandleNetLogMessage(exception, message);
+            _logger.HandleNetLogMessage(exception, source,
+                parameters?.Length > 0 ? string.Format(message, parameters) : message);
 #pragma warning restore CA2254 // Template should be a static expression
         }
 
@@ -332,6 +333,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
                 _tokenRefresh?.Dispose();
                 UnderlyingMqttClient.Dispose();
+                ReleaseClientId(ClientId);
                 _ackSenderCts.Dispose();
                 _pendingAcks.Dispose();
 
@@ -367,6 +369,47 @@ namespace Furly.Extensions.Mqtt.Clients
                     "Cannot reconnect prior to the initial connect");
             }
             return ConnectCoreAsync(UnderlyingMqttClient.Options, ct);
+        }
+
+        /// <summary>
+        /// Get unique client id
+        /// </summary>
+        /// <param name="clientId"></param>
+        /// <returns></returns>
+        public static string? GetUniqueClientId(string? clientId)
+        {
+            if (clientId == null)
+            {
+                return null;
+            }
+            var uniqueId = clientId;
+            lock (kUniqueClientIds)
+            {
+                for (var i = 0; ; i++)
+                {
+                    if (kUniqueClientIds.Add(uniqueId))
+                    {
+                        return uniqueId;
+                    }
+                    uniqueId = $"{clientId}_{i}";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Release client id
+        /// </summary>
+        /// <param name="clientId"></param>
+        internal static void ReleaseClientId(string? clientId)
+        {
+            if (clientId == null)
+            {
+                return;
+            }
+            lock (kUniqueClientIds)
+            {
+                kUniqueClientIds.Remove(clientId);
+            }
         }
 
         /// <summary>
@@ -1945,6 +1988,7 @@ namespace Furly.Extensions.Mqtt.Clients
         private bool _isDesiredConnected;
         private bool _isClosing;
         private readonly SemaphoreSlim _disconnectedEventLock = new(1);
+        private static readonly HashSet<string> kUniqueClientIds = new();
     }
 
     /// <summary>
@@ -1954,9 +1998,9 @@ namespace Furly.Extensions.Mqtt.Clients
     {
         private const int EventClass = 100;
 
-        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
-            Message = "{Message}")]
-        public static partial void HandleNetLogMessage(this ILogger logger, Exception? exception, string message);
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug, SkipEnabledCheck = true,
+            Message = "[{Source}] {Message}")]
+        public static partial void HandleNetLogMessage(this ILogger logger, Exception? exception, string source, string message);
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Successfully connected the session client to the MQTT broker. This connection will now be maintained.")]

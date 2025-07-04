@@ -81,7 +81,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
             _clients = Enumerable
                 .Range(0, numberofPartitions == 0 ? 1 : numberofPartitions)
-                .Select(id =>
+                .Select(_ =>
                 {
                     var client = new MqttSession(_logger, _options.Value, meter);
 
@@ -100,7 +100,7 @@ namespace Furly.Extensions.Mqtt.Clients
             _publisher = _options.Value.ConfigureSchemaMessage == null && registry == null
                 ? this : new MqttSchemaPublisher(_options, this, registry);
             _connection = Task.WhenAll(_clients
-                .Select((c, i) => c.ConnectAsync(GetClientOptions(i), _cts.Token)));
+                .Select(c => c.ConnectAsync(GetClientOptions(), _cts.Token)));
             _subscriber = Task.Factory.StartNew(() => SubscribeAsync(_cts.Token),
                 _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
@@ -591,16 +591,11 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <summary>
         /// Create client options
         /// </summary>
-        /// <param name="partitionIndex"></param>
         /// <returns></returns>
-        private MqttClientOptions GetClientOptions(int partitionIndex)
+        private MqttClientOptions GetClientOptions()
         {
             var tlsOptions = GetTlsOptions();
-            var clientId = Identity;
-            if (partitionIndex != 0)
-            {
-                clientId += "_" + partitionIndex.ToString(CultureInfo.InvariantCulture);
-            }
+            var clientId = MqttSession.GetUniqueClientId(_options.Value.ClientId);
             var options = new MqttClientOptions
             {
                 ProtocolVersion = ProtocolVersion,

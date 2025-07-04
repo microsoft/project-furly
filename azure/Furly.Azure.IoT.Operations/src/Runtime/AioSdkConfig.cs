@@ -21,8 +21,7 @@ namespace Furly.Azure.IoT.Operations.Runtime
     /// <summary>
     /// Azure IoT Operations configuration
     /// </summary>
-    internal sealed class AioSdkConfig : PostConfigureOptionBase<MqttOptions>,
-        IPostConfigureOptions<AioOptions>
+    internal sealed class AioSdkConfig : PostConfigureOptionBase<AioOptions>
     {
         public const string Name = "AioName";
         public const string Identity = "AioIdentity";
@@ -38,14 +37,13 @@ namespace Furly.Azure.IoT.Operations.Runtime
         }
 
         /// <inheritdoc/>
-        public override void PostConfigure(string? name, MqttOptions options)
+        public override void PostConfigure(string? name, AioOptions options)
         {
             MqttConnectionSettings? settings = null;
             if (KubernetesClientConfiguration.IsInCluster())
             {
                 if (Environment.GetEnvironmentVariable(ConnectorId) != null)
                 {
-                    _logger.RunningAsConnector();
                     // Running as connector
                     for (var i = 0; ; i++)
                     {
@@ -68,7 +66,6 @@ namespace Furly.Azure.IoT.Operations.Runtime
                 }
                 else if (Environment.GetEnvironmentVariable(BrokerHostName) != null)
                 {
-                    _logger.RunningAsWorkload();
                     settings = MqttConnectionSettings.FromEnvVars();
                 }
             }
@@ -78,39 +75,32 @@ namespace Furly.Azure.IoT.Operations.Runtime
                 var cs = GetStringOrDefault(MqttConnectionString);
                 if (cs != null)
                 {
-                    _logger.ConfigureUsingConnectionString();
                     settings = MqttConnectionSettings.FromConnectionString(cs);
                 }
             }
 
             if (settings != null)
             {
-                options.ClientId = settings.ClientId;
-                options.ClientCertificateFile = settings.CertFile;
-                options.ClientCertificate = settings.ClientCertificate;
-                options.ClientPrivateKeyFile = settings.KeyFile;
-                options.PrivateKeyPasswordFile = settings.KeyPasswordFile;
-                options.UserName = settings.Username;
-                options.PasswordFile = settings.PasswordFile;
-                options.KeepAlivePeriod = settings.KeepAlive;
-                options.SessionExpiry = settings.SessionExpiry;
-                options.CleanStart = settings.CleanStart;
-                options.HostName = settings.HostName;
-                options.Port = settings.TcpPort;
-                options.UseTls = settings.UseTls;
-                options.IssuerCertFile = settings.CaFile;
-                options.TrustChain = settings.TrustChain;
-                options.RequireRevocationCheck = false;
-                options.ReceiveMaximum = settings.ReceiveMaximum;
-                options.SatAuthFile = settings.SatAuthFile;
-
-                _logger.ConfigurationLoaded();
+                options.Mqtt.ClientId = settings.ClientId;
+                options.Mqtt.ClientCertificateFile = settings.CertFile;
+                options.Mqtt.ClientCertificate = settings.ClientCertificate;
+                options.Mqtt.ClientPrivateKeyFile = settings.KeyFile;
+                options.Mqtt.PrivateKeyPasswordFile = settings.KeyPasswordFile;
+                options.Mqtt.UserName = settings.Username;
+                options.Mqtt.PasswordFile = settings.PasswordFile;
+                options.Mqtt.KeepAlivePeriod = settings.KeepAlive;
+                options.Mqtt.SessionExpiry = settings.SessionExpiry;
+                options.Mqtt.CleanStart = settings.CleanStart;
+                options.Mqtt.HostName = settings.HostName;
+                options.Mqtt.Port = settings.TcpPort;
+                options.Mqtt.UseTls = settings.UseTls;
+                options.Mqtt.IssuerCertFile = settings.CaFile;
+                options.Mqtt.TrustChain = settings.TrustChain;
+                options.Mqtt.RequireRevocationCheck = false;
+                options.Mqtt.ReceiveMaximum = settings.ReceiveMaximum;
+                options.Mqtt.SatAuthFile = settings.SatAuthFile;
             }
-        }
 
-        /// <inheritdoc/>
-        public void PostConfigure(string? name, AioOptions options)
-        {
             options.ConnectorId ??= GetStringOrDefault(ConnectorId) ??
                 Environment.GetEnvironmentVariable(ConnectorId);
             options.Name ??= GetStringOrDefault(Name);
@@ -127,24 +117,8 @@ namespace Furly.Azure.IoT.Operations.Runtime
     {
         private const int EventClass = 0;
 
-        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
-            Message = "Running as Azure IoT Operations connector.")]
-        public static partial void RunningAsConnector(this ILogger logger);
-
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Error,
             Message = "Failed to read connector configuration from file")]
         public static partial void FailedToReadConfig(this ILogger logger, Exception ex);
-
-        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
-            Message = "Running as Azure IoT Operations workload.")]
-        public static partial void RunningAsWorkload(this ILogger logger);
-
-        [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Information,
-            Message = "Configure using Azure IoT Operations connection string.")]
-        public static partial void ConfigureUsingConnectionString(this ILogger logger);
-
-        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
-            Message = "Azure IoT Operations configuration loaded.")]
-        public static partial void ConfigurationLoaded(this ILogger logger);
     }
 }

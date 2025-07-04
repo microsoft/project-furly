@@ -99,7 +99,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services
                 .AddOptions()
-                .AddMqttClient()
                 .AddSingleton<ApplicationContext>()
                 .AddSingleton<AioSdkConfig>()
                 .AddSingleton<AioSdk>()
