@@ -5,18 +5,14 @@
 
 namespace Furly.Azure.IoT.Operations.Runtime
 {
-    using Furly.Exceptions;
     using Furly.Extensions.Configuration;
-    using Furly.Extensions.Mqtt;
     using global::Azure.Iot.Operations.Connector.ConnectorConfigurations;
     using global::Azure.Iot.Operations.Protocol.Connection;
     using k8s;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
     using System;
     using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Azure IoT Operations configuration

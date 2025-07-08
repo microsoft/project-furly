@@ -22,7 +22,6 @@ namespace Autofac
         {
             return builder
                 .AddAzureIoTOperationsCore()
-                .AddLeaderElection()
                 .AddSchemaRegistry()
                 .AddAdrClient()
                 .AddTelemtryPublisher()
@@ -38,18 +37,6 @@ namespace Autofac
         {
             builder.AddAzureIoTOperationsCore();
             builder.RegisterType<AioDssClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            return builder;
-        }
-
-        /// <summary>
-        /// Add Azure IoT Operations leader election services
-        /// </summary>
-        /// <param name="builder"></param>
-        public static ContainerBuilder AddLeaderElection(this ContainerBuilder builder)
-        {
-            builder.AddAzureIoTOperationsCore();
-            builder.RegisterType<AioLeClient>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder;
         }

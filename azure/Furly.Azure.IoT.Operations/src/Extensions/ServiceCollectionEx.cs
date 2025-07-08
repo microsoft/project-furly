@@ -12,6 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Storage;
+    using k8s;
+    using System;
 
     /// <summary>
     /// DI extension
@@ -29,7 +31,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddTelemetryPublisher()
                 .AddAdrClient()
                 .AddSchemaRegistry()
-                .AddLeaderElection()
                 .AddStateStore()
                 ;
         }
@@ -61,20 +62,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<AioSrClient>()
                 .AddSingleton<IAioSrClient>(services => services.GetRequiredService<AioSrClient>())
                 .AddSingleton<ISchemaRegistry>(services => services.GetRequiredService<AioSrClient>())
-                ;
-        }
-
-        /// <summary>
-        /// Add sr client
-        /// </summary>
-        /// <param name="services"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddLeaderElection(this IServiceCollection services)
-        {
-            return services
-                .AddAzureIoTOperationsCore()
-                .AddSingleton<AioLeClient>()
-                .AddSingleton<ILeaderElection>(services => services.GetRequiredService<AioLeClient>())
                 ;
         }
 
@@ -121,6 +108,26 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<AioMqttClient>()
                 .AddSingleton<IMqttPubSubClient>(services => services.GetRequiredService<AioMqttClient>())
                 .AddSingleton<IAwaitable<IMqttPubSubClient>>(services => services.GetRequiredService<AioMqttClient>())
+                ;
+        }
+
+        /// <summary>
+        /// Add leader election services if running in connector mode
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddLeaderElection(this IServiceCollection services)
+        {
+            if (!KubernetesClientConfiguration.IsInCluster() ||
+                Environment.GetEnvironmentVariable(AioSdkConfig.ConnectorId) == null)
+            {
+                // Not running in aio connector mode
+                return services;
+            }
+            return services
+                .AddAzureIoTOperationsCore()
+                .AddSingleton<AioLeClient>()
+                .AddSingleton<ILeaderElection>(services => services.GetRequiredService<AioLeClient>())
                 ;
         }
     }
