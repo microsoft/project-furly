@@ -1828,8 +1828,7 @@ namespace Furly.Extensions.Mqtt.Clients
             public TokenRefreshTimer(MqttSession outer, string tokenFilePath)
             {
                 _tokenFilePath = tokenFilePath;
-                var timeToRefresh = GetTokenExpiry(File.ReadAllBytes(tokenFilePath));
-
+                ReadToken(out _, out _lastTokenHash, out var timeToRefresh);
                 _refreshTimer = new Timer(RefreshToken, outer, timeToRefresh,
                     Timeout.InfiniteTimeSpan);
                 outer._logger.TokenRefreshSet(timeToRefresh);
@@ -1845,32 +1844,54 @@ namespace Furly.Extensions.Mqtt.Clients
                 outer._logger.TokenRefresh();
                 if (outer.IsConnected)
                 {
-                    var token = File.ReadAllBytes(_tokenFilePath);
-                    Task.Run(async () =>
+                    try
                     {
-                        await outer.SendEnhancedAuthenticationExchangeDataAsync(
-                            new MqttEnhancedAuthenticationExchangeData
+                        ReadToken(out var token, out var currentTokenHash, out var timeToRefresh);
+                        _refreshTimer.Change(timeToRefresh, Timeout.InfiniteTimeSpan);
+                        outer._logger.TokenRefreshSet(timeToRefresh);
+
+                        if (currentTokenHash != _lastTokenHash)
+                        {
+                            Task.Run(async () =>
                             {
-                                AuthenticationData = token,
-                                ReasonCode = MqttAuthenticateReasonCode.ReAuthenticate
-                            }, default).ConfigureAwait(false);
-                    });
-                    var timeToRefresh = GetTokenExpiry(token);
-                    _refreshTimer.Change(timeToRefresh, Timeout.InfiniteTimeSpan);
-                    outer._logger.TokenRefreshSet(timeToRefresh);
+                                await outer.SendEnhancedAuthenticationExchangeDataAsync(
+                                    new MqttEnhancedAuthenticationExchangeData
+                                    {
+                                        AuthenticationData = token,
+                                        ReasonCode = MqttAuthenticateReasonCode.ReAuthenticate
+                                    }, default).ConfigureAwait(false);
+
+                                _lastTokenHash = currentTokenHash;
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        outer._logger.TokenRefreshError(ex);
+                        var timeToRefresh = kDefaultTokenTimeout;
+                        _refreshTimer.Change(timeToRefresh, Timeout.InfiniteTimeSpan);
+                        outer._logger.TokenRefreshSet(timeToRefresh);
+                    }
                 }
             }
 
-            private static TimeSpan GetTokenExpiry(byte[] token)
+            private void ReadToken(out byte[] token, out int tokenHash, out TimeSpan duration)
             {
+                token = File.ReadAllBytes(_tokenFilePath);
                 var jwtToken = new JwtSecurityTokenHandler()
                     .ReadJwtToken(Encoding.UTF8.GetString(token));
-                var duration = jwtToken.ValidTo.Subtract(DateTime.UtcNow);
+                tokenHash = jwtToken.IssuedAt.GetHashCode() ^
+                       jwtToken.ValidTo.GetHashCode() ^
+                       jwtToken.ValidFrom.GetHashCode();
+                duration = jwtToken.ValidTo.Subtract(DateTime.UtcNow);
                 if (duration < kDefaultTokenTimeout)
                 {
-                    return kDefaultTokenTimeout;
+                    duration = kDefaultTokenTimeout;
                 }
-                return duration - kDefaultTokenTimeout;
+                else
+                {
+                    duration -= kDefaultTokenTimeout;
+                }
             }
 
             public void Dispose()
@@ -1879,6 +1900,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 GC.SuppressFinalize(this);
             }
 
+            private int _lastTokenHash;
             private readonly Timer _refreshTimer = null!;
             private readonly string _tokenFilePath = null!;
         }
@@ -2121,6 +2143,10 @@ namespace Furly.Extensions.Mqtt.Clients
         public static partial void TokenRefresh(this ILogger logger);
 
         [LoggerMessage(EventId = EventClass + 29, Level = LogLevel.Error,
+            Message = "Error reading token during token refresh")]
+        public static partial void TokenRefreshError(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Error,
             Message = "Encountered an exception during the user-supplied callback for handling received messages.")]
         public static partial void CallbackError(this ILogger logger, Exception exception);
     }

@@ -62,11 +62,11 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
-        /// <param name="meter"></param>
         /// <param name="registry"></param>
+        /// <param name="meter"></param>
         public MqttClient(IOptions<MqttOptions> options, ILogger<MqttClient> logger,
-            ISerializer serializer, IMeterProvider? meter = null,
-            ISchemaRegistry? registry = null) : base(options, serializer, logger)
+            ISerializer serializer, ISchemaRegistry? registry = null,
+            IMeterProvider? meter = null) : base(options, serializer, logger)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

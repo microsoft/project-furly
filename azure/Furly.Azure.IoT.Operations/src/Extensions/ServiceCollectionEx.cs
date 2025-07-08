@@ -26,6 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddAzureIoTOperations(this IServiceCollection services)
         {
             return services
+                .AddTelemetryPublisher()
                 .AddAdrClient()
                 .AddSchemaRegistry()
                 .AddLeaderElection()
@@ -58,6 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services
                 .AddAzureIoTOperationsCore()
                 .AddSingleton<AioSrClient>()
+                .AddSingleton<IAioSrClient>(services => services.GetRequiredService<AioSrClient>())
                 .AddSingleton<ISchemaRegistry>(services => services.GetRequiredService<AioSrClient>())
                 ;
         }
@@ -91,6 +93,20 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Add adr client
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddTelemetryPublisher(this IServiceCollection services)
+        {
+            return services
+                .AddAzureIoTOperationsCore()
+                .AddSingleton<AioPublisher>()
+                .AddSingleton<IEventClient>(services => services.GetRequiredService<AioPublisher>())
+                ;
+        }
+
+        /// <summary>
         /// Add Azure IoT Operations core
         /// </summary>
         /// <param name="services"></param>
@@ -103,6 +119,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<AioSdkConfig>()
                 .AddSingleton<AioSdk>()
                 .AddSingleton<AioMqttClient>()
+                .AddSingleton<IMqttPubSubClient>(services => services.GetRequiredService<AioMqttClient>())
                 .AddSingleton<IAwaitable<IMqttPubSubClient>>(services => services.GetRequiredService<AioMqttClient>())
                 ;
         }

@@ -16,7 +16,7 @@ namespace Furly.Azure.IoT.Operations.Services
     /// <summary>
     /// Aio schema registry client
     /// </summary>
-    public sealed class AioSrClient : ISchemaRegistry, IDisposable
+    public sealed class AioSrClient : IAioSrClient, IDisposable
     {
         /// <summary>
         /// Create aio sr client
