@@ -6,7 +6,7 @@
 namespace Furly.Azure.IoT.Operations.Services
 {
     using Furly.Azure.IoT.Operations.Runtime;
-    using Furly.Extensions.Configuration;
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Metrics;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Mqtt.Clients;
@@ -18,15 +18,14 @@ namespace Furly.Azure.IoT.Operations.Services
     using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
-    using System.Data.Common;
-    using System.Text;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Aio sdk Pub sub client adapter
     /// </summary>
-    internal sealed class AioMqttClient : IMqttPubSubClient, IAwaitable<IMqttPubSubClient>
+    internal sealed class AioMqttClient : IMqttPubSubClient, IEventClient, IAwaitable<IMqttPubSubClient>
     {
         /// <inheritdoc/>
         public string? ClientId => _client.ClientId;
@@ -35,18 +34,29 @@ namespace Furly.Azure.IoT.Operations.Services
         public MqttProtocolVersion ProtocolVersion => (MqttProtocolVersion)_client.ProtocolVersion;
 
         /// <inheritdoc/>
+        public string Name => "Aio";
+
+        /// <inheritdoc/>
+        public int MaxEventPayloadSizeInBytes => _client.MaxEventPayloadSizeInBytes;
+
+        /// <inheritdoc/>
+        public string Identity => _client.Identity;
+
+        /// <inheritdoc/>
         public event Func<MqttApplicationMessageReceivedEventArgs, Task>? ApplicationMessageReceivedAsync;
 
         /// <summary>
         /// Create aio mqtt client
         /// </summary>
+        /// <param name="context"></param>
         /// <param name="options"></param>
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
         /// <param name="meter"></param>
-        public AioMqttClient(IOptions<AioOptions> options, ILoggerFactory logger, ISerializer serializer,
-            IMeterProvider? meter = null)
+        public AioMqttClient(ApplicationContext context, IOptions<AioOptions> options,
+            ILoggerFactory logger, ISerializer serializer, IMeterProvider? meter = null)
         {
+            _context = context;
             _logger = logger.CreateLogger<AioMqttClient>();
             var mqttClientOptions = options.Value.Mqtt;
             if (string.IsNullOrEmpty(mqttClientOptions.ClientId))
@@ -63,6 +73,9 @@ namespace Furly.Azure.IoT.Operations.Services
             _client.MessageReceived = OnReceiveAsync;
             _logger.Connecting(mqttClientOptions.ClientId);
         }
+
+        /// <inheritdoc/>
+        public IEvent CreateEvent() => new AioMqttMessage(this, _client.CreateEvent());
 
         /// <inheritdoc/>
         public IAwaiter<IMqttPubSubClient> GetAwaiter()
@@ -138,8 +151,87 @@ namespace Furly.Azure.IoT.Operations.Services
                 args.ToSdkType((a, ct) => args.AcknowledgeAsync(ct)));
         }
 
+        /// <summary>
+        /// Message wrapper
+        /// </summary>
+        private sealed class AioMqttMessage : IEvent
+        {
+            /// <inheritdoc/>
+            public AioMqttMessage(AioMqttClient client, IEvent ev)
+            {
+                _client = client;
+                _event = ev;
+            }
+
+            /// <inheritdoc/>
+            public IEvent SetTopic(string? value)
+                => _event.SetTopic(value);
+
+            /// <inheritdoc/>
+            public IEvent SetTimestamp(DateTimeOffset value)
+                => _event.SetTimestamp(value);
+
+            /// <inheritdoc/>
+            public IEvent SetContentType(string? value)
+                => _event.SetContentType(value);
+
+            /// <inheritdoc/>
+            public IEvent SetContentEncoding(string? value)
+                => _event.SetContentEncoding(value);
+
+            /// <inheritdoc/>
+            public IEvent AsCloudEvent(CloudEventHeader header)
+                => _event.AsCloudEvent(header);
+
+            /// <inheritdoc/>
+            public IEvent SetSchema(IEventSchema schema)
+                => _event.SetSchema(schema);
+
+            /// <inheritdoc/>
+            public IEvent AddProperty(string name, string? value)
+                => _event.AddProperty(name, value);
+
+            /// <inheritdoc/>
+            public IEvent SetRetain(bool value)
+                => _event.SetRetain(value);
+
+            /// <inheritdoc/>
+            public IEvent SetQoS(QoS value)
+                => _event.SetQoS(value);
+
+            /// <inheritdoc/>
+            public IEvent SetTtl(TimeSpan value)
+                => _event.SetTtl(value);
+
+            /// <inheritdoc/>
+            public IEvent AddBuffers(IEnumerable<ReadOnlySequence<byte>> value)
+                => _event.AddBuffers(value);
+
+            /// <inheritdoc/>
+            public async ValueTask SendAsync(CancellationToken ct = default)
+            {
+                // add hlc
+                await _client._context.ApplicationHlc.UpdateNowAsync(
+                    cancellationToken: ct).ConfigureAwait(false);
+                _event.AddProperty(AkriSystemProperties.Timestamp,
+                    _client._context.ApplicationHlc.EncodeToString());
+
+                _event.AddProperty("__protVer", "1.0");
+                _event.AddProperty("__srcId", _client.Identity);
+
+                await _event.SendAsync(ct).ConfigureAwait(false);
+            }
+
+            /// <inheritdoc/>
+            public void Dispose() => _event.Dispose();
+
+            private readonly AioMqttClient _client;
+            private readonly IEvent _event;
+        }
+
         private readonly MqttClient _client;
         private readonly ILogger _logger;
+        private readonly ApplicationContext _context;
     }
 
     /// <summary>

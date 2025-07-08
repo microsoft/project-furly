@@ -1828,11 +1828,11 @@ namespace Furly.Extensions.Mqtt.Clients
             public TokenRefreshTimer(MqttSession outer, string tokenFilePath)
             {
                 _tokenFilePath = tokenFilePath;
-                var secondsToRefresh = GetTokenExpiry(File.ReadAllBytes(tokenFilePath));
+                var timeToRefresh = GetTokenExpiry(File.ReadAllBytes(tokenFilePath));
 
-                _refreshTimer = new Timer(RefreshToken, outer, secondsToRefresh * 1000,
-                    Timeout.Infinite);
-                outer._logger.TokenRefreshSet(secondsToRefresh);
+                _refreshTimer = new Timer(RefreshToken, outer, timeToRefresh,
+                    Timeout.InfiniteTimeSpan);
+                outer._logger.TokenRefreshSet(timeToRefresh);
             }
 
             /// <summary>
@@ -1855,17 +1855,22 @@ namespace Furly.Extensions.Mqtt.Clients
                                 ReasonCode = MqttAuthenticateReasonCode.ReAuthenticate
                             }, default).ConfigureAwait(false);
                     });
-                    var secondsToRefresh = GetTokenExpiry(token);
-                    _refreshTimer.Change(secondsToRefresh * 1000, Timeout.Infinite);
-                    outer._logger.TokenRefreshSet(secondsToRefresh);
+                    var timeToRefresh = GetTokenExpiry(token);
+                    _refreshTimer.Change(timeToRefresh, Timeout.InfiniteTimeSpan);
+                    outer._logger.TokenRefreshSet(timeToRefresh);
                 }
             }
 
-            private static int GetTokenExpiry(byte[] token)
+            private static TimeSpan GetTokenExpiry(byte[] token)
             {
                 var jwtToken = new JwtSecurityTokenHandler()
                     .ReadJwtToken(Encoding.UTF8.GetString(token));
-                return (int)jwtToken.ValidTo.Subtract(DateTime.UtcNow).TotalSeconds - 5;
+                var duration = jwtToken.ValidTo.Subtract(DateTime.UtcNow);
+                if (duration < kDefaultTokenTimeout)
+                {
+                    return kDefaultTokenTimeout;
+                }
+                return duration - kDefaultTokenTimeout;
             }
 
             public void Dispose()
@@ -1989,6 +1994,7 @@ namespace Furly.Extensions.Mqtt.Clients
         private bool _isClosing;
         private readonly SemaphoreSlim _disconnectedEventLock = new(1);
         private static readonly HashSet<string> kUniqueClientIds = new();
+        private static readonly TimeSpan kDefaultTokenTimeout = TimeSpan.FromSeconds(5);
     }
 
     /// <summary>
@@ -2107,8 +2113,8 @@ namespace Furly.Extensions.Mqtt.Clients
         public static partial void AckStopped(this ILogger logger);
 
         [LoggerMessage(EventId = EventClass + 27, Level = LogLevel.Information,
-            Message = "Refresh token Timer set to {SecondsToRefresh} s.")]
-        public static partial void TokenRefreshSet(this ILogger logger, int secondsToRefresh);
+            Message = "Refresh token Timer set to {TimeToNextRefresh} s.")]
+        public static partial void TokenRefreshSet(this ILogger logger, TimeSpan timeToNextRefresh);
 
         [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Information,
             Message = "Refresh token Timer")]
