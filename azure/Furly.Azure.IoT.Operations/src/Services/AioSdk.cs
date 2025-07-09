@@ -12,10 +12,10 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Services.LeaderElection;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
     using global::Azure.Iot.Operations.Services.StateStore;
-    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Diagnostics;
 
     /// <summary>
     /// Wraps the aio sdk concept
@@ -27,13 +27,14 @@ namespace Furly.Azure.IoT.Operations.Services
         /// </summary>
         /// <param name="context"></param>
         /// <param name="options"></param>
-        /// <param name="logger"></param>
+        /// <param name="loggerFactory"></param>
         public AioSdk(ApplicationContext context, IOptions<AioOptions> options,
-            ILogger<AioSdk> logger)
+            ILoggerFactory loggerFactory)
         {
             _context = context;
             _options = options;
 
+            var logger = loggerFactory.CreateLogger<AioSdk>();
             if (_options.Value.ConnectorId != null)
             {
                 logger.RunningAsConnector();
@@ -41,6 +42,11 @@ namespace Furly.Azure.IoT.Operations.Services
             else
             {
                 logger.RunningAsWorkload();
+            }
+
+            if (options.Value.HookAioSdkTraceLogging)
+            {
+                AioSdkLogs.Hook(loggerFactory);
             }
         }
 
