@@ -31,6 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddTelemetryPublisher()
                 .AddAdrClient()
                 .AddSchemaRegistry()
+                .AddLeaderElection()
                 .AddStateStore()
                 ;
         }
@@ -94,6 +95,20 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         /// <summary>
+        /// Add leader election services
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        public static IServiceCollection AddLeaderElection(this IServiceCollection services)
+        {
+            return services
+                .AddAzureIoTOperationsCore()
+                .AddSingleton<AioLeClient>()
+                .AddSingleton<ILeaderElection>(services => services.GetRequiredService<AioLeClient>())
+                ;
+        }
+
+        /// <summary>
         /// Add Azure IoT Operations core
         /// </summary>
         /// <param name="services"></param>
@@ -108,26 +123,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<AioMqttClient>()
                 .AddSingleton<IMqttPubSubClient>(services => services.GetRequiredService<AioMqttClient>())
                 .AddSingleton<IAwaitable<IMqttPubSubClient>>(services => services.GetRequiredService<AioMqttClient>())
-                ;
-        }
-
-        /// <summary>
-        /// Add leader election services if running in connector mode
-        /// </summary>
-        /// <param name="services"></param>
-        /// <returns></returns>
-        public static IServiceCollection AddLeaderElection(this IServiceCollection services)
-        {
-            if (!KubernetesClientConfiguration.IsInCluster() ||
-                Environment.GetEnvironmentVariable(AioSdkConfig.ConnectorId) == null)
-            {
-                // Not running in aio connector mode
-                return services;
-            }
-            return services
-                .AddAzureIoTOperationsCore()
-                .AddSingleton<AioLeClient>()
-                .AddSingleton<ILeaderElection>(services => services.GetRequiredService<AioLeClient>())
                 ;
         }
     }

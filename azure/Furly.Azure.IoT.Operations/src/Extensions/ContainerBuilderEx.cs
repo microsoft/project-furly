@@ -24,7 +24,8 @@ namespace Autofac
                 .AddAzureIoTOperationsCore()
                 .AddSchemaRegistry()
                 .AddAdrClient()
-                .AddTelemtryPublisher()
+                .AddTelemetryPublisher()
+                .AddLeaderElection()
                 .AddStateStore()
                 ;
         }
@@ -69,10 +70,22 @@ namespace Autofac
         /// Add Azure IoT Operations telemetry publisher services
         /// </summary>
         /// <param name="builder"></param>
-        public static ContainerBuilder AddTelemtryPublisher(this ContainerBuilder builder)
+        public static ContainerBuilder AddTelemetryPublisher(this ContainerBuilder builder)
         {
             builder.AddAzureIoTOperationsCore();
             builder.RegisterType<AioPublisher>()
+                .AsImplementedInterfaces().SingleInstance();
+            return builder;
+        }
+
+        /// <summary>
+        /// Add Azure IoT Operations leader election services
+        /// </summary>
+        /// <param name="builder"></param>
+        public static ContainerBuilder AddLeaderElection(this ContainerBuilder builder)
+        {
+            builder.AddAzureIoTOperationsCore();
+            builder.RegisterType<AioLeClient>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder;
         }

@@ -18,37 +18,36 @@ namespace Furly.Extensions.Hosting
     public static class HostingExtensions
     {
         /// <summary>
-        /// Run the host as a leader in a distributed system.
+        /// Build the host and run it while this process is the leader
         /// </summary>
-        /// <param name="host"></param>
+        /// <param name="builder"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task RunWithLeaderElectionAsync(this IHost host,
-            CancellationToken ct = default)
+        public static async Task RunAsync(this IHostBuilder builder, CancellationToken ct = default)
         {
-            var leaderElection = host.Services.GetService<ILeaderElection>();
-            if (leaderElection != null)
+            while (true)
             {
-                while (true)
+                ct.ThrowIfCancellationRequested();
+                using var host = builder.Build();
+                var leaderElection = host.Services.GetService<ILeaderElection>();
+                if (leaderElection == null)
                 {
-                    ct.ThrowIfCancellationRequested();
-
-                    // Wait until we are leader
-                    await leaderElection.WaitAsync(ct).ConfigureAwait(false);
-                    while (leaderElection.IsLeader)
-                    {
-                        try
-                        {
-                            await host.RunAsync(leaderElection.CancellationToken).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException) { }
-                        // Lost the leadership, wait for the next election
-                    }
+                    // No leader election service configured, run the host directly and when done exit
+                    await host.RunAsync(ct).ConfigureAwait(false);
+                    break;
                 }
-            }
-            else
-            {
-                await host.RunAsync(ct).ConfigureAwait(false);
+
+                // Wait until we are leader and then start running until we loose leadership
+                await leaderElection.WaitAsync(ct).ConfigureAwait(false);
+                while (leaderElection.IsLeader)
+                {
+                    try
+                    {
+                        await host.RunAsync(leaderElection.CancellationToken).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) { }
+                    // Lost the leadership, wait for the next election
+                }
             }
         }
     }
