@@ -50,10 +50,6 @@ namespace Furly.Azure.IoT.Operations.Services
                     listeners.Add(listener);
                 }
             }
-            if (listeners.Count == 0)
-            {
-                return;
-            }
 #pragma warning disable CA2000 // Dispose objects before losing scope
             var hook = new AioSdkLogs(listeners, loggerFactory, defaultListener);
 #pragma warning restore CA2000 // Dispose objects before losing scope
