@@ -196,6 +196,10 @@ namespace Furly.Azure.EventHubs.Clients
             /// <inheritdoc/>
             public async ValueTask SendAsync(CancellationToken ct)
             {
+                if (_buffers.Count == 0)
+                {
+                    return;
+                }
                 try
                 {
                     // Register the schema if not registered

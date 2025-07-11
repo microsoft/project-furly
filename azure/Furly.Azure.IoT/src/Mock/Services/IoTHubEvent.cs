@@ -159,7 +159,10 @@ namespace Furly.Azure.IoT.Mock.Services
         /// <inheritdoc/>
         public ValueTask SendAsync(CancellationToken ct = default)
         {
-            _send?.Invoke(this);
+            if (Buffers.Count != 0)
+            {
+                _send?.Invoke(this);
+            }
             return ValueTask.CompletedTask;
         }
 

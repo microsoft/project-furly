@@ -224,6 +224,10 @@ namespace Furly.Azure.IoT.Edge.Services
             /// <inheritdoc />
             public async ValueTask SendAsync(CancellationToken ct)
             {
+                if (_buffers.Count == 0)
+                {
+                    return;
+                }
                 var messages = AsMessages();
                 try
                 {

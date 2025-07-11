@@ -189,6 +189,10 @@ namespace Furly.Extensions.Messaging.Clients
                     _content.ForEach(multipart.Add);
                     _request.Content = multipart;
                 }
+                else if (_content.Count == 0)
+                {
+                    _request.Content = new ByteArrayContent([]);
+                }
                 else
                 {
                     _request.Content = _content[0];

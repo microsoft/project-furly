@@ -162,7 +162,6 @@ namespace Furly.Extensions.Dapr.Clients
                 {
                     return;
                 }
-
                 var topic = _topic;
                 if (topic == null)
                 {

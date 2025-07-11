@@ -214,6 +214,10 @@ namespace Furly.Azure.IoT.Services
             /// <inheritdoc/>
             public async ValueTask SendAsync(CancellationToken ct)
             {
+                if (_buffers.Count == 0)
+                {
+                    return;
+                }
                 var messages = _buffers.ConvertAll(m => CreateMessage(m.ToArray()));
                 try
                 {

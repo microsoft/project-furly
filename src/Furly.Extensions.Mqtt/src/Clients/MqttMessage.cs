@@ -171,8 +171,15 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         /// <inheritdoc/>
-        public async ValueTask SendAsync(CancellationToken ct = default)
+        public async ValueTask SendAsync(CancellationToken ct)
         {
+            if (_buffers.Count == 0)
+            {
+                // publish empty message
+                var message = _builder.Build();
+                await _publish.PublishAsync(message, _schema, ct).ConfigureAwait(false);
+                return;
+            }
             foreach (var buffer in _buffers)
             {
                 if (buffer.IsSingleSegment)
