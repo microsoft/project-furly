@@ -48,10 +48,5 @@ namespace Furly.Azure.IoT.Operations.Runtime
         /// </summary>
         public TimeSpan LeadershipRenewalPeriod { get; set; }
             = TimeSpan.FromSeconds(30);
-
-        /// <summary>
-        /// Hook the trace listener to log to the logger
-        /// </summary>
-        public bool HookAioSdkTraceLogging { get; set; }
     }
 }

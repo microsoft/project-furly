@@ -43,11 +43,6 @@ namespace Furly.Azure.IoT.Operations.Services
             {
                 logger.RunningAsWorkload();
             }
-
-            if (_options.Value.HookAioSdkTraceLogging)
-            {
-                AioSdkLogs.Hook(loggerFactory);
-            }
         }
 
         /// <inheritdoc/>
