@@ -223,7 +223,7 @@ namespace Furly.Azure.IoT.Operations.Services
             => eventType switch
             {
                 TraceEventType.Verbose => LogLevel.Debug,
-                TraceEventType.Information => LogLevel.Debug,
+                TraceEventType.Information => LogLevel.Information,
                 TraceEventType.Critical => LogLevel.Critical,
                 TraceEventType.Error => LogLevel.Error,
                 TraceEventType.Warning => LogLevel.Warning,
