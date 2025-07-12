@@ -9,7 +9,6 @@ namespace Furly.Azure.IoT.Operations.Services
     using Furly.Extensions.Storage.Services;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.StateStore;
-    using k8s.KubeConfigModels;
     using Microsoft.Extensions.Logging;
     using System;
     using System.Collections.Generic;
@@ -17,12 +16,12 @@ namespace Furly.Azure.IoT.Operations.Services
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Key value store built on top of dapr
+    /// Key value store built on top of Distributed State Store
     /// </summary>
     public sealed class AioDssClient : KVStoreCollection
     {
         /// <inheritdoc/>
-        public override string Name => "Aio";
+        public override string Name => "AioDss";
 
         /// <summary>
         /// Create aio state store

@@ -20,12 +20,12 @@ namespace Furly.Azure.IoT.Operations.Services
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Aio publisher
+    /// Aio mqtt publisher
     /// </summary>
-    internal sealed class AioPublisher : IEventClient, IAsyncDisposable, IDisposable
+    internal sealed class AioMqttPublisher : IEventClient, IAsyncDisposable, IDisposable
     {
         /// <inheritdoc/>
-        public string Name => "Aio";
+        public string Name => "AioMqtt";
 
         /// <inheritdoc/>
         public int MaxEventPayloadSizeInBytes => _client.MaxEventPayloadSizeInBytes;
@@ -42,7 +42,7 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="serializer"></param>
         /// <param name="registry"></param>
         /// <param name="meter"></param>
-        public AioPublisher(ApplicationContext context, IOptions<AioOptions> options,
+        public AioMqttPublisher(ApplicationContext context, IOptions<AioOptions> options,
             ILoggerFactory logger, ISerializer serializer, IAioSrClient? registry = null,
             IMeterProvider? meter = null)
         {
@@ -59,7 +59,7 @@ namespace Furly.Azure.IoT.Operations.Services
             };
             _client = new MqttClient(Options.Create(mqttClientOptions),
                 logger.CreateLogger<MqttClient>(), serializer, registry, meter);
-            _logger.PublisherConnecting(mqttClientOptions.ClientId);
+            _logger.MqttPublisherConnecting(mqttClientOptions.ClientId);
         }
 
         /// <inheritdoc/>
@@ -72,7 +72,7 @@ namespace Furly.Azure.IoT.Operations.Services
             static async Task AwaitAsync(MqttClient client, ILogger _logger)
             {
                 await client;
-                _logger.PublisherConnected(client.ClientId);
+                _logger.MqttPublisherConnected(client.ClientId);
             }
         }
 
@@ -82,7 +82,7 @@ namespace Furly.Azure.IoT.Operations.Services
             _client.MessageReceived = null;
             var clientId = _client.ClientId;
             await _client.DisposeAsync().ConfigureAwait(false);
-            _logger.PublisherDisposed(clientId);
+            _logger.MqttPublisherDisposed(clientId);
         }
 
         /// <inheritdoc/>
@@ -100,7 +100,7 @@ namespace Furly.Azure.IoT.Operations.Services
         private sealed class AioMqttMessage : IEvent
         {
             /// <inheritdoc/>
-            public AioMqttMessage(AioPublisher client, IEvent ev)
+            public AioMqttMessage(AioMqttPublisher client, IEvent ev)
             {
                 _client = client;
                 _event = ev;
@@ -168,7 +168,7 @@ namespace Furly.Azure.IoT.Operations.Services
             /// <inheritdoc/>
             public void Dispose() => _event.Dispose();
 
-            private readonly AioPublisher _client;
+            private readonly AioMqttPublisher _client;
             private readonly IEvent _event;
         }
 
@@ -180,20 +180,20 @@ namespace Furly.Azure.IoT.Operations.Services
     /// <summary>
     /// Source-generated logging for AioPublisher
     /// </summary>
-    internal static partial class AioPublisherLogging
+    internal static partial class AioMqttPublisherLogging
     {
         private const int EventClass = 30;
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
             Message = "Publisher client {ClientId} connecting ...")]
-        public static partial void PublisherConnecting(this ILogger logger, string? clientId);
+        public static partial void MqttPublisherConnecting(this ILogger logger, string? clientId);
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Publisher client connected with client id {ClientId}.")]
-        public static partial void PublisherConnected(this ILogger logger, string? clientId);
+        public static partial void MqttPublisherConnected(this ILogger logger, string? clientId);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Information,
             Message = "Publisher client {ClientId} disposed.")]
-        public static partial void PublisherDisposed(this ILogger logger, string? clientId);
+        public static partial void MqttPublisherDisposed(this ILogger logger, string? clientId);
     }
 }

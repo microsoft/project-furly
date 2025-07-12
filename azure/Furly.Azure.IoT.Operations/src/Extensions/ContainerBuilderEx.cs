@@ -73,7 +73,9 @@ namespace Autofac
         public static ContainerBuilder AddTelemetryPublisher(this ContainerBuilder builder)
         {
             builder.AddAzureIoTOperationsCore();
-            builder.RegisterType<AioPublisher>()
+            builder.RegisterType<AioMqttPublisher>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<AioDssPublisher>()
                 .AsImplementedInterfaces().SingleInstance();
             return builder;
         }

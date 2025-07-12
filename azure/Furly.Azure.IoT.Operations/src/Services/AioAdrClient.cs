@@ -71,6 +71,10 @@ namespace Furly.Azure.IoT.Operations.Services
                 _logger.StopMonitoring();
                 await _client.UnobserveAllAsync(default).ConfigureAwait(false);
             }
+            catch (Exception ex)
+            {
+                _logger.StopMonitoringFailed(ex);
+            }
             finally
             {
                 await _client.DisposeAsync().ConfigureAwait(false);
@@ -183,5 +187,9 @@ namespace Furly.Azure.IoT.Operations.Services
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Stop ADR service client.")]
         public static partial void StopMonitoring(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Debug,
+            Message = "Error stopping and disposing ADR service client.")]
+        public static partial void StopMonitoringFailed(this ILogger logger, Exception ex);
     }
 }

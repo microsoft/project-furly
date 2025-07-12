@@ -89,8 +89,10 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services
                 .AddAzureIoTOperationsCore()
-                .AddSingleton<AioPublisher>()
-                .AddSingleton<IEventClient>(services => services.GetRequiredService<AioPublisher>())
+                .AddSingleton<AioMqttPublisher>()
+                .AddSingleton<IEventClient>(services => services.GetRequiredService<AioMqttPublisher>())
+                .AddSingleton<AioDssPublisher>()
+                .AddSingleton<IEventClient>(services => services.GetRequiredService<AioDssPublisher>())
                 ;
         }
 

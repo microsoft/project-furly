@@ -6,6 +6,7 @@
 namespace Furly.Azure.IoT.Operations.Services
 {
     using Furly.Azure.IoT.Operations.Runtime;
+    using Furly.Extensions.Messaging;
     using Furly.Extensions.Metrics;
     using Furly.Extensions.Mqtt;
     using Furly.Extensions.Mqtt.Clients;
@@ -35,6 +36,11 @@ namespace Furly.Azure.IoT.Operations.Services
         public event Func<MqttApplicationMessageReceivedEventArgs, Task>? ApplicationMessageReceivedAsync;
 
         /// <summary>
+        /// Acces to the inner client
+        /// </summary>
+        internal IEventClient InnerClient => _client;
+
+        /// <summary>
         /// Create aio mqtt client
         /// </summary>
         /// <param name="context"></param>
@@ -42,8 +48,10 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <param name="logger"></param>
         /// <param name="serializer"></param>
         /// <param name="meter"></param>
+        /// <param name="postFix"></param>
         public AioMqttClient(ApplicationContext context, IOptions<AioOptions> options,
-            ILoggerFactory logger, ISerializer serializer, IMeterProvider? meter = null)
+            ILoggerFactory logger, ISerializer serializer, IMeterProvider? meter = null,
+            string? postFix = null)
         {
             _context = context;
             _logger = logger.CreateLogger<AioMqttClient>();
@@ -54,7 +62,7 @@ namespace Furly.Azure.IoT.Operations.Services
             }
             mqttClientOptions = mqttClientOptions with
             {
-                ClientId = mqttClientOptions.ClientId + "_sdk", // Set client id
+                ClientId = mqttClientOptions.ClientId + "_" + (postFix ?? "sdk"),
                 NumberOfClientPartitions = 1
             };
             _client = new MqttClient(Options.Create(mqttClientOptions),
