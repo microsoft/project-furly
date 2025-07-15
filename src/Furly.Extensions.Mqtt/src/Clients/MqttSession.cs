@@ -426,14 +426,20 @@ namespace Furly.Extensions.Mqtt.Clients
 
             MaximumPacketSize = options.MaximumPacketSize;
 
+            if (_options.SatAuthFile != null)
+            {
+                options.AuthenticationMethod = "K8S-SAT";
+                options.AuthenticationData = await File.ReadAllBytesAsync(
+                    _options.SatAuthFile, ct).ConfigureAwait(false);
+            }
+
             var result = await UnderlyingMqttClient.ConnectAsync(options,
                 ct).ConfigureAwait(false);
 
             _metrics.Connect.Add(1, KeyValuePair.Create("ResultCode",
                 (object?)result.ResultCode));
 
-            if (options.AuthenticationMethod == "K8S-SAT" &&
-                _options.SatAuthFile != null)
+            if (_options.SatAuthFile != null)
             {
                 _tokenRefresh?.Dispose();
                 _tokenRefresh = new TokenRefreshTimer(this, _options.SatAuthFile);
@@ -1828,7 +1834,7 @@ namespace Furly.Extensions.Mqtt.Clients
             public TokenRefreshTimer(MqttSession outer, string tokenFilePath)
             {
                 _tokenFilePath = tokenFilePath;
-                ReadToken(out _, out _lastTokenHash, out var timeToRefresh);
+                ReadToken(outer, out _, out _lastTokenHash, out var timeToRefresh);
                 _refreshTimer = new Timer(RefreshToken, outer, timeToRefresh,
                     Timeout.InfiniteTimeSpan);
                 outer._logger.TokenRefreshSet(timeToRefresh);
@@ -1841,17 +1847,18 @@ namespace Furly.Extensions.Mqtt.Clients
             private void RefreshToken(object? state)
             {
                 var outer = (MqttSession)state!;
-                outer._logger.TokenRefresh();
                 if (outer.IsConnected)
                 {
                     try
                     {
-                        ReadToken(out var token, out var currentTokenHash, out var timeToRefresh);
+                        ReadToken(outer, out var token, out var currentTokenHash,
+                            out var timeToRefresh);
                         _refreshTimer.Change(timeToRefresh, Timeout.InfiniteTimeSpan);
                         outer._logger.TokenRefreshSet(timeToRefresh);
 
                         if (currentTokenHash != _lastTokenHash)
                         {
+                            outer._logger.TokenRefresh();
                             Task.Run(async () =>
                             {
                                 await outer.SendEnhancedAuthenticationExchangeDataAsync(
@@ -1875,14 +1882,15 @@ namespace Furly.Extensions.Mqtt.Clients
                 }
             }
 
-            private void ReadToken(out byte[] token, out int tokenHash, out TimeSpan duration)
+            private void ReadToken(MqttSession session, out byte[] token, out int tokenHash,
+                out TimeSpan duration)
             {
                 token = File.ReadAllBytes(_tokenFilePath);
-                var jwtToken = new JwtSecurityTokenHandler()
-                    .ReadJwtToken(Encoding.UTF8.GetString(token));
+                var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(Encoding.UTF8.GetString(token));
                 tokenHash = jwtToken.IssuedAt.GetHashCode() ^
                        jwtToken.ValidTo.GetHashCode() ^
                        jwtToken.ValidFrom.GetHashCode();
+                session._logger.TokenRefreshRead(tokenHash, jwtToken.IssuedAt, jwtToken.ValidFrom, jwtToken.ValidTo);
                 duration = jwtToken.ValidTo.Subtract(DateTime.UtcNow);
                 if (duration < kDefaultTokenTimeout)
                 {
@@ -2139,14 +2147,19 @@ namespace Furly.Extensions.Mqtt.Clients
         public static partial void TokenRefreshSet(this ILogger logger, TimeSpan timeToNextRefresh);
 
         [LoggerMessage(EventId = EventClass + 28, Level = LogLevel.Information,
-            Message = "Refresh token Timer")]
+            Message = "Reauthenticate with refreshed token.")]
         public static partial void TokenRefresh(this ILogger logger);
 
         [LoggerMessage(EventId = EventClass + 29, Level = LogLevel.Error,
             Message = "Error reading token during token refresh")]
         public static partial void TokenRefreshError(this ILogger logger, Exception exception);
 
-        [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Error,
+        [LoggerMessage(EventId = EventClass + 30, Level = LogLevel.Information,
+            Message = "Read token {Id} issued at {IssuedAt}, valid from {ValidFrom} to {ValidTo}")]
+        public static partial void TokenRefreshRead(this ILogger logger, int id, DateTime issuedAt,
+            DateTime validFrom, DateTime validTo);
+
+        [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Error,
             Message = "Encountered an exception during the user-supplied callback for handling received messages.")]
         public static partial void CallbackError(this ILogger logger, Exception exception);
     }
