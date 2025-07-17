@@ -182,7 +182,7 @@ namespace Furly.Azure.IoT.Operations.Services
     /// </summary>
     internal static partial class AioMqttPublisherLogging
     {
-        private const int EventClass = 30;
+        private const int EventClass = 60;
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
             Message = "Publisher client {ClientId} connecting ...")]

@@ -103,7 +103,7 @@ namespace Furly.Azure.IoT.Operations.Services
     /// </summary>
     internal static partial class AioLeClientLogging
     {
-        private const int EventClass = 50;
+        private const int EventClass = 40;
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
             Message = "Start leadership election using client {ClientId}")]

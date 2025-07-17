@@ -6,7 +6,7 @@
 namespace Furly.Azure.IoT.Operations.Services
 {
     using Furly.Extensions.Messaging;
-    using Furly.Extensions.Storage.Services;
+    using Furly.Extensions.Logging;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
     using global::Azure.Iot.Operations.Services.SchemaRegistry.SchemaRegistry;
@@ -24,7 +24,7 @@ namespace Furly.Azure.IoT.Operations.Services
         public void DisposeCallsDisposeAsyncMethodOnClient()
         {
             _clientMock.Setup(c => c.DisposeAsync()).Returns(ValueTask.CompletedTask);
-            var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object);
+            var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object, Log.Console<AioSrClient>());
             client.Dispose();
             _clientMock.Verify(c => c.DisposeAsync(), Times.Once);
         }
@@ -43,9 +43,9 @@ namespace Furly.Azure.IoT.Operations.Services
             };
             _clientMock.Setup(c => c.PutAsync("myschema", Format.JsonSchemaDraft07, SchemaType.MessageSchema,
                  "1.0.0", null, null, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
-            using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object);
+            using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object, Log.Console<AioSrClient>());
             var result = await client.RegisterAsync(schema.Object, CancellationToken.None);
-            Assert.Equal("ns/myname", result);
+            Assert.Equal("myname", result);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Furly.Azure.IoT.Operations.Services
         {
             var schema = new Mock<IEventSchema>();
             schema.SetupGet(s => s.Type).Returns("unsupported");
-            using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object);
+            using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object, Log.Console<AioSrClient>());
             await Assert.ThrowsAsync<NotSupportedException>(
                 async () => await client.RegisterAsync(schema.Object, CancellationToken.None).ConfigureAwait(false));
         }
@@ -68,7 +68,7 @@ namespace Furly.Azure.IoT.Operations.Services
             _clientMock.Setup(c => c.PutAsync("myschema", Format.JsonSchemaDraft07, SchemaType.MessageSchema,
                  "1.0.0", null, null, It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult<Schema>(null));
-            using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object);
+            using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object, Log.Console<AioSrClient>());
             await Assert.ThrowsAsync<InvalidOperationException>(
                 async () => await client.RegisterAsync(schema.Object, CancellationToken.None).ConfigureAwait(false));
         }

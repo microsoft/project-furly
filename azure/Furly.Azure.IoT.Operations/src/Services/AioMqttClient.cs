@@ -161,7 +161,7 @@ namespace Furly.Azure.IoT.Operations.Services
     /// </summary>
     internal static partial class AioMqttClientLogging
     {
-        private const int EventClass = 30;
+        private const int EventClass = 50;
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Information,
             Message = "Sdk mqtt client {ClientId} connecting...")]

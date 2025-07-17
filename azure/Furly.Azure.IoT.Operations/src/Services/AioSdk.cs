@@ -100,7 +100,7 @@ namespace Furly.Azure.IoT.Operations.Services
     /// </summary>
     internal static partial class AioSdkLogging
     {
-        private const int EventClass = 2;
+        private const int EventClass = 80;
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Running as Azure IoT Operations connector.")]
