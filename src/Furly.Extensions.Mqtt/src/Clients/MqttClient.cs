@@ -333,7 +333,7 @@ namespace Furly.Extensions.Mqtt.Clients
         public IEvent CreateEvent()
         {
             ObjectDisposedException.ThrowIf(_isDisposed, _publisher);
-            return new MqttMessage(_options, this);
+            return new MqttMessage(_options, _publisher);
         }
 
         /// <inheritdoc/>
