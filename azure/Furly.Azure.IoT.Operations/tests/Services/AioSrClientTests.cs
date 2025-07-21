@@ -36,13 +36,15 @@ namespace Furly.Azure.IoT.Operations.Services
             schema.SetupGet(s => s.Type).Returns(ContentMimeType.JsonSchema);
             schema.SetupGet(s => s.Schema).Returns("myschema");
             schema.SetupGet(s => s.Name).Returns("myname");
+            schema.SetupGet(s => s.Version).Returns(3);
             var expected = new Schema
             {
                 Name = "myname",
-                Namespace = "ns"
+                Namespace = "ns",
+                Version = "3"
             };
             _clientMock.Setup(c => c.PutAsync("myschema", Format.JsonSchemaDraft07, SchemaType.MessageSchema,
-                 "1.0.0", null, null, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+                 "3", null, null, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
             using var client = new AioSrClient(_sdkMock.Object, _mqttClientMock.Object, Log.Console<AioSrClient>());
             var result = await client.RegisterAsync(schema.Object, CancellationToken.None);
             Assert.Equal("myname", result);
