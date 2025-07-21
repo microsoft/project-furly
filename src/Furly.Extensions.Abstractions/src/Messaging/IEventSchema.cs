@@ -31,8 +31,8 @@ namespace Furly.Extensions.Messaging
         string Schema { get; }
 
         /// <summary>
-        /// Id
+        /// An identifier that provides context
         /// </summary>
-        string? Id { get; }
+        string Id { get; }
     }
 }

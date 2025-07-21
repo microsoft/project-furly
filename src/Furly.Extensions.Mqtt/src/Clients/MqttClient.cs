@@ -834,7 +834,7 @@ namespace Furly.Extensions.Mqtt.Clients
     {
         private const int EventClass = 0;
 
-        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
+        [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "Closing {ClientId} ...")]
         public static partial void ClientClosing(this ILogger logger, string clientId);
 

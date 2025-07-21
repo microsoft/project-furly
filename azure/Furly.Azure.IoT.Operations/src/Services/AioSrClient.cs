@@ -61,7 +61,7 @@ namespace Furly.Azure.IoT.Operations.Services
                 _ => throw new NotSupportedException($"{schema.Type} type not supported")
             };
             var result = await _client.PutAsync(schemaString, schemaType,
-                // version: schema.Version.ToString(),
+                version: ((int)schema.Version).ToString(),
                 // tags: new Dictionary<string, string> { { "schemaId", schema.Name } },
                 cancellationToken: ct).ConfigureAwait(false);
             if (result?.Name == null)

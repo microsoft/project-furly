@@ -311,9 +311,15 @@ namespace Furly.Extensions.Mqtt.Clients
             try
             {
                 Disconnected -= OnDisconnectedCoreAsync;
+
                 if (IsConnected || _isDesiredConnected)
                 {
+                    _logger.DisconnectSessionOnDispose();
                     await DisconnectAsync(null, default).ConfigureAwait(false);
+                }
+                else
+                {
+                    _logger.DisposedUnconnectedSession();
                 }
             }
             catch (Exception e)
@@ -640,7 +646,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 if (IsFatal(lastException!, _reconnectCts?.Token.IsCancellationRequested
                         ?? ct.IsCancellationRequested))
                 {
-                    _logger.FatalConnectionException(lastException);
+                    _logger.FatalConnectionException(lastException, isReconnection);
                     if (isReconnection)
                     {
                         var retryException = new ResourceExhaustionException(
@@ -1158,6 +1164,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 case ArgumentNullException:
                 case ArgumentException:
                 case NotSupportedException:
+                case ObjectDisposedException:
                     return true;
                 //
                 // MQTTnet may throw an OperationCanceledException even if
@@ -2067,8 +2074,8 @@ namespace Furly.Extensions.Mqtt.Clients
         public static partial void StartReconnect(this ILogger logger, string reason);
 
         [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
-            Message = "Encountered a fatal exception while maintaining connection")]
-        public static partial void FatalConnectionException(this ILogger logger, Exception? exception);
+            Message = "Encountered a fatal exception while maintaining connection (Reconnecting: {Reconnecting}).")]
+        public static partial void FatalConnectionException(this ILogger logger, Exception? exception, bool reconnecting);
 
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
             Message = "Retry policy was exhausted while trying to maintain a connection")]
@@ -2162,5 +2169,13 @@ namespace Furly.Extensions.Mqtt.Clients
         [LoggerMessage(EventId = EventClass + 31, Level = LogLevel.Error,
             Message = "Encountered an exception during the user-supplied callback for handling received messages.")]
         public static partial void CallbackError(this ILogger logger, Exception exception);
+
+        [LoggerMessage(EventId = EventClass + 32, Level = LogLevel.Information,
+            Message = "Disconnecting and disposing session.")]
+        public static partial void DisconnectSessionOnDispose(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 33, Level = LogLevel.Information,
+            Message = "Disposé unconnected session.")]
+        public static partial void DisposedUnconnectedSession(this ILogger logger);
     }
 }

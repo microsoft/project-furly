@@ -117,9 +117,9 @@ namespace Furly.Tunnel.Router.Services
             {
                 await DisposeAsync(connections).WaitAsync(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
             }
-            catch (OperationCanceledException)
+            catch (Exception ex)
             {
-                _logger.FailedToDispose();
+                _logger.FailedToDispose(ex.Message);
             }
             static Task DisposeAsync(List<IAsyncDisposable> connections) =>
                 Task.WhenAll(connections.Select(async c => await c.DisposeAsync().ConfigureAwait(false)));
@@ -626,7 +626,7 @@ namespace Furly.Tunnel.Router.Services
         public static partial void MethodCallError(this ILogger logger, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Error,
-            Message = "Failed to dispose all connections in time.")]
-        public static partial void FailedToDispose(this ILogger logger);
+            Message = "Failed to dispose all connections in time. {Message}.")]
+        public static partial void FailedToDispose(this ILogger logger, string? message);
     }
 }

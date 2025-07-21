@@ -491,8 +491,14 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 try
                 {
+                    _queue.Writer.TryComplete();
                     await _cts.CancelAsync().ConfigureAwait(false);
                     await _executor.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    _logger.InvokerDisposeFailed(ex);
                 }
                 finally
                 {
@@ -505,12 +511,21 @@ namespace Furly.Extensions.Mqtt.Clients
             /// </summary>
             /// <param name="task"></param>
             /// <returns></returns>
-            public ValueTask QueueAsync(Func<CancellationToken, Task> task)
+            public async ValueTask QueueAsync(Func<CancellationToken, Task> task)
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 var cts = new CancellationTokenSource();
 #pragma warning restore CA2000 // Dispose objects before losing scope
-                return _queue.Writer.WriteAsync((cts, Task.Run(() => task(cts.Token))));
+                try
+                {
+                    await _queue.Writer.WriteAsync(
+                        (cts, Task.Run(() => task(cts.Token)))).ConfigureAwait(false);
+                }
+                catch
+                {
+                    cts.Dispose(); // Dispose cts if we fail to write - cancels the created task
+                    throw;
+                }
             }
 
             /// <summary>
@@ -537,6 +552,10 @@ namespace Furly.Extensions.Mqtt.Clients
                         {
                             _logger.InvokerExecutionFailed(ex);
                         }
+                    }
+                    if (ct.IsCancellationRequested)
+                    {
+                        return;
                     }
                     try
                     {
@@ -589,5 +608,9 @@ namespace Furly.Extensions.Mqtt.Clients
         [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Debug,
             Message = "Client failed to connect to {Host}:{Port} with reason {Reason} and expiry {SessionExpiry}")]
         public static partial void ConnectFailed(this ILogger logger, string host, int port, string reason, string sessionExpiry);
+
+        [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
+            Message = "Failed to dispose execute invoker")]
+        public static partial void InvokerDisposeFailed(this ILogger logger, Exception ex);
     }
 }
