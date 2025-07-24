@@ -48,5 +48,11 @@ namespace Furly.Azure.IoT.Operations.Runtime
         /// </summary>
         public TimeSpan LeadershipRenewalPeriod { get; set; }
             = TimeSpan.FromSeconds(30);
+
+        /// <summary>
+        /// Interval to poll file system for changes. If not
+        /// provided, the file system will not be polled.
+        /// </summary>
+        public TimeSpan? FileSystemPollingInterval { get; set; }
     }
 }

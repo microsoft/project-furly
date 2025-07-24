@@ -7,6 +7,8 @@ namespace Furly.Azure.IoT.Operations.Services
 {
     using Furly.Azure.IoT.Operations.Runtime;
     using global::Azure.Iot.Operations.Connector;
+    using global::Azure.Iot.Operations.Connector.Files;
+    using global::Azure.Iot.Operations.Connector.Files.FilesMonitor;
     using global::Azure.Iot.Operations.Protocol;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.LeaderElection;
@@ -15,7 +17,6 @@ namespace Furly.Azure.IoT.Operations.Services
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
-    using System.Diagnostics;
 
     /// <summary>
     /// Wraps the aio sdk concept
@@ -48,6 +49,14 @@ namespace Furly.Azure.IoT.Operations.Services
         /// <inheritdoc/>
         public IAdrClientWrapper CreateAdrClientWrapper(IMqttPubSubClient client)
         {
+            if (_options.Value.FileSystemPollingInterval != null)
+            {
+#pragma warning disable CA2000 // Dispose objects before losing scope
+                return new AdrClientWrapper(new AdrServiceClient(_context, client),
+                    new AssetFileMonitor(
+                        new PollingFilesMonitorFactory(_options.Value.FileSystemPollingInterval.Value)));
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            }
             return new AdrClientWrapper(_context, client);
         }
 
