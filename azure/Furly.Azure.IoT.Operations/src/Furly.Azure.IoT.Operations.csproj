@@ -12,8 +12,8 @@
     <None Remove="Azure.Iot.Operations.Services.AssetAndDeviceRegistry\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Iot.Operations.Connector" Version="0.11.0" />
-    <PackageReference Include="KubernetesClient" Version="17.0.4" />
+    <PackageReference Include="Azure.Iot.Operations.Connector" Version="0.12.0" />
+    <PackageReference Include="KubernetesClient" Version="17.0.14" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions.Mqtt\src\Furly.Extensions.Mqtt.csproj" />
