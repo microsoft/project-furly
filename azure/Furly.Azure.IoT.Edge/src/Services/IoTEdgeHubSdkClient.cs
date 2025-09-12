@@ -315,6 +315,11 @@ namespace Furly.Azure.IoT.Edge.Services
             /// <inheritdoc/>
             public void Dispose()
             {
+                if (_disposed)
+                {
+                    return;
+                }
+                _disposed = true;
                 _cts.Dispose();
                 _client.Dispose();
             }
@@ -598,9 +603,13 @@ namespace Furly.Azure.IoT.Edge.Services
                             IsRecovering = false;
                             return;
                         }
-                        catch (OperationCanceledException)
+                        catch (Exception e) when (e is ObjectDisposedException or OperationCanceledException)
                         {
                             // Closed
+                            callback.OnError(_reconnectCounter, deviceId, moduleId,
+                                $"Module client was disposed while trying to recover ({_disposed}).");
+                            IsClosed = true;
+                            IsRecovering = false;
                             return;
                         }
                         catch (Exception ex)
@@ -685,6 +694,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 private readonly ILogger _logger;
             }
 
+            private bool _disposed;
             private readonly ModuleClient _client;
             private readonly CancellationTokenSource _cts = new();
             private int _reconnectCounter;
@@ -717,6 +727,11 @@ namespace Furly.Azure.IoT.Edge.Services
             /// <inheritdoc/>
             public void Dispose()
             {
+                if (_disposed)
+                {
+                    return;
+                }
+                _disposed = true;
                 _cts.Dispose();
                 _client.Dispose();
             }
@@ -981,9 +996,13 @@ namespace Furly.Azure.IoT.Edge.Services
                             IsRecovering = false;
                             return;
                         }
-                        catch (OperationCanceledException)
+
+                        catch (Exception e) when (e is ObjectDisposedException or OperationCanceledException)
                         {
                             // Closed
+                            callback.OnError(_reconnectCounter, deviceId, null,
+                                $"Device client was disposed while trying to recover ({_disposed}).");
+                            IsRecovering = false;
                             return;
                         }
                         catch (Exception ex)
@@ -1062,6 +1081,7 @@ namespace Furly.Azure.IoT.Edge.Services
             private readonly CancellationTokenSource _cts = new();
             private readonly DeviceClient _client;
             private int _reconnectCounter;
+            private bool _disposed;
         }
 
         /// <summary>
