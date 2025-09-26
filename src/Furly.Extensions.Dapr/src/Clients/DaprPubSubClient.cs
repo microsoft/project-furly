@@ -197,7 +197,7 @@ namespace Furly.Extensions.Dapr.Clients
                 {
                     await _outer._client.PublishByteEventAsync(pubSubName, topic,
                         buffer.IsSingleSegment ? buffer.First : buffer.ToArray(),
-                        _contentType, _metadata, ct).ConfigureAwait(false);
+                        _contentType ?? "application/json", _metadata, ct).ConfigureAwait(false);
                 }
 
                 static void Throw()

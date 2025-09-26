@@ -77,23 +77,15 @@ namespace Furly.Azure.IoT.Operations.Services
                 .Setup(s => s.SerializeObject(It.IsAny<IBufferWriter<byte>>(), variantValue, null, SerializeOption.None))
                 .Callback((IBufferWriter<byte> b, object _, Type _, SerializeOption _) => b.Write("1"u8));
 
-            var setresponse = (StateStoreSetResponse)Activator.CreateInstance(
-                typeof(StateStoreSetResponse),
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                binder: null,
-                args: new object[] { new HybridLogicalClock(), true },
-                culture: null);
+            var setresponse = new Mock<IStateStoreSetResponse>();
+            setresponse.SetupGet(p => p.Success).Returns(true);
             _dssMock.Setup(d => d.SetAsync("k1", It.IsAny<StateStoreValue>(), null, null, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(setresponse));
+                .Returns(Task.FromResult(setresponse.Object));
             _dssMock.Setup(d => d.UnobserveAsync("k2", null, It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-            var deleteresponse = (StateStoreDeleteResponse)Activator.CreateInstance(
-                typeof(StateStoreDeleteResponse),
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                binder: null,
-                args: new object[] { 1 },
-                culture: null);
+            var deleteresponse = new Mock<IStateStoreDeleteResponse>();
+            deleteresponse.SetupGet(p => p.DeletedItemsCount).Returns(1) ;
             _dssMock.Setup(d => d.DeleteAsync("k2", null, null, It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(deleteresponse));
+                .Returns(Task.FromResult(deleteresponse.Object));
             await using var client = CreateClient();
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task

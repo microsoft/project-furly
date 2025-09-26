@@ -139,7 +139,7 @@ namespace Furly.Extensions.Dapr.Clients
             }
         }
 
-        private readonly string? _store;
+        private readonly string _store;
         private readonly DaprClient _client;
         private readonly bool _checkHealth;
         private readonly ILogger<DaprStateStoreClient> _logger;
