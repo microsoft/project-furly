@@ -28,8 +28,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configureOptions);
             }
             return services
-                .AddScoped<IEventClient, FileSystemEventClient>()
-                .AddScoped<IEventClientFactory, FileSystemClientFactory>()
+                .AddSingleton<IEventClient, FileSystemEventClient>()
+                .AddSingleton<IEventClientFactory, FileSystemClientFactory>()
                 ;
         }
 

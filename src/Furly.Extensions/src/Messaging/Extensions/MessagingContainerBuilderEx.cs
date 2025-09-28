@@ -20,9 +20,9 @@ namespace Autofac
         public static ContainerBuilder AddFileSystemEventClient(this ContainerBuilder builder)
         {
             builder.RegisterType<FileSystemEventClient>()
-                .As<IEventClient>().InstancePerLifetimeScope();
+                .As<IEventClient>().SingleInstance();
             builder.RegisterType<FileSystemClientFactory>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
+                .AsImplementedInterfaces().SingleInstance();
             return builder;
         }
 

@@ -10,6 +10,7 @@ namespace Furly.Extensions.Messaging.Clients
     using Furly.Extensions.Messaging.Runtime;
     using Microsoft.Extensions.Options;
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Create event clients for the filesystem
@@ -38,31 +39,84 @@ namespace Furly.Extensions.Messaging.Clients
         public IDisposable CreateEventClient(string connectionString,
             out IEventClient client)
         {
-            var scope = _scope.BeginLifetimeScope(builder =>
+            lock (_clients)
             {
-                builder.AddFileSystemEventClient();
-                builder.RegisterInstance(new FileSystemConfig(connectionString))
-                    .AsImplementedInterfaces().SingleInstance();
-            });
-            client = scope.Resolve<IEventClient>();
-            return scope;
+                if (!_clients.TryGetValue(Name, out var refCountedScope))
+                {
+                    refCountedScope = new RefCountedClientScope(this, connectionString);
+                    _clients.Add(connectionString, refCountedScope);
+                }
+                refCountedScope.AddRef();
+                client = refCountedScope.Scope.Resolve<IEventClient>();
+                return refCountedScope;
+            }
         }
 
-        internal sealed class FileSystemConfig : IConfigureOptions<FileSystemEventClientOptions>
+        /// <summary>
+        /// Create a client scope that is reference counted to share client
+        /// across multiple consumers
+        /// </summary>
+        private sealed class RefCountedClientScope :
+            IPostConfigureOptions<FileSystemEventClientOptions>, IDisposable
         {
-            public FileSystemConfig(string outputFolder)
+            /// <summary>
+            /// Scope for the client
+            /// </summary>
+            public ILifetimeScope Scope { get; }
+
+            /// <summary>
+            /// Create a reference counted scope
+            /// </summary>
+            public RefCountedClientScope(FileSystemClientFactory outer, string connectionString)
             {
-                _outputFolder = outputFolder;
+                _outer = outer;
+                _connectionString = connectionString;
+                Scope = _outer._scope.BeginLifetimeScope(builder =>
+                {
+                    builder.AddFileSystemEventClient();
+                    builder.RegisterInstance(this)
+                        .As<IPostConfigureOptions<FileSystemEventClientOptions>>()
+                        .SingleInstance()
+                        .ExternallyOwned();
+                });
             }
 
-            public void Configure(FileSystemEventClientOptions options)
+            /// <summary>
+            /// Add a reference to the scope
+            /// </summary>
+            public void AddRef()
             {
-                options.OutputFolder = _outputFolder;
+                System.Threading.Interlocked.Increment(ref _refCount);
             }
 
-            private readonly string _outputFolder;
+            /// <inheritdoc/>
+            public void PostConfigure(string? name, FileSystemEventClientOptions options)
+            {
+                options.OutputFolder = _connectionString;
+            }
+
+            /// <inheritdoc/>
+            public void Dispose()
+            {
+                if (System.Threading.Interlocked.Decrement(ref _refCount) == 0)
+                {
+                    lock (_outer._clients)
+                    {
+                        if (_outer._clients.Remove(_outer.Name, out var _))
+                        {
+                            Scope.Dispose();
+                        }
+                    }
+                }
+            }
+
+            private readonly FileSystemClientFactory _outer;
+            private readonly string _connectionString;
+            private int _refCount;
         }
 
         private readonly ILifetimeScope _scope;
+        private readonly Dictionary<string, RefCountedClientScope> _clients
+            = new(StringComparer.OrdinalIgnoreCase);
     }
 }
