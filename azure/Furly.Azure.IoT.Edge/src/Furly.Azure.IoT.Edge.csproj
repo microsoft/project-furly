@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.42.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
     <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
   </ItemGroup>
 </Project>
