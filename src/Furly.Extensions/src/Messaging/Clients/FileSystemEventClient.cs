@@ -5,6 +5,7 @@
 
 namespace Furly.Extensions.Messaging.Clients
 {
+    using Furly.Extensions.Configuration;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Runtime;
     using Furly.Extensions.Storage;

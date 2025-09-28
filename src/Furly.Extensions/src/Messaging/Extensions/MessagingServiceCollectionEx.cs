@@ -29,6 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             return services
                 .AddScoped<IEventClient, FileSystemEventClient>()
+                .AddScoped<IEventClientFactory, FileSystemClientFactory>()
                 ;
         }
 

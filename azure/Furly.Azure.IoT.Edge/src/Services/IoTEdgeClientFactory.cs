@@ -34,7 +34,7 @@ namespace Furly.Azure.IoT.Edge.Services
         }
 
         /// <inheritdoc/>
-        public IDisposable CreateEventClientWithConnectionString(string connectionString,
+        public IDisposable CreateEventClient(string connectionString,
             out IEventClient client)
         {
             var scope = _scope.BeginLifetimeScope(builder =>

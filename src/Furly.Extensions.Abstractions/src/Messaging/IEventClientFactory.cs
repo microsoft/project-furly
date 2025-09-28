@@ -23,7 +23,7 @@ namespace Furly.Extensions.Messaging
         /// <param name="connectionString"></param>
         /// <param name="client"></param>
         /// <returns></returns>
-        IDisposable CreateEventClientWithConnectionString(
+        IDisposable CreateEventClient(
             string connectionString, out IEventClient client);
     }
 }
