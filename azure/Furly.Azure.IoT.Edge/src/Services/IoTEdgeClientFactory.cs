@@ -37,14 +37,14 @@ namespace Furly.Azure.IoT.Edge.Services
         }
 
         /// <inheritdoc/>
-        public IDisposable CreateEventClient(string connectionString,
+        public IDisposable CreateEventClient(string context, string connectionString,
             out IEventClient client)
         {
             // validate and create canonical form
             var cs = IotHubConnectionStringBuilder.Create(connectionString).ToString();
             lock (_clients)
             {
-                if (!_clients.TryGetValue(Name, out var refCountedScope))
+                if (!_clients.TryGetValue(connectionString, out var refCountedScope))
                 {
                     refCountedScope = new RefCountedClientScope(this, cs);
                     _clients.Add(cs, refCountedScope);

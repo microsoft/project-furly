@@ -36,12 +36,12 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         /// <inheritdoc/>
-        public IDisposable CreateEventClient(string connectionString,
+        public IDisposable CreateEventClient(string context, string connectionString,
             out IEventClient client)
         {
             lock (_clients)
             {
-                if (!_clients.TryGetValue(Name, out var refCountedScope))
+                if (!_clients.TryGetValue(connectionString, out var refCountedScope))
                 {
                     refCountedScope = new RefCountedClientScope(this, connectionString);
                     _clients.Add(connectionString, refCountedScope);
