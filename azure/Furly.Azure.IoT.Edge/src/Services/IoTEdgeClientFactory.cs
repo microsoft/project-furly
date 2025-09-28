@@ -8,6 +8,7 @@ namespace Furly.Azure.IoT.Edge.Services
     using Autofac;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Messaging;
+    using Microsoft.Azure.Devices.Client;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
@@ -39,12 +40,14 @@ namespace Furly.Azure.IoT.Edge.Services
         public IDisposable CreateEventClient(string connectionString,
             out IEventClient client)
         {
+            // validate and create canonical form
+            var cs = IotHubConnectionStringBuilder.Create(connectionString).ToString();
             lock (_clients)
             {
                 if (!_clients.TryGetValue(Name, out var refCountedScope))
                 {
-                    refCountedScope = new RefCountedClientScope(this, connectionString);
-                    _clients.Add(connectionString, refCountedScope);
+                    refCountedScope = new RefCountedClientScope(this, cs);
+                    _clients.Add(cs, refCountedScope);
                 }
                 refCountedScope.AddRef();
                 client = refCountedScope.Scope.Resolve<IEventClient>();
