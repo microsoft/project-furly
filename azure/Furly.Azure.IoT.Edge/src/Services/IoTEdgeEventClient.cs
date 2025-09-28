@@ -5,11 +5,13 @@
 
 namespace Furly.Azure.IoT.Edge.Services
 {
+    using Autofac;
     using Furly.Azure.IoT.Edge;
     using Furly.Extensions.Hosting;
     using Furly.Extensions.Messaging;
     using Microsoft.Azure.Amqp.Framing;
     using Microsoft.Azure.Devices.Client;
+    using Microsoft.Extensions.Options;
     using System;
     using System.Buffers;
     using System.Collections.Generic;

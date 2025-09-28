@@ -19,7 +19,7 @@ namespace Furly.Azure.EventHubs.Clients
     using System.Threading.Tasks;
 
     /// <summary>
-    /// IoT Hub cloud to device event client
+    /// Event hub event client
     /// </summary>
     public sealed class EventHubsClient : IEventClient, IDisposable,
         IAsyncDisposable

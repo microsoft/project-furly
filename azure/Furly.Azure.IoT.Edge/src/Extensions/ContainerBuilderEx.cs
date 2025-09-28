@@ -32,6 +32,8 @@ namespace Autofac
 
             builder.RegisterType<IoTEdgeEventClient>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTEdgeClientFactory>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTEdgeTwinClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTEdgeRpcClient>()

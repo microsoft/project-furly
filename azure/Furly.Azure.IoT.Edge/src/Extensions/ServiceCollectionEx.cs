@@ -38,6 +38,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<IIoTEdgeDeviceClient, IoTEdgeHubSdkClient>()
                 .AddScoped<IEventSubscriber, IoTEdgeEventClient>()
                 .AddScoped<IEventClient, IoTEdgeEventClient>()
+                .AddScoped<IEventClientFactory, IoTEdgeClientFactory>()
                 .AddScoped<IProcessIdentity, IoTEdgeEventClient>()
                 .AddScoped<IIoTEdgeWorkloadApi, IoTEdgeWorkloadApi>()
                 .AddScoped<IRpcClient, IoTEdgeRpcClient>()

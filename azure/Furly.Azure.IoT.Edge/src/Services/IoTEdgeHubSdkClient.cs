@@ -24,7 +24,7 @@ namespace Furly.Azure.IoT.Edge.Services
     /// <summary>
     /// Injectable IoT Sdk client
     /// </summary>
-    public sealed class IoTEdgeHubSdkClient : IIoTEdgeDeviceClient, IDisposable
+    public sealed class IoTEdgeHubSdkClient : IIoTEdgeDeviceClient
     {
         /// <summary>
         /// Create sdk factory

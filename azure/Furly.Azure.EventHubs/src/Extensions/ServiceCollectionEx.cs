@@ -25,6 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services
                 .AddDefaultAzureCredentials()
                 .AddScoped<IEventClient, EventHubsClient>()
+                .AddScoped<IEventClientFactory, EventHubsClientFactory>()
                 .AddOptions()
                 .AddSingleton<IPostConfigureOptions<EventHubsClientOptions>, EventHubsClientConfig>()
                 ;

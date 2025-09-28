@@ -24,6 +24,8 @@ namespace Autofac
             builder.AddDefaultAzureCredentials();
             builder.RegisterType<EventHubsClient>()
                 .AsImplementedInterfaces();
+            builder.RegisterType<EventHubsClientFactory>()
+                .AsImplementedInterfaces();
 
             // Configuration
             builder.RegisterType<EventHubsClientConfig>()
