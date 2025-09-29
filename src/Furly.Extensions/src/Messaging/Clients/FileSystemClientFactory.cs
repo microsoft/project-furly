@@ -11,6 +11,7 @@ namespace Furly.Extensions.Messaging.Clients
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
+    using System.IO;
 
     /// <summary>
     /// Create event clients for the filesystem
@@ -39,12 +40,13 @@ namespace Furly.Extensions.Messaging.Clients
         public IDisposable CreateEventClient(string context, string connectionString,
             out IEventClient client)
         {
+            var cs = Path.Combine(Path.GetFullPath(connectionString), context);
             lock (_clients)
             {
-                if (!_clients.TryGetValue(connectionString, out var refCountedScope))
+                if (!_clients.TryGetValue(cs, out var refCountedScope))
                 {
-                    refCountedScope = new RefCountedClientScope(this, connectionString);
-                    _clients.Add(connectionString, refCountedScope);
+                    refCountedScope = new RefCountedClientScope(this, cs);
+                    _clients.Add(cs, refCountedScope);
                 }
                 refCountedScope.AddRef();
                 client = refCountedScope.Scope.Resolve<IEventClient>();
@@ -73,7 +75,8 @@ namespace Furly.Extensions.Messaging.Clients
                 _connectionString = connectionString;
                 Scope = _outer._scope.BeginLifetimeScope(builder =>
                 {
-                    builder.AddFileSystemEventClient();
+                    builder.RegisterType<FileSystemEventClient>()
+                        .As<IEventClient>().InstancePerLifetimeScope();
                     builder.RegisterInstance(this)
                         .As<IPostConfigureOptions<FileSystemEventClientOptions>>()
                         .SingleInstance()
@@ -102,7 +105,7 @@ namespace Furly.Extensions.Messaging.Clients
                 {
                     lock (_outer._clients)
                     {
-                        if (_outer._clients.Remove(_outer.Name, out var _))
+                        if (_outer._clients.Remove(_connectionString, out var _))
                         {
                             Scope.Dispose();
                         }

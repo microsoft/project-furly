@@ -76,7 +76,12 @@ namespace Furly.Azure.IoT.Edge.Services
                 _connectionString = connectionString;
                 Scope = _outer._scope.BeginLifetimeScope(builder =>
                 {
-                    builder.AddIoTEdgeServices();
+                    builder.RegisterType<IoTEdgeIdentity>()
+                        .AsImplementedInterfaces().InstancePerLifetimeScope();
+                    builder.RegisterType<IoTEdgeHubSdkClient>()
+                        .AsImplementedInterfaces().InstancePerLifetimeScope();
+                    builder.RegisterType<IoTEdgeEventClient>()
+                        .AsImplementedInterfaces().InstancePerLifetimeScope();
                     builder.RegisterInstance(this)
                         .As<IPostConfigureOptions<IoTEdgeClientOptions>>()
                         .SingleInstance()
@@ -105,7 +110,7 @@ namespace Furly.Azure.IoT.Edge.Services
                 {
                     lock (_outer._clients)
                     {
-                        if (_outer._clients.Remove(_outer.Name, out var _))
+                        if (_outer._clients.Remove(_connectionString, out var _))
                         {
                             Scope.Dispose();
                         }
