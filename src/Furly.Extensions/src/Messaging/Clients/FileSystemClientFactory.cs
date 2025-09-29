@@ -8,6 +8,7 @@ namespace Furly.Extensions.Messaging.Clients
     using Autofac;
     using Furly.Extensions.Messaging;
     using Furly.Extensions.Messaging.Runtime;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using System;
     using System.Collections.Generic;
@@ -28,6 +29,7 @@ namespace Furly.Extensions.Messaging.Clients
         public FileSystemClientFactory(ILifetimeScope scope)
         {
             _scope = scope;
+            _logger = scope.Resolve<ILogger<FileSystemClientFactory>>();
         }
 
         /// <inheritdoc/>
@@ -44,6 +46,18 @@ namespace Furly.Extensions.Messaging.Clients
                 var outputPath = Path.GetFullPath(connectionString);
                 if (!_clients.TryGetValue(outputPath, out var refCountedScope))
                 {
+                    try
+                    {
+                        if (!Directory.Exists(outputPath))
+                        {
+                            Directory.CreateDirectory(outputPath);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.CannotCreateOutputFolder(ex, outputPath);
+                    }
+
                     refCountedScope = new RefCountedClientScope(this, outputPath);
                     _clients.Add(outputPath, refCountedScope);
                 }
@@ -117,7 +131,23 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         private readonly ILifetimeScope _scope;
+        private readonly ILogger<FileSystemClientFactory> _logger;
         private readonly Dictionary<string, RefCountedClientScope> _clients
             = new(StringComparer.OrdinalIgnoreCase);
     }
+
+
+    /// <summary>
+    /// Source-generated logging for FileSystemClientFactory
+    /// </summary>
+    internal static partial class FileSystemClientFactoryLogging
+    {
+        private const int EventClass = 30;
+
+        [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
+            Message = "Cannot create output folder '{OutputPath}'")]
+        public static partial void CannotCreateOutputFolder(this ILogger logger,
+            Exception exception, string? outputPath);
+    }
+
 }

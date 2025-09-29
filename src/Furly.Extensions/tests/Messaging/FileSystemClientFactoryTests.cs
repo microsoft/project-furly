@@ -25,10 +25,11 @@ namespace Furly.Extensions.Messaging.Clients
             builder.RegisterType<FileSystemEventClient>()
                 .As<IEventClient>()
                 .InstancePerLifetimeScope();
+            builder.AddLogging();
 
             builder.RegisterInstance(Options.Create(new FileSystemEventClientOptions
             {
-                OutputFolder = Path.GetTempFileName(),
+                OutputFolder = ".",
                 MessageMaxBytes = 1024 * 1024
             })).As<IOptions<FileSystemEventClientOptions>>();
 
@@ -51,6 +52,7 @@ namespace Furly.Extensions.Messaging.Clients
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
             var connectionString = Path.GetTempFileName();
+            using var f = new DeferCleanup(connectionString);
 
             // Act
             using var disposable = factory.CreateEventClient(connectionString, out var client);
@@ -67,6 +69,7 @@ namespace Furly.Extensions.Messaging.Clients
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
             var connectionString = Path.GetTempFileName();
+            using var f = new DeferCleanup(connectionString);
 
             // Act - Create first client
             using var disposable1 = factory.CreateEventClient(connectionString, out var client1);
@@ -87,6 +90,8 @@ namespace Furly.Extensions.Messaging.Clients
             using var factory = new FileSystemClientFactory(_scope);
             var connectionString1 = Path.GetTempFileName();
             var connectionString2 = Path.GetTempFileName();
+            using var f1 = new DeferCleanup(connectionString1);
+            using var f2 = new DeferCleanup(connectionString2);
 
             // Act
             using var disposable1 = factory.CreateEventClient(connectionString1, out var client1);
@@ -106,6 +111,8 @@ namespace Furly.Extensions.Messaging.Clients
             using var factory = new FileSystemClientFactory(_scope);
             var connectionString1 = Path.Combine(Path.GetTempPath(), "folder1");
             var connectionString2 = Path.Combine(Path.GetTempPath(), "folder2");
+            using var f1 = new DeferCleanup(connectionString1);
+            using var f2 = new DeferCleanup(connectionString2);
 
             // Act
             using var disposable1 = factory.CreateEventClient(connectionString1, out var client1);
@@ -124,6 +131,8 @@ namespace Furly.Extensions.Messaging.Clients
             using var factory = new FileSystemClientFactory(_scope);
             const string relativePath = "temp";
             var absolutePath = Path.GetFullPath(relativePath);
+            using var f = new DeferCleanup(absolutePath);
+
 
             // Act
             using var disposable1 = factory.CreateEventClient(relativePath, out var client1);
@@ -142,6 +151,7 @@ namespace Furly.Extensions.Messaging.Clients
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
             var basePath = Path.GetTempFileName();
+            using var f = new DeferCleanup(basePath);
 
             // Test case insensitivity of the dictionary lookup
             var path1 = basePath;
@@ -163,6 +173,7 @@ namespace Furly.Extensions.Messaging.Clients
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
             var connectionString = Path.GetTempFileName();
+            using var f = new DeferCleanup(connectionString);
 
             // Act - Create multiple references to the same client
             var disposable1 = factory.CreateEventClient(connectionString, out var client1);
@@ -214,6 +225,7 @@ namespace Furly.Extensions.Messaging.Clients
             builder.RegisterType<FileSystemEventClient>()
                 .As<IEventClient>()
                 .InstancePerLifetimeScope();
+            builder.AddLogging();
             builder.RegisterInstance(Options.Create(new FileSystemEventClientOptions()))
                 .As<IOptions<FileSystemEventClientOptions>>();
 
@@ -230,6 +242,20 @@ namespace Furly.Extensions.Messaging.Clients
         public void Dispose()
         {
             _scope?.Dispose();
+        }
+
+        internal sealed record class DeferCleanup(string Path) : IDisposable
+        {
+            public void Dispose()
+            {
+                try
+                {
+                    Directory.Delete(Path, true);
+                }
+                catch
+                {
+                }
+            }
         }
 
         private readonly ILifetimeScope _scope;
