@@ -59,7 +59,7 @@ namespace Furly.Azure.IoT.Edge.Services
         /// Create a client scope that is reference counted to share client
         /// across multiple consumers
         /// </summary>
-        private sealed class RefCountedClientScope : IPostConfigureOptions<IoTEdgeClientOptions>,
+        private sealed class RefCountedClientScope : IOptions<IoTEdgeClientOptions>,
             IDisposable
         {
             /// <summary>
@@ -82,9 +82,9 @@ namespace Furly.Azure.IoT.Edge.Services
                         .AsImplementedInterfaces().InstancePerLifetimeScope();
                     builder.RegisterType<IoTEdgeEventClient>()
                         .AsImplementedInterfaces().InstancePerLifetimeScope();
+
                     builder.RegisterInstance(this)
-                        .As<IPostConfigureOptions<IoTEdgeClientOptions>>()
-                        .SingleInstance()
+                        .As<IOptions<IoTEdgeClientOptions>>()
                         .ExternallyOwned();
                 });
             }
@@ -98,10 +98,10 @@ namespace Furly.Azure.IoT.Edge.Services
             }
 
             /// <inheritdoc/>
-            public void PostConfigure(string? name, IoTEdgeClientOptions options)
+            public IoTEdgeClientOptions Value => new IoTEdgeClientOptions
             {
-                options.EdgeHubConnectionString = _connectionString;
-            }
+                EdgeHubConnectionString = _connectionString
+            };
 
             /// <inheritdoc/>
             public void Dispose()

@@ -59,7 +59,7 @@ namespace Furly.Extensions.Messaging.Clients
         /// across multiple consumers
         /// </summary>
         private sealed class RefCountedClientScope :
-            IPostConfigureOptions<FileSystemEventClientOptions>, IDisposable
+            IOptions<FileSystemEventClientOptions>, IDisposable
         {
             /// <summary>
             /// Scope for the client
@@ -78,8 +78,7 @@ namespace Furly.Extensions.Messaging.Clients
                     builder.RegisterType<FileSystemEventClient>()
                         .As<IEventClient>().InstancePerLifetimeScope();
                     builder.RegisterInstance(this)
-                        .As<IPostConfigureOptions<FileSystemEventClientOptions>>()
-                        .SingleInstance()
+                        .As<IOptions<FileSystemEventClientOptions>>()
                         .ExternallyOwned();
                 });
             }
@@ -93,10 +92,10 @@ namespace Furly.Extensions.Messaging.Clients
             }
 
             /// <inheritdoc/>
-            public void PostConfigure(string? name, FileSystemEventClientOptions options)
+            public FileSystemEventClientOptions Value => new FileSystemEventClientOptions
             {
-                options.OutputFolder = _connectionString;
-            }
+                OutputFolder = _connectionString
+            };
 
             /// <inheritdoc/>
             public void Dispose()
