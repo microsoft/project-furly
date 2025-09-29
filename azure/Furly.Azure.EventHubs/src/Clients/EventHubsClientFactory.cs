@@ -33,8 +33,8 @@ namespace Furly.Azure.EventHubs.Clients
         }
 
         /// <inheritdoc/>
-        public IDisposable CreateEventClient(string context,
-            string connectionString, out IEventClient client)
+        public IDisposable CreateEventClient(string connectionString,
+            out IEventClient client)
         {
             var scope = _scope.BeginLifetimeScope(builder =>
             {

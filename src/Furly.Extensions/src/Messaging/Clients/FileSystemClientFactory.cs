@@ -37,16 +37,15 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         /// <inheritdoc/>
-        public IDisposable CreateEventClient(string context, string connectionString,
-            out IEventClient client)
+        public IDisposable CreateEventClient(string connectionString, out IEventClient client)
         {
-            var cs = Path.Combine(Path.GetFullPath(connectionString), context);
             lock (_clients)
             {
-                if (!_clients.TryGetValue(cs, out var refCountedScope))
+                var outputPath = Path.GetFullPath(connectionString);
+                if (!_clients.TryGetValue(outputPath, out var refCountedScope))
                 {
-                    refCountedScope = new RefCountedClientScope(this, cs);
-                    _clients.Add(cs, refCountedScope);
+                    refCountedScope = new RefCountedClientScope(this, outputPath);
+                    _clients.Add(outputPath, refCountedScope);
                 }
                 refCountedScope.AddRef();
                 client = refCountedScope.Scope.Resolve<IEventClient>();

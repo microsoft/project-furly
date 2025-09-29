@@ -28,7 +28,7 @@ namespace Furly.Extensions.Messaging.Clients
 
             builder.RegisterInstance(Options.Create(new FileSystemEventClientOptions
             {
-                OutputFolder = Path.GetTempPath(),
+                OutputFolder = Path.GetTempFileName(),
                 MessageMaxBytes = 1024 * 1024
             })).As<IOptions<FileSystemEventClientOptions>>();
 
@@ -50,11 +50,10 @@ namespace Furly.Extensions.Messaging.Clients
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context = "test-context";
-            var connectionString = Path.GetTempPath();
+            var connectionString = Path.GetTempFileName();
 
             // Act
-            using var disposable = factory.CreateEventClient(context, connectionString, out var client);
+            using var disposable = factory.CreateEventClient(connectionString, out var client);
 
             // Assert
             Assert.NotNull(client);
@@ -67,14 +66,13 @@ namespace Furly.Extensions.Messaging.Clients
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context = "test-context";
-            var connectionString = Path.GetTempPath();
+            var connectionString = Path.GetTempFileName();
 
             // Act - Create first client
-            using var disposable1 = factory.CreateEventClient(context, connectionString, out var client1);
+            using var disposable1 = factory.CreateEventClient(connectionString, out var client1);
 
             // Act - Create second client with same path (connectionString + context)
-            using var disposable2 = factory.CreateEventClient(context, connectionString, out var client2);
+            using var disposable2 = factory.CreateEventClient(connectionString, out var client2);
 
             // Assert
             Assert.NotNull(client1);
@@ -87,18 +85,17 @@ namespace Furly.Extensions.Messaging.Clients
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context1 = "test-context-1";
-            const string context2 = "test-context-2";
-            var connectionString = Path.GetTempPath();
+            var connectionString1 = Path.GetTempFileName();
+            var connectionString2 = Path.GetTempFileName();
 
             // Act
-            using var disposable1 = factory.CreateEventClient(context1, connectionString, out var client1);
-            using var disposable2 = factory.CreateEventClient(context2, connectionString, out var client2);
+            using var disposable1 = factory.CreateEventClient(connectionString1, out var client1);
+            using var disposable2 = factory.CreateEventClient(connectionString2, out var client2);
 
             // Assert
             Assert.NotNull(client1);
             Assert.NotNull(client2);
-            // Should be different instances because the combined path (connectionString + context) is different
+            // Should be different instances because the path is different
             Assert.NotSame(client1, client2);
         }
 
@@ -107,13 +104,12 @@ namespace Furly.Extensions.Messaging.Clients
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context = "test-context";
             var connectionString1 = Path.Combine(Path.GetTempPath(), "folder1");
             var connectionString2 = Path.Combine(Path.GetTempPath(), "folder2");
 
             // Act
-            using var disposable1 = factory.CreateEventClient(context, connectionString1, out var client1);
-            using var disposable2 = factory.CreateEventClient(context, connectionString2, out var client2);
+            using var disposable1 = factory.CreateEventClient(connectionString1, out var client1);
+            using var disposable2 = factory.CreateEventClient(connectionString2, out var client2);
 
             // Assert
             Assert.NotNull(client1);
@@ -126,13 +122,12 @@ namespace Furly.Extensions.Messaging.Clients
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context = "test-context";
             const string relativePath = "temp";
             var absolutePath = Path.GetFullPath(relativePath);
 
             // Act
-            using var disposable1 = factory.CreateEventClient(context, relativePath, out var client1);
-            using var disposable2 = factory.CreateEventClient(context, absolutePath, out var client2);
+            using var disposable1 = factory.CreateEventClient(relativePath, out var client1);
+            using var disposable2 = factory.CreateEventClient(absolutePath, out var client2);
 
             // Assert
             Assert.NotNull(client1);
@@ -146,16 +141,15 @@ namespace Furly.Extensions.Messaging.Clients
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context = "test-context";
-            var basePath = Path.GetTempPath();
+            var basePath = Path.GetTempFileName();
 
             // Test case insensitivity of the dictionary lookup
             var path1 = basePath;
-            var path2 = basePath; // Same path for case-insensitive test
+            var path2 = basePath.ToUpperInvariant(); // Same path for case-insensitive test
 
             // Act
-            using var disposable1 = factory.CreateEventClient(context, path1, out var client1);
-            using var disposable2 = factory.CreateEventClient(context, path2, out var client2);
+            using var disposable1 = factory.CreateEventClient(path1, out var client1);
+            using var disposable2 = factory.CreateEventClient(path2, out var client2);
 
             // Assert
             Assert.NotNull(client1);
@@ -164,37 +158,16 @@ namespace Furly.Extensions.Messaging.Clients
         }
 
         [Fact]
-        public void CreateEventClientKeysIncludeContextInPath()
-        {
-            // Arrange
-            using var factory = new FileSystemClientFactory(_scope);
-            var connectionString = Path.GetTempPath();
-            const string context1 = "context1";
-            const string context2 = "context2";
-
-            // Act
-            using var disposable1 = factory.CreateEventClient(context1, connectionString, out var client1);
-            using var disposable2 = factory.CreateEventClient(context2, connectionString, out var client2);
-
-            // Assert - Different contexts with same connection string should create different clients
-            // because the key is Path.Combine(Path.GetFullPath(connectionString), context)
-            Assert.NotNull(client1);
-            Assert.NotNull(client2);
-            Assert.NotSame(client1, client2);
-        }
-
-        [Fact]
         public void CreateEventClientReferenceCountingWorksCorrectly()
         {
             // Arrange
             using var factory = new FileSystemClientFactory(_scope);
-            const string context = "test-context";
-            var connectionString = Path.GetTempPath();
+            var connectionString = Path.GetTempFileName();
 
             // Act - Create multiple references to the same client
-            var disposable1 = factory.CreateEventClient(context, connectionString, out var client1);
-            var disposable2 = factory.CreateEventClient(context, connectionString, out var client2);
-            var disposable3 = factory.CreateEventClient(context, connectionString, out var client3);
+            var disposable1 = factory.CreateEventClient(connectionString, out var client1);
+            var disposable2 = factory.CreateEventClient(connectionString, out var client2);
+            var disposable3 = factory.CreateEventClient(connectionString, out var client3);
 
             // Assert - All should be the same instance
             Assert.NotNull(client1);
@@ -212,7 +185,7 @@ namespace Furly.Extensions.Messaging.Clients
             event1.Dispose();
 
             // Create another reference - should still get the same client
-            var disposable4 = factory.CreateEventClient(context, connectionString, out var client4);
+            var disposable4 = factory.CreateEventClient(connectionString, out var client4);
             Assert.Same(client1, client4);
 
             // Dispose more references
@@ -228,7 +201,7 @@ namespace Furly.Extensions.Messaging.Clients
             disposable4.Dispose();
 
             // Now create a new client - should get a new instance since the previous scope was cleaned up
-            using var disposable5 = factory.CreateEventClient(context, connectionString, out var client5);
+            using var disposable5 = factory.CreateEventClient(connectionString, out var client5);
             Assert.NotNull(client5);
             // Note: We can't assert NotSame here because the underlying Autofac container might reuse instances
         }

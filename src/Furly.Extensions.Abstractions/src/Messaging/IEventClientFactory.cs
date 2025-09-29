@@ -20,11 +20,10 @@ namespace Furly.Extensions.Messaging
         /// <summary>
         /// Create a new client using a connection string
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="connectionString"></param>
         /// <param name="client"></param>
         /// <returns></returns>
-        IDisposable CreateEventClient(string context,
-            string connectionString, out IEventClient client);
+        IDisposable CreateEventClient(string connectionString,
+            out IEventClient client);
     }
 }
