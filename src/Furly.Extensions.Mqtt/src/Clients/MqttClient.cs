@@ -71,36 +71,24 @@ namespace Furly.Extensions.Mqtt.Clients
             _options = options ?? throw new ArgumentNullException(nameof(options));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            meter ??= MeterProvider.Default;
-            _metrics = new Metrics(meter.Meter);
+            _meterProvider ??= MeterProvider.Default;
+            _metrics = new Metrics(_meterProvider.Meter);
 
             Identity = _options.Value.ClientId ?? Guid.NewGuid().ToString();
             ProtocolVersion = _options.Value.Protocol == MqttVersion.v5 ?
                 MqttProtocolVersion.V500 : MqttProtocolVersion.V311;
             var numberofPartitions = _options.Value.NumberOfClientPartitions ?? 0;
 
-            _clients = Enumerable
+            _sessions = Enumerable
                 .Range(0, numberofPartitions == 0 ? 1 : numberofPartitions)
-                .Select(_ =>
-                {
-                    var client = new MqttSession(_logger, _options.Value, meter);
-
-                    client.Connected +=
-                        args => HandleClientConnectedAsync(client, args);
-                    client.Disconnected +=
-                        args => HandleClientDisconnectedAsync(client, args);
-                    client.MessageReceived +=
-                        args => HandleMessageReceivedAsync(client, args);
-
-                    return client;
-                })
+                .Select(_ => CreateSession())
                 .ToArray();
 
             _cts = new CancellationTokenSource();
             _publisher = _options.Value.ConfigureSchemaMessage == null && registry == null
                 ? this : new MqttSchemaPublisher(_options, this, registry);
-            _connection = Task.WhenAll(_clients
-                .Select(c => c.ConnectAsync(GetClientOptions(), _cts.Token)));
+            _connection = Task.WhenAll(_sessions
+                .Select(c => c.ConnectAsync(GetSessionClientOptions(), _cts.Token)));
             _subscriber = Task.Factory.StartNew(() => SubscribeAsync(_cts.Token),
                 _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
         }
@@ -118,7 +106,8 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 return;
             }
-            _logger.ClientClosing(_options.Value.ClientId ?? "unknown");
+            var clientId = _options.Value.ClientId ?? "unknown";
+            _logger.ClientClosing(clientId);
 
             // Dispose base server
             try
@@ -144,27 +133,29 @@ namespace Furly.Extensions.Mqtt.Clients
                 _logger.SubscriberStopFailed(ex);
             }
 
-            // Stop client
-            try
+            // Stop session clients
+            foreach (var client in _sessions)
             {
-                foreach (var client in _clients)
+                var sessionId = client.ClientId ?? "unknown";
+                try
                 {
-                    await client.DisposeAsync().ConfigureAwait(false);
+                    // Give up after 30 seconds
+                    await client.DisposeAsync().AsTask()
+                        .WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+                    _logger.SessionClosed(clientId, sessionId);
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex)
+                {
+                    _logger.SessionCloseFailed(ex, clientId, sessionId);
                 }
             }
-            catch (OperationCanceledException) { }
-            catch (ObjectDisposedException) { }
-            catch (Exception ex)
-            {
-                _logger.ManagedClientStopFailed(ex);
-            }
-            finally
-            {
-                _subscriptionsLock.Dispose();
-                _cts.Dispose();
-                _metrics.Dispose();
-                _isDisposed = true;
-            }
+
+            _subscriptionsLock.Dispose();
+            _cts.Dispose();
+            _metrics.Dispose();
+            _isDisposed = true;
+            _logger.ClientClosed(clientId);
         }
 
         /// <inheritdoc/>
@@ -179,7 +170,7 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             ct.ThrowIfCancellationRequested();
-            var client = await GetClientAsync(message.Topic, ct).ConfigureAwait(false);
+            var client = await GetSessionAsync(message.Topic, ct).ConfigureAwait(false);
             return await client.PublishAsync(message, ct).ConfigureAwait(false);
         }
 
@@ -188,7 +179,7 @@ namespace Furly.Extensions.Mqtt.Clients
             MqttClientSubscribeOptions options, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            System.Diagnostics.Debug.Assert(_clients.Length != 0);
+            System.Diagnostics.Debug.Assert(_sessions.Length != 0);
 
             if (options.TopicFilters == null || options.TopicFilters.Count == 0)
             {
@@ -199,19 +190,19 @@ namespace Furly.Extensions.Mqtt.Clients
                 await _connection.WaitAsync(ct).ConfigureAwait(false);
             }
 
-            if (_clients.Length == 1)
+            if (_sessions.Length == 1)
             {
-                return await _clients[0].SubscribeAsync(options, ct).ConfigureAwait(false);
+                return await _sessions[0].SubscribeAsync(options, ct).ConfigureAwait(false);
             }
             if (options.TopicFilters.Count == 1)
             {
-                return await GetClientForTopic(options.TopicFilters[0].Topic)
+                return await GetSessionForTopic(options.TopicFilters[0].Topic)
                     .SubscribeAsync(options, ct).ConfigureAwait(false);
             }
 
             var subscriptions = options.TopicFilters
-                .GroupBy(topic => GetClientIndex(topic.Topic))
-                .Select(group => _clients[group.Key].SubscribeAsync(
+                .GroupBy(topic => GetSessionIndex(topic.Topic))
+                .Select(group => _sessions[group.Key].SubscribeAsync(
                     new MqttClientSubscribeOptions
                     {
                         SubscriptionIdentifier = options.SubscriptionIdentifier,
@@ -230,7 +221,7 @@ namespace Furly.Extensions.Mqtt.Clients
             MqttClientUnsubscribeOptions options, CancellationToken ct)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            System.Diagnostics.Debug.Assert(_clients.Length != 0);
+            System.Diagnostics.Debug.Assert(_sessions.Length != 0);
 
             if (options.TopicFilters == null || options.TopicFilters.Count == 0)
             {
@@ -241,19 +232,19 @@ namespace Furly.Extensions.Mqtt.Clients
                 await _connection.WaitAsync(ct).ConfigureAwait(false);
             }
 
-            if (_clients.Length == 1)
+            if (_sessions.Length == 1)
             {
-                return await _clients[0].UnsubscribeAsync(options, ct).ConfigureAwait(false);
+                return await _sessions[0].UnsubscribeAsync(options, ct).ConfigureAwait(false);
             }
 
             if (options.TopicFilters.Count == 1)
             {
-                return await GetClientForTopic(options.TopicFilters[0])
+                return await GetSessionForTopic(options.TopicFilters[0])
                     .UnsubscribeAsync(options, ct).ConfigureAwait(false);
             }
             var subscriptions = options.TopicFilters
-                .GroupBy(GetClientIndex)
-                .Select(group => _clients[group.Key].UnsubscribeAsync(
+                .GroupBy(GetSessionIndex)
+                .Select(group => _sessions[group.Key].UnsubscribeAsync(
                     new MqttClientUnsubscribeOptions
                     {
                         UserProperties = options.UserProperties,
@@ -349,30 +340,55 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             ct.ThrowIfCancellationRequested();
-            var client = await GetClientAsync(message.Topic, ct).ConfigureAwait(false);
+            var client = await GetSessionAsync(message.Topic, ct).ConfigureAwait(false);
             await client.PublishAsync(message, ct).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Handle connection
         /// </summary>
-        /// <param name="client"></param>
+        /// <param name="session"></param>
         /// <param name="args"></param>
-        private Task HandleClientConnectedAsync(MqttSession client,
+        private Task HandleSessionConnectedAsync(MqttSession session,
             MqttClientConnectedEventArgs args)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            _logger.ClientConnected(args.ConnectResult.ResultCode.ToString(), client.ClientId ?? "unknown");
+            _logger.SessionConnected(args.ConnectResult.ResultCode.ToString(), session.ClientId ?? "unknown");
             _triggerSubscriber.Set();
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Handle close
+        /// </summary>
+        /// <param name="session"></param>
+        /// <param name="args"></param>
+        private Task HandleSessionClosedAsync(MqttSession session,
+            MqttClientDisconnectedEventArgs args)
+        {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+
+            for (var i = 0; i < _sessions.Length && !_cts.IsCancellationRequested; i++)
+            {
+                if (_sessions[i] == session)
+                {
+                    _sessions[i] = CreateSession();
+                    _connection = Task.WhenAll(_sessions
+                        .Select(c => c.ConnectAsync(GetSessionClientOptions(), _cts.Token)));
+                    _logger.SessionRecreated(session.ClientId ?? "unknown");
+                    return Task.CompletedTask;
+                }
+            }
+            _logger.SessionNotRecreated(session.ClientId ?? "unknown");
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Handle message receival
         /// </summary>
-        /// <param name="client"></param>
+        /// <param name="session"></param>
         /// <param name="args"></param>
-        private async Task HandleMessageReceivedAsync(MqttSession client,
+        private async Task HandleMessageReceivedAsync(MqttSession session,
             MqttMessageReceivedEventArgs args)
         {
             if (args?.ApplicationMessage == null || _isDisposed)
@@ -380,7 +396,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 return;
             }
 
-            _logger.MessageReceivedTrace(client.ClientId ?? "unknown", args.ApplicationMessage.Topic);
+            _logger.MessageReceivedTrace(session.ClientId ?? "unknown", args.ApplicationMessage.Topic);
 
             if (MessageReceived != null)
             {
@@ -445,9 +461,9 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <summary>
         /// Handle disconnected
         /// </summary>
-        /// <param name="client"></param>
+        /// <param name="session"></param>
         /// <param name="args"></param>
-        private Task HandleClientDisconnectedAsync(MqttSession client,
+        private Task HandleSessionDisconnectedAsync(MqttSession session,
             MqttClientDisconnectedEventArgs args)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
@@ -455,14 +471,14 @@ namespace Furly.Extensions.Mqtt.Clients
 
             if (args.Exception != null)
             {
-                _logger.ClientDisconnectedWithError(client.ClientId ?? "unknown",
+                _logger.SessionDisconnectedWithError(session.ClientId ?? "unknown",
                     args.ClientWasConnected ? "Connecting" : "Connected",
                     args.Reason.ToString(), args.ReasonString ?? "unspecified",
                     args.Exception);
             }
             else
             {
-                _logger.ClientDisconnected(client.ClientId ?? "unknown",
+                _logger.SessiontDisconnected(session.ClientId ?? "unknown",
                     args.ClientWasConnected ? "Connecting" : "Connected",
                     args.Reason.ToString(), args.ReasonString ?? "unspecified");
             }
@@ -489,10 +505,10 @@ namespace Furly.Extensions.Mqtt.Clients
                     {
                         if (_subscriptions.ContainsKey(topic.Item2.Topic))
                         {
-                            var client = GetClientForTopic(topic.Item2.Topic);
+                            var session = GetSessionForTopic(topic.Item2.Topic);
 
                             // Add as managed subscription
-                            await client.SubscribeAsync(new MqttClientSubscribeOptions
+                            await session.SubscribeAsync(new MqttClientSubscribeOptions
                             {
                                 TopicFilters = [topic.Item2]
                             }, ct).ConfigureAwait(false);
@@ -537,7 +553,7 @@ namespace Furly.Extensions.Mqtt.Clients
                 consumers.Remove(consumer);
                 if (consumers.Count == 0)
                 {
-                    await GetClientForTopic(topic).UnsubscribeAsync(
+                    await GetSessionForTopic(topic).UnsubscribeAsync(
                         new MqttClientUnsubscribeOptions
                         {
                             TopicFilters = [topic]
@@ -554,7 +570,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <summary>
         /// Get publisher client for topic waiting for connection
         /// </summary>
-        private async ValueTask<MqttSession> GetClientAsync(string topic,
+        private async ValueTask<MqttSession> GetSessionAsync(string topic,
             CancellationToken ct)
         {
             // Wait until connected
@@ -563,36 +579,36 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 await _connection.WaitAsync(ct).ConfigureAwait(false);
             }
-            return GetClientForTopic(topic);
+            return GetSessionForTopic(topic);
         }
 
         /// <summary>
-        /// Get client for topic
+        /// Get session for topic
         /// </summary>
         /// <param name="topic"></param>
         /// <returns></returns>
-        private MqttSession GetClientForTopic(string topic)
+        private MqttSession GetSessionForTopic(string topic)
         {
-            if (_clients.Length == 1)
+            if (_sessions.Length == 1)
             {
-                return _clients[0];
+                return _sessions[0];
             }
-            System.Diagnostics.Debug.Assert(_clients.Length > 0);
+            System.Diagnostics.Debug.Assert(_sessions.Length > 0);
 
             // Use a string hash for the bucket for now. Could be better...
-            return _clients[GetClientIndex(topic)];
+            return _sessions[GetSessionIndex(topic)];
         }
 
-        private long GetClientIndex(string topic)
+        private long GetSessionIndex(string topic)
         {
-            return ((uint)topic.GetHashCode(StringComparison.Ordinal)) % _clients.Length;
+            return ((uint)topic.GetHashCode(StringComparison.Ordinal)) % _sessions.Length;
         }
 
         /// <summary>
-        /// Create client options
+        /// Create session options
         /// </summary>
         /// <returns></returns>
-        private MqttClientOptions GetClientOptions()
+        private MqttClientOptions GetSessionClientOptions()
         {
             var tlsOptions = GetTlsOptions();
             var clientId = MqttSession.GetUniqueClientId(_options.Value.ClientId);
@@ -717,6 +733,22 @@ namespace Furly.Extensions.Mqtt.Clients
             }
         }
 
+        private MqttSession CreateSession()
+        {
+            var session = new MqttSession(_logger, _options.Value, _meterProvider);
+
+            session.Connected +=
+                args => HandleSessionConnectedAsync(session, args);
+            session.Disconnected +=
+                args => HandleSessionDisconnectedAsync(session, args);
+            session.MessageReceived +=
+                args => HandleMessageReceivedAsync(session, args);
+            session.SessionLost +=
+                args => HandleSessionClosedAsync(session, args);
+
+            return session;
+        }
+
         /// <summary>
         /// Schema registry publisher
         /// </summary>
@@ -813,11 +845,12 @@ namespace Furly.Extensions.Mqtt.Clients
         }
 
         private bool _isDisposed;
+        private Task _connection;
         private readonly IOptions<MqttOptions> _options;
         private readonly ILogger _logger;
         private readonly Metrics _metrics;
-        private readonly MqttSession[] _clients;
-        private readonly Task _connection;
+        private readonly IMeterProvider _meterProvider;
+        private readonly MqttSession[] _sessions;
         private readonly Task _subscriber;
         private readonly IMqttPublish _publisher;
         private readonly CancellationTokenSource _cts = new();
@@ -835,49 +868,65 @@ namespace Furly.Extensions.Mqtt.Clients
         private const int EventClass = 0;
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
-            Message = "Closing {ClientId} ...")]
+            Message = "Closing mqtt client {ClientId} ...")]
         public static partial void ClientClosing(this ILogger logger, string clientId);
 
         [LoggerMessage(EventId = EventClass + 2, Level = LogLevel.Error,
-            Message = "Failed to stop rpc server.")]
+            Message = "Mqtt client Failed to stop rpc server.")]
         public static partial void RpcServerStopFailed(this ILogger logger, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 3, Level = LogLevel.Error,
-            Message = "Failed to stop subscriber.")]
+            Message = "Mqtt client Failed to stop subscriber.")]
         public static partial void SubscriberStopFailed(this ILogger logger, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Error,
-            Message = "Failed to stop managed client.")]
-        public static partial void ManagedClientStopFailed(this ILogger logger, Exception ex);
+            Message = "Mqtt client {ClientId} Failed to stop mqtt session {SessionId}.")]
+        public static partial void SessionCloseFailed(this ILogger logger, Exception ex, string clientId, string sessionId);
 
         [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Debug,
-            Message = "Failed to subscribe on connect. Retrying...")]
+            Message = "Mqtt client Failed to subscribe on connect. Retrying...")]
         public static partial void SubscribeOnConnectFailed(this ILogger logger, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Error,
-            Message = "Failed to subscribe.")]
+            Message = "Mqtt client Failed to subscribe.")]
         public static partial void SubscribeFailed(this ILogger logger, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
-            Message = "Client connected with {Result} as {ClientId}.")]
-        public static partial void ClientConnected(this ILogger logger, string result, string clientId);
+            Message = "Mqtt session connected with {Result} as {SessionId}.")]
+        public static partial void SessionConnected(this ILogger logger, string result, string sessionId);
 
         [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Trace,
-            Message = "Client {ClientId} received message on {Topic}")]
-        public static partial void MessageReceivedTrace(this ILogger logger, string clientId, string topic);
+            Message = "Mqtt session {SessionId} received message on {Topic}")]
+        public static partial void MessageReceivedTrace(this ILogger logger, string sessionId, string topic);
 
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Warning,
-            Message = "Failed to process MQTT message: {ReasonCode}")]
+            Message = "Mqtt session failed to process MQTT message: {ReasonCode}")]
         public static partial void MessageProcessingFailed(this ILogger logger, int reasonCode);
 
         [LoggerMessage(EventId = EventClass + 10, Level = LogLevel.Error,
-            Message = "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
-        public static partial void ClientDisconnectedWithError(this ILogger logger, string clientId,
+            Message = "Mqtt session {SessionId} disconnected while {State} due to {Reason} ({ReasonString})")]
+        public static partial void SessionDisconnectedWithError(this ILogger logger, string sessionId,
             string state, string reason, string reasonString, Exception ex);
 
         [LoggerMessage(EventId = EventClass + 11, Level = LogLevel.Warning,
-            Message = "Client {ClientId} disconnected while {State} due to {Reason} ({ReasonString})")]
-        public static partial void ClientDisconnected(this ILogger logger, string clientId,
+            Message = "Mqtt session {SessionId} disconnected while {State} due to {Reason} ({ReasonString})")]
+        public static partial void SessiontDisconnected(this ILogger logger, string sessionId,
             string state, string reason, string reasonString);
+
+        [LoggerMessage(EventId = EventClass + 12, Level = LogLevel.Information,
+            Message = "Mqtt client successfully recreated lost mqtt session {SessionId} ...")]
+        public static partial void SessionRecreated(this ILogger logger, string sessionId);
+
+        [LoggerMessage(EventId = EventClass + 13, Level = LogLevel.Information,
+            Message = "Mqtt client was not able to recreat lost mqtt session {SessionId} ...")]
+        public static partial void SessionNotRecreated(this ILogger logger, string sessionId);
+
+        [LoggerMessage(EventId = EventClass + 14, Level = LogLevel.Information,
+            Message = "Mqtt client {ClientId} successfully closed mqtt session {SessionId} ...")]
+        public static partial void SessionClosed(this ILogger logger, string clientId, string sessionId);
+
+        [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
+            Message = "Closed mqtt client {ClientId} ...")]
+        public static partial void ClientClosed(this ILogger logger, string clientId);
     }
 }

@@ -158,7 +158,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientUnsubscribedTopicAsync(ClientUnsubscribedTopicEventArgs args)
         {
-            _logger.ClientUnsubscribed(args.ClientId, args.TopicFilter.ToString());
+            _logger.ClientUnsubscribed(args.ClientId, args.TopicFilter);
             return Task.CompletedTask;
         }
 

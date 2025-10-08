@@ -643,12 +643,13 @@ namespace Furly.Extensions.Mqtt.Clients
                     throw lastException;
                 }
 
-                if (IsFatal(lastException!, _reconnectCts?.Token.IsCancellationRequested
-                        ?? ct.IsCancellationRequested))
+                var userCancelled = _reconnectCts?.Token.IsCancellationRequested
+                        ?? ct.IsCancellationRequested;
+                if (IsFatal(lastException!, userCancelled))
                 {
-                    _logger.FatalConnectionException(lastException, isReconnection);
                     if (isReconnection)
                     {
+                        _logger.FatalConnectionExceptionReconnecting(lastException, userCancelled);
                         var retryException = new ResourceExhaustionException(
                             "A fatal error was encountered while trying to re-establish the" +
                             " session, so this request cannot be completed.", lastException!);
@@ -665,6 +666,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     {
                         // This function was called directly by the user via
                         // ConnectAsync, so just throw the exception.
+                        _logger.FatalConnectionExceptionConnecting(lastException, userCancelled);
                         throw lastException!;
                     }
                 }
@@ -2073,10 +2075,6 @@ namespace Furly.Extensions.Mqtt.Clients
             Message = "Disconnect detected, starting reconnection. Disconnect reason: {Reason}")]
         public static partial void StartReconnect(this ILogger logger, string reason);
 
-        [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Error,
-            Message = "Encountered a fatal exception while maintaining connection (Reconnecting: {Reconnecting}).")]
-        public static partial void FatalConnectionException(this ILogger logger, Exception? exception, bool reconnecting);
-
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
             Message = "Retry policy was exhausted while trying to maintain a connection")]
         public static partial void RetryExhausted(this ILogger logger, Exception? exception);
@@ -2175,7 +2173,17 @@ namespace Furly.Extensions.Mqtt.Clients
         public static partial void DisconnectSessionOnDispose(this ILogger logger);
 
         [LoggerMessage(EventId = EventClass + 33, Level = LogLevel.Information,
-            Message = "Disposé unconnected session.")]
+            Message = "Dispose unconnected session.")]
         public static partial void DisposedUnconnectedSession(this ILogger logger);
+
+        [LoggerMessage(EventId = EventClass + 34, Level = LogLevel.Error,
+            Message = "Exception while reconnecting (Cancelled: {UserCancelled}).")]
+        public static partial void FatalConnectionExceptionReconnecting(this ILogger logger,
+            Exception? exception, bool userCancelled);
+
+        [LoggerMessage(EventId = EventClass + 35, Level = LogLevel.Error,
+            Message = "Exception while connecting (Cancelled: {UserCancelled}).")]
+        public static partial void FatalConnectionExceptionConnecting(this ILogger logger,
+            Exception? exception, bool userCancelled);
     }
 }
