@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="9.0.9" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
+  </ItemGroup>
 </Project>

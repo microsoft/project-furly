@@ -13,4 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\tunnel\Furly.Tunnel\src\Furly.Tunnel.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
+    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
+  </ItemGroup>
 </Project>
