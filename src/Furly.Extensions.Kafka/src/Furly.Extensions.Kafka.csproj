@@ -7,14 +7,10 @@
     <Description>Furly Kafka extensions</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Confluent.Kafka" Version="2.12.0" />
+    <PackageReference Include="Confluent.Kafka" Version="2.13.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
     <ProjectReference Include="..\..\Furly.Extensions\src\Furly.Extensions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

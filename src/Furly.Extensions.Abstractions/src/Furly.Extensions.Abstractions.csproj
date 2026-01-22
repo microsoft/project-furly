@@ -6,8 +6,4 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Abstractions provided by Furly extensions</Description>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
-  </ItemGroup>
 </Project>

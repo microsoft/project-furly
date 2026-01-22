@@ -7,15 +7,11 @@
     <Description>Shared Azure related code</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.17.0" />
-    <PackageReference Include="Azure.Core" Version="1.49.0" />
+    <PackageReference Include="Azure.Identity" Version="1.17.1" />
+    <PackageReference Include="Azure.Core" Version="1.50.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions\src\Furly.Extensions.csproj" />
     <ProjectReference Include="..\..\..\src\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

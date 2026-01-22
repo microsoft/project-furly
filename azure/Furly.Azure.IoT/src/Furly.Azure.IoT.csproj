@@ -19,7 +19,7 @@
     <PackageReference Include="Antlr4" Version="4.6.6" />
     <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.12.2" />
-    <PackageReference Include="Microsoft.Azure.Devices" Version="1.40.0" />
+    <PackageReference Include="Microsoft.Azure.Devices" Version="1.41.0" />
     <PackageReference Include="Nito.Disposables" Version="2.5.0" />
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
@@ -27,9 +27,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Azure\src\Furly.Azure.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

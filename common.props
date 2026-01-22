@@ -28,8 +28,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
   <ItemGroup Condition="$(NO_GIT) == ''">
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>
-    <PackageReference Include="Nerdbank.GitVersioning" Version="3.8.118" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.102" PrivateAssets="All"/>
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.9.50" PrivateAssets="All"/>
   </ItemGroup>
   <PropertyGroup>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -39,7 +39,7 @@
     <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
-    <PackageReference Include="Roslynator.Analyzers" Version="4.14.0" PrivateAssets="All"/>
-    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.14.0" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="All"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.15.0" PrivateAssets="All"/>
   </ItemGroup>
 </Project>

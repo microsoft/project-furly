@@ -10,14 +10,10 @@
     <PackageReference Include="MQTTnet" Version="5.0.1.1416" />
     <PackageReference Include="MQTTnet.Server" Version="5.0.1.1416" />
     <PackageReference Include="Nito.AsyncEx" Version="5.1.2" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Furly.Extensions.Autofac\src\Furly.Extensions.Autofac.csproj" />
     <ProjectReference Include="..\..\Furly.Extensions\src\Furly.Extensions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

@@ -13,13 +13,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Iot.Operations.Connector" Version="0.13.0" />
-    <PackageReference Include="KubernetesClient" Version="18.0.4" />
+    <PackageReference Include="KubernetesClient" Version="18.0.13" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions.Mqtt\src\Furly.Extensions.Mqtt.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

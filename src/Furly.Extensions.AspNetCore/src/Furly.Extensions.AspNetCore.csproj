@@ -11,7 +11,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="9.0.6" />
-    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.1" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -20,9 +20,5 @@
     <ProjectReference Include="..\..\Furly.Extensions.Json\src\Furly.Extensions.Json.csproj" />
     <ProjectReference Include="..\..\Furly.Extensions.Newtonsoft\src\Furly.Extensions.Newtonsoft.csproj" />
     <ProjectReference Include="..\..\Furly.Extensions\src\Furly.Extensions.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

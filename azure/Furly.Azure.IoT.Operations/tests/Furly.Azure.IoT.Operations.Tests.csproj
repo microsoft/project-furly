@@ -6,7 +6,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="[7.2.0]" />
     <PackageReference Include="Docker.DotNet" Version="3.125.15" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="Moq" Version="[4.20.2]" />
     <PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.0" />
     <PackageReference Include="xunit.assert" Version="2.9.3" />
@@ -34,9 +34,5 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="Roslynator.Analyzers" Version="4.14.1" />
-    <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.14.1" />
   </ItemGroup>
 </Project>

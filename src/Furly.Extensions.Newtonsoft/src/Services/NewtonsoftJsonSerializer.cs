@@ -671,7 +671,7 @@ namespace Furly.Extensions.Serializers.Newtonsoft
             public static void Write<T>(JsonWriter writer,
                 IAsyncEnumerable<T?>? value, JsonSerializer serializer)
             {
-                serializer.Serialize(writer, value?.ToEnumerable().ToList());
+                serializer.Serialize(writer, value?.ToListAsync().AsTask().GetAwaiter().GetResult());
             }
         }
 

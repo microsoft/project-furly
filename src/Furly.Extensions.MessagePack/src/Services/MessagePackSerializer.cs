@@ -896,7 +896,7 @@ namespace Furly.Extensions.Serializers.MessagePack
                     MessagePackSerializerOptions options)
                 {
                     var enumerable = (IAsyncEnumerable<E?>?)value;
-                    MsgPack.Serialize(ref writer, enumerable?.ToEnumerable().ToList(), options);
+                    MsgPack.Serialize(ref writer, enumerable?.ToListAsync().AsTask().GetAwaiter().GetResult(), options);
                 }
 
                 /// <inheritdoc/>

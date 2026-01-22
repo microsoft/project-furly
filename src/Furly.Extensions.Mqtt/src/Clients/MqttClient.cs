@@ -77,10 +77,10 @@ namespace Furly.Extensions.Mqtt.Clients
             Identity = _options.Value.ClientId ?? Guid.NewGuid().ToString();
             ProtocolVersion = _options.Value.Protocol == MqttVersion.v5 ?
                 MqttProtocolVersion.V500 : MqttProtocolVersion.V311;
-            var numberofPartitions = _options.Value.NumberOfClientPartitions ?? 0;
+            var numberOfPartitions = _options.Value.NumberOfClientPartitions ?? 0;
 
             _sessions = Enumerable
-                .Range(0, numberofPartitions == 0 ? 1 : numberofPartitions)
+                .Range(0, numberOfPartitions == 0 ? 1 : numberOfPartitions)
                 .Select(_ => CreateSession())
                 .ToArray();
 
