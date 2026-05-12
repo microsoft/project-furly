@@ -168,7 +168,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientSubscribedTopicAsync(ClientSubscribedTopicEventArgs args)
         {
-            _logger.ClientSubscribed(args.ClientId, args.TopicFilter.ToString());
+            _logger.ClientSubscribed(args.ClientId, args.TopicFilter);
             return Task.CompletedTask;
         }
 
@@ -256,7 +256,7 @@ namespace Furly.Extensions.Mqtt.Clients
         /// <param name="args"></param>
         private Task HandleClientDisconnectedAsync(ClientDisconnectedEventArgs args)
         {
-            _logger.ClientDisconnected(args.ClientId, args.DisconnectType.ToString());
+            _logger.ClientDisconnected(args.ClientId, args.DisconnectType);
             return Task.CompletedTask;
         }
 
@@ -377,7 +377,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
         [LoggerMessage(EventId = EventClass + 4, Level = LogLevel.Information,
             Message = "Client {ClientId} subscribed to {Topic}.")]
-        public static partial void ClientSubscribed(this ILogger logger, string clientId, string topic);
+        public static partial void ClientSubscribed(this ILogger logger, string clientId, object? topic);
 
         [LoggerMessage(EventId = EventClass + 5, Level = LogLevel.Trace,
             Message = "Client received message from {Client} on {Topic}")]
@@ -385,6 +385,6 @@ namespace Furly.Extensions.Mqtt.Clients
 
         [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "Disconnected client {ClientId} with type {Reason}")]
-        public static partial void ClientDisconnected(this ILogger logger, string clientId, string reason);
+        public static partial void ClientDisconnected(this ILogger logger, string clientId, MQTTnet.Server.MqttClientDisconnectType reason);
     }
 }

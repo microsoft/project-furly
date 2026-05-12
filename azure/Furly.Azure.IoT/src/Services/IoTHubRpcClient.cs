@@ -172,7 +172,7 @@ namespace Furly.Azure.IoT.Services
             Message = "Call {Method} on {Device} ({Module}) with {Payload} returned " +
             "with error {Status}: {Result} after {Elapsed}")]
         public static partial void CallReturnedWithError(this ILogger logger, string method,
-            string device, string? module, object payload, int status, string result, TimeSpan elapsed);
+            string device, string? module, ReadOnlySequence<byte> payload, int status, string result, TimeSpan elapsed);
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Debug,
             Message = "Call {Method} on {Device} ({Module}) took {Elapsed}... ")]

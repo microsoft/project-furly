@@ -46,7 +46,10 @@ namespace Furly.Azure.IoT.Operations.Services
                 }
                 else
                 {
-                    _logger.PodLostLeadership(args.NewLeader?.GetString());
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.PodLostLeadership(args.NewLeader?.GetString());
+                    }
                     var cts = _cts;
                     _cts = new CancellationTokenSource();
                     await cts.CancelAsync().ConfigureAwait(false);

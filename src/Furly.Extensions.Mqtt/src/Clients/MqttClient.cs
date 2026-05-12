@@ -353,7 +353,7 @@ namespace Furly.Extensions.Mqtt.Clients
             MqttClientConnectedEventArgs args)
         {
             ObjectDisposedException.ThrowIf(_isDisposed, this);
-            _logger.SessionConnected(args.ConnectResult.ResultCode.ToString(), session.ClientId ?? "unknown");
+            _logger.SessionConnected(args.ConnectResult.ResultCode, session.ClientId ?? "unknown");
             _triggerSubscriber.Set();
             return Task.CompletedTask;
         }
@@ -893,7 +893,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
         [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Mqtt session connected with {Result} as {SessionId}.")]
-        public static partial void SessionConnected(this ILogger logger, string result, string sessionId);
+        public static partial void SessionConnected(this ILogger logger, MQTTnet.MqttClientConnectResultCode result, string sessionId);
 
         [LoggerMessage(EventId = EventClass + 8, Level = LogLevel.Trace,
             Message = "Mqtt session {SessionId} received message on {Topic}")]

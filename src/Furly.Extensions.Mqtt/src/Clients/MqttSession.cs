@@ -566,7 +566,7 @@ namespace Furly.Extensions.Mqtt.Clients
 
                 if (IsFatal(args.Reason))
                 {
-                    _logger.FatalDisconnect(args.Reason.ToString());
+                    _logger.FatalDisconnect(args.Reason);
                     var retryException = new ResourceExhaustionException(
                         "A fatal error was encountered while trying to re-establish the session, " +
                         "so this request cannot be completed.", args.Exception);
@@ -574,7 +574,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     return;
                 }
 
-                _logger.StartReconnect(args.Reason.ToString());
+                _logger.StartReconnect(args.Reason);
 
                 var options = UnderlyingMqttClient.Options;
 
@@ -2069,11 +2069,11 @@ namespace Furly.Extensions.Mqtt.Clients
 
         [LoggerMessage(EventId = EventClass + 6, Level = LogLevel.Information,
             Message = "Disconnect detected and it was due to fatal error. The client will not attempt to reconnect. Disconnect reason: {Reason}")]
-        public static partial void FatalDisconnect(this ILogger logger, string reason);
+        public static partial void FatalDisconnect(this ILogger logger, MQTTnet.MqttClientDisconnectReason reason);
 
         [LoggerMessage(EventId = EventClass + 7, Level = LogLevel.Information,
             Message = "Disconnect detected, starting reconnection. Disconnect reason: {Reason}")]
-        public static partial void StartReconnect(this ILogger logger, string reason);
+        public static partial void StartReconnect(this ILogger logger, MQTTnet.MqttClientDisconnectReason reason);
 
         [LoggerMessage(EventId = EventClass + 9, Level = LogLevel.Error,
             Message = "Retry policy was exhausted while trying to maintain a connection")]

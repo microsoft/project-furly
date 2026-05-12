@@ -36,7 +36,6 @@
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
     <AnalysisLevel>latest</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <IncludeOpenAPIAnalyzers>true</IncludeOpenAPIAnalyzers>
   </PropertyGroup>
   <ItemGroup Condition="$(NO_RCS) == ''">
     <PackageReference Include="Roslynator.Analyzers" Version="4.15.0" PrivateAssets="All"/>

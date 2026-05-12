@@ -142,7 +142,10 @@ namespace Furly.Tunnel.Protocol
                 var responsePayload = received.ToArray().Unzip();
                 if (status != 200)
                 {
-                    _logger.ChunkedCallFailed(method, target, payload, status, AsString(responsePayload));
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.ChunkedCallFailed(method, target, payload, status, AsString(responsePayload));
+                    }
                     MethodCallStatusException.Throw(responsePayload, _serializer, status);
                 }
                 return responsePayload;

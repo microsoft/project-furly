@@ -1136,7 +1136,7 @@ namespace Furly.Azure.IoT.Edge.Services
 
         [LoggerMessage(EventId = EventClass + 0, Level = LogLevel.Debug,
             Message = "Connecting all clients to {EdgeHub} using {Transport}.")]
-        public static partial void ConnectingAllClients(this ILogger logger, string edgeHub, object transport);
+        public static partial void ConnectingAllClients(this ILogger logger, string edgeHub, TransportOption transport);
 
         [LoggerMessage(EventId = EventClass + 1, Level = LogLevel.Information,
             Message = "---------- Running in iotedgehubdev mode ---------")]
