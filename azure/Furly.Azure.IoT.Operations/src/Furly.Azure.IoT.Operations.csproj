@@ -13,7 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Iot.Operations.Connector" Version="0.13.0" />
-    <PackageReference Include="KubernetesClient" Version="18.0.13" />
+    <PackageReference Include="KubernetesClient" Version="19.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Furly.Extensions.Mqtt\src\Furly.Extensions.Mqtt.csproj" />
