@@ -27,7 +27,7 @@ namespace Furly.Extensions.AspNetCore.OpenApi
         /// Removes all whitespace and replaces it with single space.
         /// </summary>
         /// <param name="value"></param>
-        public static string SingleSpacesNoLineBreak(this string value)
+        public static string? SingleSpacesNoLineBreak(this string? value)
         {
             if (string.IsNullOrEmpty(value))
             {
