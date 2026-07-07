@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.OpenApi.Models
+namespace Microsoft.OpenApi
 {
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
@@ -48,7 +48,7 @@ namespace Microsoft.OpenApi.Models
                     }
 
                     // If request.PathBase exists, then we will prepend it to doc.Paths.
-                    if (request.PathBase.HasValue)
+                    if (request.PathBase.HasValue && doc.Paths != null)
                     {
                         var pathBase = request.PathBase.Value;
                         var prefixedPaths = new OpenApiPaths();

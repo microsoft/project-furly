@@ -42,23 +42,6 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         [Fact]
-        public async Task CreateAdrServiceClientReturnsServiceClientAsync()
-        {
-            var client = new Mock<IMqttPubSubClient>();
-            client.SetupGet(x => x.ClientId).Returns("TestId").Verifiable(Times.AtLeast(1));
-#pragma warning disable CA2000 // Dispose objects before losing scope
-            var context = new ApplicationContext();
-#pragma warning restore CA2000 // Dispose objects before losing scope
-            using (var sdk = new AioSdk(context, new OptionsMock<AioOptions>(), Log.ConsoleFactory()))
-            {
-                await using var result = sdk.CreateAdrServiceClient(client.Object);
-                Assert.NotNull(result);
-            }
-            Assert.True(IsDisposed(context));
-            client.Verify();
-        }
-
-        [Fact]
         public async Task CreateStateStoreClientReturnsStateStoreClientAsync()
         {
             var client = new Mock<IMqttPubSubClient>();

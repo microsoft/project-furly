@@ -23,6 +23,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using System.Globalization;
     using System.Linq;
     using System.Net;
+    using System.Text;
     using System.Threading;
     using System.Threading.Channels;
     using System.Threading.Tasks;
@@ -235,7 +236,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     (_, message) = await tcs.Task.ConfigureAwait(false);
 
                     status = int.Parse(message.UserProperties
-                        .Find(p => p.Name == kStatusCodeKey)?.Value ?? "500",
+                        .Find(p => p.Name == kStatusCodeKey)?.ReadValueAsString() ?? "500",
                             CultureInfo.InvariantCulture);
                 }
                 else
@@ -412,7 +413,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     payload = kEmptyPayload;
                 }
                 await PublishAsync(message.ResponseTopic, null, payload,
-                    properties: [new MqttUserProperty(kStatusCodeKey, statusCode)],
+                    properties: [new MqttUserProperty(kStatusCodeKey, Encoding.UTF8.GetBytes(statusCode))],
                     correlationData: message.CorrelationData, ct: ct).ConfigureAwait(false);
             }
             else

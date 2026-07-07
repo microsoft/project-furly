@@ -12,6 +12,7 @@ namespace Furly.Extensions.Mqtt.Clients
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using MQTTnet;
+    using MQTTnet.Packets;
     using MQTTnet.Protocol;
     using MQTTnet.Server;
     using MqttNetServer = MQTTnet.Server.MqttServer;
@@ -198,7 +199,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 foreach (var property in args.ApplicationMessage.UserProperties)
                 {
-                    properties.AddOrUpdate(property.Name, property.Value);
+                    properties.AddOrUpdate(property.Name, property.ReadValueAsString());
                 }
             }
 

@@ -95,6 +95,14 @@ namespace Furly.Azure.IoT.Operations.Services
         public ValueTask DisposeAsync() => DisposeAsync(disposing: true);
 
         /// <inheritdoc/>
+        public ValueTask DisposeAsync(CancellationToken cancellationToken)
+            => DisposeAsync(disposing: true, cancellationToken);
+
+        /// <inheritdoc/>
+        public ValueTask DisposeAsync(bool disposing, CancellationToken cancellationToken)
+            => DisposeAsync(disposing);
+
+        /// <inheritdoc/>
         public void Dispose()
         {
             DisposeAsync().AsTask().GetAwaiter().GetResult();

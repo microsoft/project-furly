@@ -10,6 +10,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using global::Azure.Iot.Operations.Connector.Files;
     using global::Azure.Iot.Operations.Connector.Files.FilesMonitor;
     using global::Azure.Iot.Operations.Protocol;
+    using global::Azure.Iot.Operations.Protocol.Retry;
     using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.LeaderElection;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
@@ -47,23 +48,18 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         /// <inheritdoc/>
-        public IAdrClientWrapper CreateAdrClientWrapper(IMqttPubSubClient client)
+        public IAzureDeviceRegistryClientWrapper CreateAdrClientWrapper(IMqttPubSubClient client)
         {
             if (_options.Value.FileSystemPollingInterval != null)
             {
 #pragma warning disable CA2000 // Dispose objects before losing scope
-                return new AdrClientWrapper(new AdrServiceClient(_context, client),
+                return new AzureDeviceRegistryClientWrapper(
+                    new AzureDeviceRegistryClient(_context, client, new NoRetryPolicy()),
                     new AssetFileMonitor(
                         new PollingFilesMonitorFactory(_options.Value.FileSystemPollingInterval.Value)));
 #pragma warning restore CA2000 // Dispose objects before losing scope
             }
-            return new AdrClientWrapper(_context, client);
-        }
-
-        /// <inheritdoc/>
-        public IAdrServiceClient CreateAdrServiceClient(IMqttPubSubClient client)
-        {
-            return new AdrServiceClient(_context, client);
+            return new AzureDeviceRegistryClientWrapper(_context, client);
         }
 
         /// <inheritdoc/>

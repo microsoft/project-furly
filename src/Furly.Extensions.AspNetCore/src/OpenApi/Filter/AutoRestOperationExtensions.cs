@@ -5,12 +5,12 @@
 
 namespace Furly.Extensions.AspNetCore.OpenApi
 {
-    using Microsoft.OpenApi.Any;
-    using Microsoft.OpenApi.Models;
+    using Microsoft.OpenApi;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Linq;
     using System.Reflection;
+    using System.Text.Json.Nodes;
 
     /// <summary>
     /// Add autorest operation extensions
@@ -20,10 +20,10 @@ namespace Furly.Extensions.AspNetCore.OpenApi
         /// <inheritdoc/>
         public virtual void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            var versionParameter = operation.Parameters.SingleOrDefault(p => p.Name == "version");
+            var versionParameter = operation.Parameters?.SingleOrDefault(p => p.Name == "version");
             if (versionParameter != null)
             {
-                operation.Parameters.Remove(versionParameter);
+                operation.Parameters!.Remove(versionParameter);
             }
             if (operation.OperationId == null)
             {
@@ -45,37 +45,47 @@ namespace Furly.Extensions.AspNetCore.OpenApi
                 .GetCustomAttributes<AutoRestExtensionAttribute>().FirstOrDefault();
             if (attribute != null)
             {
+                operation.Extensions ??= new System.Collections.Generic.Dictionary<string, IOpenApiExtension>();
                 if (attribute.LongRunning)
                 {
-                    operation.Extensions.Add("x-ms-long-running-operation", new OpenApiBoolean(true));
+                    operation.Extensions.Add("x-ms-long-running-operation",
+                        new JsonNodeExtension(JsonValue.Create(true)!));
                 }
                 if (!string.IsNullOrEmpty(attribute.NextPageLinkName))
                 {
                     operation.Extensions.Add("x-ms-pageable",
-                        new OpenApiObject
+                        new JsonNodeExtension(new JsonObject
                         {
-                            ["nextLinkName"] = new OpenApiString(attribute.NextPageLinkName)
-                        });
+                            ["nextLinkName"] = JsonValue.Create(attribute.NextPageLinkName)
+                        }));
                 }
             }
 
-            foreach (var produces in operation.Responses.ToList())
+            if (operation.Responses != null)
             {
-                produces.Value.Description = produces.Value.Description.SingleSpacesNoLineBreak();
-            }
-
-            foreach (var param in operation.Parameters)
-            {
-                param.Description = param.Description.SingleSpacesNoLineBreak();
-                if (param.Schema != null)
+                foreach (var produces in operation.Responses.ToList())
                 {
-                    param.Schema.Description = param.Schema.Description.SingleSpacesNoLineBreak();
+                    produces.Value.Description = produces.Value.Description.SingleSpacesNoLineBreak();
                 }
             }
-            if (operation.RequestBody != null)
+
+            if (operation.Parameters != null)
             {
-                operation.RequestBody.Description =
-                    operation.RequestBody.Description.SingleSpacesNoLineBreak();
+                foreach (var param in operation.Parameters)
+                {
+                    if (param is OpenApiParameter p)
+                    {
+                        p.Description = p.Description.SingleSpacesNoLineBreak();
+                        if (p.Schema is OpenApiSchema paramSchema)
+                        {
+                            paramSchema.Description = paramSchema.Description.SingleSpacesNoLineBreak();
+                        }
+                    }
+                }
+            }
+            if (operation.RequestBody is OpenApiRequestBody body)
+            {
+                body.Description = body.Description.SingleSpacesNoLineBreak();
             }
             operation.Description = operation.Description.SingleSpacesNoLineBreak();
         }

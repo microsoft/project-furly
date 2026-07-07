@@ -13,7 +13,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using Microsoft.OpenApi.Models;
+    using Microsoft.OpenApi;
     using Newtonsoft.Json;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
@@ -73,16 +73,7 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
           {
             "in": "query",
             "name": "enumeration",
-            "type": "string",
-            "enum": [
-              "None",
-              "Value1",
-              "Value2"
-            ],
-            "x-ms-enum": {
-              "name": "TestEnum",
-              "modelAsString": false
-            }
+            "type": "string"
           }
         ],
         "responses": {
@@ -139,54 +130,69 @@ namespace Furly.Extensions.AspNetCore.Tests.OpenApi
       "type": "object",
       "properties": {
         "type": {
-          "type": "string"
+          "type": "string",
+          "x-nullable": true
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "x-nullable": true
         },
         "status": {
+          "type": "integer",
           "format": "int32",
-          "type": "integer"
+          "x-nullable": true
         },
         "detail": {
-          "type": "string"
+          "type": "string",
+          "x-nullable": true
         },
         "instance": {
-          "type": "string"
+          "type": "string",
+          "x-nullable": true
         }
       },
       "additionalProperties": { }
     },
     "TestEnum": {
+      "type": "string",
       "enum": [
         "None",
         "Value1",
         "Value2"
       ],
-      "type": "string",
       "x-ms-enum": {
         "name": "TestEnum",
         "modelAsString": false
       }
     },
     "TestModel": {
+      "type": "object",
       "required": [
         "VariantValueValue1"
       ],
-      "type": "object",
       "properties": {
         "VariantValueValue1": {
+          "type": "object",
           "description": "Represents primitive or structurally complex value",
-          "type": "object"
+          "x-nullable": true
         },
         "VariantValueValue2": {
+          "type": "object",
           "description": "Represents primitive or structurally complex value",
-          "type": "object"
+          "x-nullable": true
         }
       },
       "additionalProperties": false
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "EnumTests"
+    },
+    {
+      "name": "FilterTests"
+    }
+  ]
 }
 """.Replace("\r\n", "\n", StringComparison.Ordinal);
             Assert.Equal(expected, response);

@@ -12,7 +12,7 @@
     <None Remove="Azure.Iot.Operations.Services.AssetAndDeviceRegistry\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Iot.Operations.Connector" Version="0.13.0" />
+    <PackageReference Include="Azure.Iot.Operations.Connector" Version="1.2.0" />
     <PackageReference Include="KubernetesClient" Version="19.0.2" />
   </ItemGroup>
   <ItemGroup>

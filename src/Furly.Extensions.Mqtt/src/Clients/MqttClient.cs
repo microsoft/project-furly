@@ -428,7 +428,7 @@ namespace Furly.Extensions.Mqtt.Clients
             {
                 foreach (var property in args.ApplicationMessage.UserProperties)
                 {
-                    properties.AddOrUpdate(property.Name, property.Value);
+                    properties.AddOrUpdate(property.Name, property.ReadValueAsString());
                 }
             }
 
@@ -807,7 +807,7 @@ namespace Furly.Extensions.Mqtt.Clients
                     {
                         // Add the schema id as cloud event property
                         message.UserProperties.Add(
-                            new MqttUserProperty("dataschema", id));
+                            new MqttUserProperty("dataschema", Encoding.UTF8.GetBytes(id)));
                     }
                 }
                 await _publish.PublishAsync(message, schema, ct).ConfigureAwait(false);

@@ -7,7 +7,6 @@ namespace Furly.Azure.IoT.Operations.Services
 {
     using global::Azure.Iot.Operations.Connector;
     using global::Azure.Iot.Operations.Protocol;
-    using global::Azure.Iot.Operations.Services.AssetAndDeviceRegistry;
     using global::Azure.Iot.Operations.Services.StateStore;
     using global::Azure.Iot.Operations.Services.SchemaRegistry;
     using global::Azure.Iot.Operations.Services.LeaderElection;
@@ -18,18 +17,11 @@ namespace Furly.Azure.IoT.Operations.Services
     public interface IAioSdk
     {
         /// <summary>
-        /// Create adr service client
-        /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        IAdrServiceClient CreateAdrServiceClient(IMqttPubSubClient client);
-
-        /// <summary>
         /// Create adr client wrapper
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
-        IAdrClientWrapper CreateAdrClientWrapper(IMqttPubSubClient client);
+        IAzureDeviceRegistryClientWrapper CreateAdrClientWrapper(IMqttPubSubClient client);
 
         /// <summary>
         /// Create state store client

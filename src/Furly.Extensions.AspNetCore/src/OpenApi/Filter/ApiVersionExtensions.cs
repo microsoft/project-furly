@@ -5,7 +5,7 @@
 
 namespace Furly.Extensions.AspNetCore.OpenApi
 {
-    using Microsoft.OpenApi.Models;
+    using Microsoft.OpenApi;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
 
@@ -17,11 +17,15 @@ namespace Furly.Extensions.AspNetCore.OpenApi
         /// <inheritdoc/>
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
+            if (swaggerDoc.Paths == null)
+            {
+                return;
+            }
             var paths = new OpenApiPaths();
             foreach (var path in swaggerDoc.Paths)
             {
                 paths.Add(path.Key.Replace("v{version}",
-                    swaggerDoc.Info.Version, StringComparison.Ordinal), path.Value);
+                    swaggerDoc.Info?.Version, StringComparison.Ordinal), path.Value);
             }
             swaggerDoc.Paths = paths;
         }
