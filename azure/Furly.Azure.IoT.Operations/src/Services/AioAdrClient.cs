@@ -170,7 +170,7 @@ namespace Furly.Azure.IoT.Operations.Services
         }
 
         private readonly ILogger _logger;
-        private readonly IAdrClientWrapper _client;
+        private readonly IAzureDeviceRegistryClientWrapper _client;
     }
 
     /// <summary>

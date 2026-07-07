@@ -163,6 +163,6 @@ namespace Furly.Azure.IoT.Operations.Services
         private readonly Mock<IAioSdk> _sdkMock = new();
         private readonly Mock<IMqttPubSubClient> _mqttClientMock = new();
         private readonly Mock<ILogger<AioAdrClient>> _loggerMock = new();
-        private readonly Mock<IAdrClientWrapper> _clientWrapperMock = new();
+        private readonly Mock<IAzureDeviceRegistryClientWrapper> _clientWrapperMock = new();
     }
 }
