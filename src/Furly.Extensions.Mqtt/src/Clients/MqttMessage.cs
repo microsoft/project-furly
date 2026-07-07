@@ -41,21 +41,21 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             if (_version != MqttVersion.v311)
             {
-                _builder.WithUserProperty("specversion", "1.0");
-                _builder.WithUserProperty("id", header.Id);
-                _builder.WithUserProperty("source", header.Source.ToString());
-                _builder.WithUserProperty("type", header.Type);
+                _builder.WithUserProperty("specversion", "1.0"u8.ToArray());
+                _builder.WithUserProperty("id", Encoding.UTF8.GetBytes(header.Id));
+                _builder.WithUserProperty("source", Encoding.UTF8.GetBytes(header.Source.ToString()));
+                _builder.WithUserProperty("type", Encoding.UTF8.GetBytes(header.Type));
                 if (header.Time != null)
                 {
-                    _builder.WithUserProperty("time", header.Time.ToString());
+                    _builder.WithUserProperty("time", Encoding.UTF8.GetBytes(header.Time.ToString()!));
                 }
                 if (header.DataContentType != null)
                 {
-                    _builder.WithUserProperty("datacontenttype", header.DataContentType);
+                    _builder.WithUserProperty("datacontenttype", Encoding.UTF8.GetBytes(header.DataContentType));
                 }
                 if (header.Subject != null)
                 {
-                    _builder.WithUserProperty("subject", header.Subject);
+                    _builder.WithUserProperty("subject", Encoding.UTF8.GetBytes(header.Subject));
                 }
             }
             return this;
@@ -66,7 +66,7 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             if (_version != MqttVersion.v311 && !string.IsNullOrWhiteSpace(value))
             {
-                _builder.WithUserProperty("ContentEncoding", value);
+                _builder.WithUserProperty("ContentEncoding", Encoding.UTF8.GetBytes(value));
             }
             return this;
         }
@@ -100,7 +100,7 @@ namespace Furly.Extensions.Mqtt.Clients
         {
             if (_version != MqttVersion.v311 && !string.IsNullOrWhiteSpace(value))
             {
-                _builder.WithUserProperty(name, value);
+                _builder.WithUserProperty(name, Encoding.UTF8.GetBytes(value));
             }
             return this;
         }
@@ -152,7 +152,7 @@ namespace Furly.Extensions.Mqtt.Clients
             if (_version != MqttVersion.v311)
             {
                 _builder.WithUserProperty("TimeStamp",
-                    value.ToString(CultureInfo.InvariantCulture));
+                    Encoding.UTF8.GetBytes(value.ToString(CultureInfo.InvariantCulture)));
             }
             return this;
         }

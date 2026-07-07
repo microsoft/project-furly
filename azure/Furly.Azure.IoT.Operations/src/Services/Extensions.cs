@@ -11,6 +11,7 @@ namespace Furly.Azure.IoT.Operations.Services
     using System;
     using System.Buffers;
     using System.Collections.Generic;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -128,7 +129,8 @@ namespace Furly.Azure.IoT.Operations.Services
             {
                 foreach (var userProperty in message.UserProperties)
                 {
-                    mqttNetMessageBuilder.WithUserProperty(userProperty.Name, userProperty.Value);
+                    mqttNetMessageBuilder.WithUserProperty(userProperty.Name,
+                        Encoding.UTF8.GetBytes(userProperty.Value));
                 }
             }
             return mqttNetMessageBuilder.Build();
@@ -148,7 +150,8 @@ namespace Furly.Azure.IoT.Operations.Services
                 foreach (var mqttNetUserProperty in properties)
                 {
                     genericUserProperties.Add(new MqttUserProperty(
-                        mqttNetUserProperty.Name, mqttNetUserProperty.Value));
+                        mqttNetUserProperty.Name,
+                        MQTTnet.Packets.MqttUserPropertyExtensions.ReadValueAsString(mqttNetUserProperty)));
                 }
             }
             return genericUserProperties;
@@ -170,7 +173,7 @@ namespace Furly.Azure.IoT.Operations.Services
             foreach (var mqttNetUserProperty in properties)
             {
                 mqttNetUserProperties.Add(new MQTTnet.Packets.MqttUserProperty(
-                    mqttNetUserProperty.Name, mqttNetUserProperty.Value));
+                    mqttNetUserProperty.Name, Encoding.UTF8.GetBytes(mqttNetUserProperty.Value)));
             }
             return mqttNetUserProperties;
         }
