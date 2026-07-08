@@ -307,9 +307,19 @@ namespace Furly.Azure.IoT.Edge.Services
             /// Create client
             /// </summary>
             /// <param name="client"></param>
-            private ModuleClientAdapter(ModuleClient client)
+            /// <param name="product"></param>
+            /// <param name="cs"></param>
+            /// <param name="transportSetting"></param>
+            /// <param name="timeout"></param>
+            private ModuleClientAdapter(ModuleClient client, string product,
+                IotHubConnectionStringBuilder? cs, ITransportSettings? transportSetting,
+                TimeSpan timeout)
             {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
+                _product = product;
+                _cs = cs;
+                _transportSetting = transportSetting;
+                _timeout = timeout;
             }
 
             /// <inheritdoc/>
@@ -320,6 +330,7 @@ namespace Furly.Azure.IoT.Edge.Services
                     return;
                 }
                 _disposed = true;
+                _cts.Cancel();
                 _cts.Dispose();
                 _client.Dispose();
             }
@@ -351,15 +362,13 @@ namespace Furly.Azure.IoT.Edge.Services
                 }
 
                 var client = await CreateAsync(cs, transportSetting).ConfigureAwait(false);
-                var adapter = new ModuleClientAdapter(client);
                 callback ??= new ConnectionLogger(logger);
+                var adapter = new ModuleClientAdapter(client, product, cs,
+                    transportSetting, timeout);
                 try
                 {
                     // Configure
-                    client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                    client.SetConnectionStatusChangesHandler((s, r) =>
-                        adapter.OnConnectionStatusChange(callback, deviceId, moduleId, s, r));
-                    client.ProductInfo = product;
+                    adapter.Configure(client, callback, deviceId, moduleId);
                     await client.OpenAsync().ConfigureAwait(false);
                     callback.OnOpened(0, deviceId, moduleId);
                     return adapter;
@@ -368,6 +377,23 @@ namespace Furly.Azure.IoT.Edge.Services
                 {
                     throw Translate(ex);
                 }
+            }
+
+            /// <summary>
+            /// Configure a freshly created module client and wire up the
+            /// connection status handler for this adapter.
+            /// </summary>
+            /// <param name="client"></param>
+            /// <param name="callback"></param>
+            /// <param name="deviceId"></param>
+            /// <param name="moduleId"></param>
+            private void Configure(ModuleClient client, IIoTEdgeClientState callback,
+                string deviceId, string moduleId)
+            {
+                client.OperationTimeoutInMilliseconds = (uint)_timeout.TotalMilliseconds;
+                client.SetConnectionStatusChangesHandler((s, r) =>
+                    OnConnectionStatusChange(callback, deviceId, moduleId, s, r));
+                client.ProductInfo = _product;
             }
 
             /// <inheritdoc />
@@ -592,34 +618,62 @@ namespace Furly.Azure.IoT.Edge.Services
                 IsRecovering = true;
                 try
                 {
-                    while (!IsClosed)
+                    //
+                    // Once the hub connection is disabled/faulted (e.g. Bad_Credential)
+                    // the underlying SDK client is left in a terminal state - its
+                    // internal resources (including its CancellationTokenSource) are
+                    // disposed and it can never be re-opened. Recovery therefore has to
+                    // create a brand new client instead of re-opening the dead one.
+                    //
+                    while (!IsClosed && !_disposed)
                     {
+                        ModuleClient? fresh = null;
                         try
                         {
-                            await _client.CloseAsync(_cts.Token).ConfigureAwait(false);
-                            await _client.OpenAsync(_cts.Token).ConfigureAwait(false);
+                            fresh = await CreateAsync(_cs, _transportSetting).ConfigureAwait(false);
+                            Configure(fresh, callback, deviceId, moduleId);
+                            await fresh.OpenAsync(_cts.Token).ConfigureAwait(false);
+
+                            var old = Interlocked.Exchange(ref _client, fresh);
+                            await old.DisposeAsync().ConfigureAwait(false);
 
                             callback.OnOpened(++_reconnectCounter, deviceId, moduleId);
-                            IsRecovering = false;
                             return;
                         }
-                        catch (Exception e) when (e is ObjectDisposedException or OperationCanceledException)
+                        catch (Exception e) when (
+                            (e is ObjectDisposedException or OperationCanceledException) &&
+                            (_disposed || IsClosed))
                         {
-                            // Closed
+                            // The adapter itself is being torn down - stop recovering.
+                            if (fresh != null)
+                            {
+                                await fresh.DisposeAsync().ConfigureAwait(false);
+                            }
                             callback.OnError(_reconnectCounter, deviceId, moduleId,
                                 $"Module client was disposed while trying to recover ({_disposed}).");
-                            IsClosed = true;
-                            IsRecovering = false;
                             return;
                         }
                         catch (Exception ex)
                         {
+                            // Includes ObjectDisposedException thrown from a dead SDK
+                            // client - dispose the attempt and retry with a fresh one.
+                            if (fresh != null)
+                            {
+                                await fresh.DisposeAsync().ConfigureAwait(false);
+                            }
                             callback.OnError(_reconnectCounter, deviceId, moduleId, ex.ToString());
                         }
                         await Task.Delay(5000, _cts.Token).ConfigureAwait(false);
                     }
                 }
-                catch (OperationCanceledException) { }
+                catch (Exception e) when (e is OperationCanceledException or ObjectDisposedException)
+                {
+                    // Adapter torn down while waiting to retry.
+                }
+                finally
+                {
+                    IsRecovering = false;
+                }
             }
 
             /// <summary>
@@ -695,7 +749,11 @@ namespace Furly.Azure.IoT.Edge.Services
             }
 
             private bool _disposed;
-            private readonly ModuleClient _client;
+            private ModuleClient _client;
+            private readonly string _product;
+            private readonly IotHubConnectionStringBuilder? _cs;
+            private readonly ITransportSettings? _transportSetting;
+            private readonly TimeSpan _timeout;
             private readonly CancellationTokenSource _cts = new();
             private int _reconnectCounter;
         }
@@ -719,9 +777,19 @@ namespace Furly.Azure.IoT.Edge.Services
             /// Create client
             /// </summary>
             /// <param name="client"></param>
-            internal DeviceClientAdapter(DeviceClient client)
+            /// <param name="product"></param>
+            /// <param name="cs"></param>
+            /// <param name="transportSetting"></param>
+            /// <param name="timeout"></param>
+            internal DeviceClientAdapter(DeviceClient client, string product,
+                IotHubConnectionStringBuilder? cs, ITransportSettings? transportSetting,
+                TimeSpan timeout)
             {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
+                _product = product;
+                _cs = cs;
+                _transportSetting = transportSetting;
+                _timeout = timeout;
             }
 
             /// <inheritdoc/>
@@ -732,6 +800,7 @@ namespace Furly.Azure.IoT.Edge.Services
                     return;
                 }
                 _disposed = true;
+                _cts.Cancel();
                 _cts.Dispose();
                 _client.Dispose();
             }
@@ -753,15 +822,13 @@ namespace Furly.Azure.IoT.Edge.Services
                 IIoTEdgeClientState? callback)
             {
                 var client = Create(cs, transportSetting);
-                var adapter = new DeviceClientAdapter(client);
                 callback ??= new ConnectionLogger(logger);
+                var adapter = new DeviceClientAdapter(client, product, cs,
+                    transportSetting, timeout);
                 try
                 {
                     // Configure
-                    client.OperationTimeoutInMilliseconds = (uint)timeout.TotalMilliseconds;
-                    client.SetConnectionStatusChangesHandler((s, r) =>
-                        adapter.OnConnectionStatusChange(callback, deviceId, s, r));
-                    client.ProductInfo = product;
+                    adapter.Configure(client, callback, deviceId);
 
                     await client.OpenAsync().ConfigureAwait(false);
                     callback.OnOpened(0, deviceId, null);
@@ -771,6 +838,22 @@ namespace Furly.Azure.IoT.Edge.Services
                 {
                     throw Translate(ex);
                 }
+            }
+
+            /// <summary>
+            /// Configure a freshly created device client and wire up the
+            /// connection status handler for this adapter.
+            /// </summary>
+            /// <param name="client"></param>
+            /// <param name="callback"></param>
+            /// <param name="deviceId"></param>
+            private void Configure(DeviceClient client, IIoTEdgeClientState callback,
+                string deviceId)
+            {
+                client.OperationTimeoutInMilliseconds = (uint)_timeout.TotalMilliseconds;
+                client.SetConnectionStatusChangesHandler((s, r) =>
+                    OnConnectionStatusChange(callback, deviceId, s, r));
+                client.ProductInfo = _product;
             }
 
             /// <inheritdoc />
@@ -985,34 +1068,62 @@ namespace Furly.Azure.IoT.Edge.Services
                 IsRecovering = true;
                 try
                 {
-                    while (!IsClosed)
+                    //
+                    // Once the hub connection is disabled/faulted (e.g. Bad_Credential)
+                    // the underlying SDK client is left in a terminal state - its
+                    // internal resources (including its CancellationTokenSource) are
+                    // disposed and it can never be re-opened. Recovery therefore has to
+                    // create a brand new client instead of re-opening the dead one.
+                    //
+                    while (!IsClosed && !_disposed)
                     {
+                        DeviceClient? fresh = null;
                         try
                         {
-                            await _client.CloseAsync(_cts.Token).ConfigureAwait(false);
-                            await _client.OpenAsync(_cts.Token).ConfigureAwait(false);
+                            fresh = Create(_cs, _transportSetting);
+                            Configure(fresh, callback, deviceId);
+                            await fresh.OpenAsync(_cts.Token).ConfigureAwait(false);
+
+                            var old = Interlocked.Exchange(ref _client, fresh);
+                            await old.DisposeAsync().ConfigureAwait(false);
 
                             callback.OnOpened(++_reconnectCounter, deviceId, null);
-                            IsRecovering = false;
                             return;
                         }
-
-                        catch (Exception e) when (e is ObjectDisposedException or OperationCanceledException)
+                        catch (Exception e) when (
+                            (e is ObjectDisposedException or OperationCanceledException) &&
+                            (_disposed || IsClosed))
                         {
-                            // Closed
+                            // The adapter itself is being torn down - stop recovering.
+                            if (fresh != null)
+                            {
+                                await fresh.DisposeAsync().ConfigureAwait(false);
+                            }
                             callback.OnError(_reconnectCounter, deviceId, null,
                                 $"Device client was disposed while trying to recover ({_disposed}).");
-                            IsRecovering = false;
                             return;
                         }
                         catch (Exception ex)
                         {
+                            // Includes ObjectDisposedException thrown from a dead SDK
+                            // client - dispose the attempt and retry with a fresh one.
+                            if (fresh != null)
+                            {
+                                await fresh.DisposeAsync().ConfigureAwait(false);
+                            }
                             callback.OnError(_reconnectCounter, deviceId, null, ex.ToString());
                         }
                         await Task.Delay(5000, _cts.Token).ConfigureAwait(false);
                     }
                 }
-                catch (OperationCanceledException) { }
+                catch (Exception e) when (e is OperationCanceledException or ObjectDisposedException)
+                {
+                    // Adapter torn down while waiting to retry.
+                }
+                finally
+                {
+                    IsRecovering = false;
+                }
             }
 
             /// <summary>
@@ -1079,7 +1190,11 @@ namespace Furly.Azure.IoT.Edge.Services
             }
 
             private readonly CancellationTokenSource _cts = new();
-            private readonly DeviceClient _client;
+            private DeviceClient _client;
+            private readonly string _product;
+            private readonly IotHubConnectionStringBuilder? _cs;
+            private readonly ITransportSettings? _transportSetting;
+            private readonly TimeSpan _timeout;
             private int _reconnectCounter;
             private bool _disposed;
         }
