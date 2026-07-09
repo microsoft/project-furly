@@ -376,11 +376,43 @@ namespace Furly.Extensions.Mqtt.Clients
                     _connection = Task.WhenAll(_sessions
                         .Select(c => c.ConnectAsync(GetSessionClientOptions(), _cts.Token)));
                     _logger.SessionRecreated(session.ClientId ?? "unknown");
+
+                    // Dispose the now-orphaned session so its underlying mqtt
+                    // client, event handler subscriptions, meter and
+                    // synchronization primitives are released instead of
+                    // accumulating on every reconnect. Disposal runs off this
+                    // callback to avoid re-entering the session while it tears
+                    // itself down.
+                    DisposeOrphanedSession(session);
                     return Task.CompletedTask;
                 }
             }
             _logger.SessionNotRecreated(session.ClientId ?? "unknown");
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Dispose a session that was replaced after its mqtt session was lost.
+        /// Runs disposal on a background task so it does not block or re-enter
+        /// the session's own SessionLost callback.
+        /// </summary>
+        /// <param name="session"></param>
+        private void DisposeOrphanedSession(MqttSession session)
+        {
+            var sessionId = session.ClientId ?? "unknown";
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await session.DisposeAsync().AsTask()
+                        .WaitAsync(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+                }
+                catch (ObjectDisposedException) { }
+                catch (Exception ex)
+                {
+                    _logger.OrphanedSessionDisposeFailed(ex, sessionId);
+                }
+            });
         }
 
         /// <summary>
@@ -928,5 +960,9 @@ namespace Furly.Extensions.Mqtt.Clients
         [LoggerMessage(EventId = EventClass + 15, Level = LogLevel.Information,
             Message = "Closed mqtt client {ClientId} ...")]
         public static partial void ClientClosed(this ILogger logger, string clientId);
+
+        [LoggerMessage(EventId = EventClass + 16, Level = LogLevel.Error,
+            Message = "Mqtt client failed to dispose orphaned mqtt session {SessionId}.")]
+        public static partial void OrphanedSessionDisposeFailed(this ILogger logger, Exception ex, string sessionId);
     }
 }
